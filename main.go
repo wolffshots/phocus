@@ -102,15 +102,35 @@ var connectionLostHandler mqtt.ConnectionLostHandler = func(client mqtt.Client, 
 }
 
 func main() {
-	ports, err := serial.GetPortsList()
+	// specify serial port
+	mode := &serial.Mode{
+		BaudRate: 2400,
+	}
+	port, err := serial.Open("/dev/ttyUSB0", mode)
 	if err != nil {
 		log.Fatal(err)
 	}
-	if len(ports) == 0 {
-		log.Fatal("No serial ports found!")
+	n, err := port.Write([]byte("QPGS0\x3F\xDA\r"))
+	if err != nil {
+		log.Fatal(err)
 	}
-	for _, port := range ports {
-		fmt.Printf("Found port: %v\n", port)
+	fmt.Printf("Sent %v bytes\n", n)
+	buff := make([]byte, 140)
+	for {
+		n, err := port.Read(buff)
+		if err != nil {
+			log.Fatal(err)
+			break
+		}
+		if n == 0 {
+			fmt.Println("\nEOF")
+			break
+		}
+		fmt.Printf("%v", string(buff[:n]))
+		if string(buff[:n]) == "\r" {
+			fmt.Println("\n\\r - read end")
+			break
+		}
 	}
 
 	router := gin.Default()
@@ -127,10 +147,10 @@ func main() {
 	mqtt.CRITICAL = log.New(os.Stdout, "[CRIT] ", 0)
 	mqtt.WARN = log.New(os.Stdout, "[WARN]  ", 0)
 	mqtt.DEBUG = log.New(os.Stdout, "[DEBUG] ", 0)
-	var broker = "192.168.88.49" // TODO these should be config vars
-	var port = 1883
+	var mqtt_broker = "192.168.88.49" // TODO these should be config vars
+	var mqtt_port = 1883
 	opts := mqtt.NewClientOptions()
-	opts.AddBroker(fmt.Sprintf("tcp://%s:%d", broker, port))
+	opts.AddBroker(fmt.Sprintf("tcp://%s:%d", mqtt_broker, mqtt_port))
 	opts.SetClientID("go_phocus_client")
 	opts.SetDefaultPublishHandler(messagePublishedHandler)
 	opts.OnConnect = connectionHandler
