@@ -5,6 +5,7 @@ import (
 	"github.com/eclipse/paho.mqtt.golang" // mqtt client
 	"github.com/gin-gonic/gin"            // for web server
 	"github.com/google/uuid"              // for generating UUIDs for commands
+	"go.bug.st/serial"                    // rs232 serial
 	"log"                                 // logging for mqtt
 	"net/http"                            // for statuses primarily
 	"os"                                  // access to std out
@@ -101,6 +102,17 @@ var connectionLostHandler mqtt.ConnectionLostHandler = func(client mqtt.Client, 
 }
 
 func main() {
+	ports, err := serial.GetPortsList()
+	if err != nil {
+		log.Fatal(err)
+	}
+	if len(ports) == 0 {
+		log.Fatal("No serial ports found!")
+	}
+	for _, port := range ports {
+		fmt.Printf("Found port: %v\n", port)
+	}
+
 	router := gin.Default()
 	router.GET("/messages", getMessages)
 	router.GET("/messages/:id", getMessageByID)
