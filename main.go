@@ -9,6 +9,7 @@ import (
 	"log"                                 // logging for mqtt
 	"net/http"                            // for statuses primarily
 	"os"                                  // access to std out
+	"strings"                             // for string parsing
 	"time"                                // for sleeping
 )
 
@@ -40,14 +41,11 @@ func queueQPGSn() {
 // enqueue new message manually (requires knowledge of commands and a generated uuid on the request)
 func postMessages(c *gin.Context) {
 	var newMessage message
-
 	// Call BindJSON to bind the received JSON to
-	// newMessage.
+	// newMessage - will throw an error if it can't cast ID to UUID
 	if err := c.BindJSON(&newMessage); err != nil {
 		return
 	}
-
-	// Add the new album to the slice.
 	messages = append(messages, newMessage)
 	c.IndentedJSON(http.StatusCreated, newMessage)
 }
@@ -106,7 +104,7 @@ func main() {
 	mode := &serial.Mode{
 		BaudRate: 2400,
 	}
-	port, err := serial.Open("/dev/ttyUSB0", mode)
+	port, err := serial.Open("/dev/ttyUSB0", mode) // TODO move to environment variable
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -116,6 +114,9 @@ func main() {
 	}
 	fmt.Printf("Sent %v bytes\n", n)
 	buff := make([]byte, 140)
+	var response = ""
+	// doesn't need to be this big but the biggest response we expect is 135 chars so might as well be slightly bigger than that
+	// even though it reads one at a time in the current setup
 	for {
 		n, err := port.Read(buff)
 		if err != nil {
@@ -126,13 +127,20 @@ func main() {
 			fmt.Println("\nEOF")
 			break
 		}
-		fmt.Printf("%v", string(buff[:n]))
+		response = fmt.Sprintf("%v%v", response, string(buff[:n]))
 		if string(buff[:n]) == "\r" {
-			fmt.Println("\n\\r - read end")
+			fmt.Print("read a \\r - response was: ")
+			// this is what needs to be parsed for values based on the type of query it was
+			fmt.Printf("other units:  \t%v\n", strings.Split(response, " ")[0])
+			fmt.Printf("serial number:\t%v\n", strings.Split(response, " ")[1])
+			// TODO seperate out the deserialisation of the commands to a generic function call with the input type as a parameter
+			// we can handle updating mqtt values from that parser
+			// TODO capture and make sense of the CRC in the response
 			break
 		}
 	}
 
+	// router setup for async rest api for queueing
 	router := gin.Default()
 	router.GET("/messages", getMessages)
 	router.GET("/messages/:id", getMessageByID)
@@ -175,7 +183,7 @@ func main() {
 		fmt.Println("re-checking")
 		fmt.Println(len(messages))
 		fmt.Println("re-running")
-		// if there is
+		// if there is an entry at [0] then run that command
 		if len(messages) > 0 {
 			fmt.Println(messages[0])
 			messages = messages[1:len(messages)]
