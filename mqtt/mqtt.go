@@ -14,7 +14,7 @@ func Setup() {
 	mqtt.CRITICAL = log.New(os.Stdout, "[CRIT] ", 0)
 	mqtt.WARN = log.New(os.Stdout, "[WARN]  ", 0)
 	mqtt.DEBUG = log.New(os.Stdout, "[DEBUG] ", 0)
-	var mqtt_broker = "192.168.88.49" // TODO these should be config vars
+	var mqtt_broker = "192.168.88.124" // TODO these should be config vars
 	var mqtt_port = 1883
 	opts := mqtt.NewClientOptions()
 	opts.AddBroker(fmt.Sprintf("tcp://%s:%d", mqtt_broker, mqtt_port))
@@ -28,8 +28,8 @@ func Setup() {
 		panic(token.Error())
 	}
 
-	token := client.Publish("go_phocus_client/boot_time", 0, false, time.Now().Format(time.RFC822))
-	token.Wait()
+	client.Publish("go_phocus_client/boot_time", 0, false, time.Now().Format(time.RFC822)).Wait()
+	client.Publish("homeassistant/sensor/phocus", 0, false, time.Now().Format(time.RFC822)).Wait()
 }
 
 // mqtt handlers

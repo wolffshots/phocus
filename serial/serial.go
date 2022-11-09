@@ -1,26 +1,45 @@
 package serial
 
 import (
-	"fmt"
-	"go.bug.st/serial" // rs232 serial
-	"log"
-	"strings"
+	"fmt"                   // formatting
+	"go.bug.st/serial"      // rs232 serial
+	"log"                   // logging
+	"strings"               // string operations
+	"wolffshots/phocus/crc" // performing checksums on messages to and from inverter
 )
 
-func Setup() { // TODO add error handling
+var port serial.Port
+var setup_err error
+
+func Setup() error { // TODO add error handling
 	// specify serial port
 	mode := &serial.Mode{
 		BaudRate: 2400,
 	}
-	port, err := serial.Open("/dev/ttyUSB0", mode) // TODO move to environment variable
+	port, setup_err = serial.Open("/dev/ttyUSB0", mode) // TODO move to environment variable
+	if setup_err != nil {
+		log.Fatal(setup_err)
+	}
+	return setup_err
+}
+
+func Write(input string) (int, error) {
+	checksum, err := crc.Checksum(input)
 	if err != nil {
 		log.Fatal(err)
 	}
-	n, err := port.Write([]byte("QPGS0\x3F\xDA\r"))
+	fmt.Printf("crc for write: %x\n", checksum)
+	result := fmt.Sprintf("%v%x\r", input, checksum)
+	fmt.Printf("result to be written: %v\n", result)
+	n, err := 5, nil // TODO port.Write([]byte(result))
 	if err != nil {
 		log.Fatal(err)
 	}
 	fmt.Printf("Sent %v bytes\n", n)
+	return n, err
+}
+
+func Read() (string, error) {
 	buff := make([]byte, 140)
 	var response = ""
 	// doesn't need to be this big but the biggest response we expect is 135 chars so might as well be slightly bigger than that
@@ -48,4 +67,6 @@ func Setup() { // TODO add error handling
 			break
 		}
 	}
+
+	return "the read string", nil
 }

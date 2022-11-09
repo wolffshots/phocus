@@ -1,13 +1,12 @@
 package main
 
 import (
-	"fmt"                    // for printing
-	"github.com/google/uuid" // for generating UUIDs for commands
-	"strings"                // for string parsing
-	"time"                   // for sleeping
-	"wolffshots/phocus/crc"
+	"fmt"                      // for printing
+	"github.com/gin-gonic/gin" // for web server
+	"github.com/google/uuid"   // for generating UUIDs for commands
+	"net/http"                 // for statuses primarily
+	"time"                     // for sleeping
 	"wolffshots/phocus/mqtt"
-	"wolffshots/phocus/rest"
 	"wolffshots/phocus/sensors"
 	"wolffshots/phocus/serial"
 )
@@ -84,8 +83,17 @@ func deleteMessages(c *gin.Context) {
 
 func main() {
 	serial.Setup()
+	serial.Write("QPGS0")
 
-	go rest.Setup()
+	// router setup for async rest api for queueing
+	router := gin.Default()
+	router.GET("/messages", getMessages)
+	router.GET("/messages/:id", getMessageByID)
+	router.POST("/messages", postMessages)
+	router.DELETE("/messages", deleteMessages)
+
+	// spawns a go-routine which handles web requests
+	go router.Run("localhost:8080")
 
 	mqtt.Setup()
 
