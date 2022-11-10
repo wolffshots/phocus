@@ -4,8 +4,8 @@ import (
 	"fmt"              // formatting
 	"go.bug.st/serial" // rs232 serial
 	"log"              // logging
-	"strings"          // string operations
 	"wolffshots/phocus/crc"
+	"wolffshots/phocus/messages"
 )
 
 var port serial.Port
@@ -52,11 +52,11 @@ func Read() (string, error) {
 			break
 		}
 		response = fmt.Sprintf("%v%v", response, string(buff[:n]))
+        log.Printf("%s\n", string(buff[:n]))
 		if string(buff[:n]) == "\r" {
 			log.Print("read a \\r - response was: ")
 			// this is what needs to be parsed for values based on the type of query it was
-			log.Printf("other units:  \t%v\n", strings.Split(response, " ")[0])
-			log.Printf("serial number:\t%v\n", strings.Split(response, " ")[1])
+			log.Printf("response:  \t%v\n", messages.NewQPGSnResponse(response))
 			// TODO seperate out the deserialisation of the commands to a generic function call with the input type as a parameter
 			// we can handle updating mqtt values from that parser
 			// TODO capture and make sense of the CRC in the response
