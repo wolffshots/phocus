@@ -52,7 +52,6 @@ func Read() (string, error) {
 			break
 		}
 		response = fmt.Sprintf("%v%v", response, string(buff[:n]))
-        log.Printf("%s\n", string(buff[:n]))
 		if string(buff[:n]) == "\r" {
 			log.Print("read a \\r - response was: ")
 			// this is what needs to be parsed for values based on the type of query it was
