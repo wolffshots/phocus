@@ -17,7 +17,7 @@ func TestChecksumQPGS0(t *testing.T) {
 
 func TestEncodeQPGS0(t *testing.T) {
 	input := "QPGS0"
-    want := "QPGS0\x3F\xDA\r"
+	want := "QPGS0\x3F\xDA\r"
 	result, err := Encode(input)
 	if !(want == result) || err != nil {
 		t.Fatalf(`Encode("QPGS0") = %s, %v, want match for %s, nil`, result, err, want)
@@ -35,7 +35,7 @@ func TestChecksumQPGS1(t *testing.T) {
 
 func TestEncodeQPGS1(t *testing.T) {
 	input := "QPGS1"
-    want := "QPGS1\x2F\xFB\r"
+	want := "QPGS1\x2F\xFB\r"
 	result, err := Encode(input)
 	if !(want == result) || err != nil {
 		t.Fatalf(`Encode("QPGS1") = %s, %v, want match for %s, nil`, result, err, want)
@@ -53,7 +53,7 @@ func TestChecksumQPGS2(t *testing.T) {
 
 func TestEncodeQPGS2(t *testing.T) {
 	input := "QPGS2"
-    want := "QPGS2\x1F\x98\r"
+	want := "QPGS2\x1F\x98\r"
 	result, err := Encode(input)
 	if !(want == result) || err != nil {
 		t.Fatalf(`Encode("QPGS2") = %s, %v, want match for %s, nil`, result, err, want)
@@ -71,7 +71,7 @@ func TestChecksumQPGS3(t *testing.T) {
 
 func TestEncodeQPGS3(t *testing.T) {
 	input := "QPGS3"
-    want := "QPGS3\x0F\xB9\r"
+	want := "QPGS3\x0F\xB9\r"
 	result, err := Encode(input)
 	if !(want == result) || err != nil {
 		t.Fatalf(`Encode("QPGS3") = %s, %v, want match for %s, nil`, result, err, want)
@@ -89,7 +89,7 @@ func TestChecksumQPGS4(t *testing.T) {
 
 func TestEncodeQPGS4(t *testing.T) {
 	input := "QPGS4"
-    want := "QPGS4\x7F\x5E\r"
+	want := "QPGS4\x7F\x5E\r"
 	result, err := Encode(input)
 	if !(want == result) || err != nil {
 		t.Fatalf(`Encode("QPGS4") = %s, %v, want match for %s, nil`, result, err, want)

@@ -3,12 +3,12 @@ package main
 import (
 	"github.com/gin-gonic/gin" // for web server
 	"github.com/google/uuid"   // for generating UUIDs for commands
-	"net/http"                 // for statuses primarily
-	"time"                     // for sleeping
+	"log"
+	"net/http" // for statuses primarily
+	"time"     // for sleeping
 	"wolffshots/phocus/mqtt"
 	"wolffshots/phocus/sensors"
 	"wolffshots/phocus/serial"
-    "log"
 )
 
 // shape of a message for phocus to interpret and handle queuing of
@@ -82,13 +82,13 @@ func deleteMessages(c *gin.Context) {
 // TODO
 
 func main() {
-    log.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds | log.Llongfile)
-    log.Println("Starting up phocus")
-	
-    // serial
-    serial.Setup()
+	log.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds | log.Llongfile)
+	log.Println("Starting up phocus")
+
+	// serial
+	serial.Setup()
 	serial.Write("QPGS0")
-    log.Println(serial.Read())
+	log.Println(serial.Read())
 
 	// router setup for async rest api for queueing
 	router := gin.Default()
@@ -101,9 +101,9 @@ func main() {
 	go router.Run("localhost:8080")
 
 	// mqtt
-    mqtt.Setup()
+	mqtt.Setup()
 
-    // sensors
+	// sensors
 	sensors.Register()
 
 	// sleep to make sure web server comes on before polling starts

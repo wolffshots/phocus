@@ -1,11 +1,11 @@
 package serial
 
 import (
-	"fmt"                   // formatting
-	"go.bug.st/serial"      // rs232 serial
-	"log"                   // logging
-	"strings"               // string operations
-    "wolffshots/phocus/crc"
+	"fmt"              // formatting
+	"go.bug.st/serial" // rs232 serial
+	"log"              // logging
+	"strings"          // string operations
+	"wolffshots/phocus/crc"
 )
 
 var port serial.Port
@@ -24,8 +24,8 @@ func Setup() error { // TODO add error handling
 }
 
 func Write(input string) (int, error) {
-    message, err := crc.Encode(input)
-    if err != nil {
+	message, err := crc.Encode(input)
+	if err != nil {
 		log.Fatal(err)
 	}
 	n, err := port.Write([]byte(message))
@@ -55,13 +55,13 @@ func Read() (string, error) {
 		if string(buff[:n]) == "\r" {
 			log.Print("read a \\r - response was: ")
 			// this is what needs to be parsed for values based on the type of query it was
-		    log.Printf("other units:  \t%v\n", strings.Split(response, " ")[0])
+			log.Printf("other units:  \t%v\n", strings.Split(response, " ")[0])
 			log.Printf("serial number:\t%v\n", strings.Split(response, " ")[1])
 			// TODO seperate out the deserialisation of the commands to a generic function call with the input type as a parameter
 			// we can handle updating mqtt values from that parser
 			// TODO capture and make sense of the CRC in the response
 			// crc.CalculateCRC("some input string")
-            // crc.Verify
+			// crc.Verify
 			break
 		}
 	}
