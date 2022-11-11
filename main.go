@@ -87,22 +87,22 @@ func Interpret(input message) error {
 		serial.Write("QPGS1")
 		response, err := serial.Read()
 		QPGSResponse := messages.NewQPGSnResponse(response)
-        err = mqtt.Send("phocus/stats/qpgs1", 0, false, QPGSResponse, 10)
-        if (err != nil){
-            log.Fatalf("mqtt send of QPGS1 failed with: %v", err)
-        }
-        log.Printf("%v sent to mqtt with err: %v",QPGSResponse, err)
+		err = mqtt.Send("phocus/stats/qpgs1", 0, false, QPGSResponse, 10)
+		if err != nil {
+			log.Fatalf("mqtt send of QPGS1 failed with: %v", err)
+		}
+		log.Printf("%v sent to mqtt with err: %v", QPGSResponse, err)
 
 		log.Println("QPGS2")
 		serial.Write("QPGS2")
 		response, err = serial.Read()
 		QPGSResponse = messages.NewQPGSnResponse(response)
 		err = mqtt.Send("phocus/stats/qpgs2", 0, false, QPGSResponse, 10)
-        if (err != nil){
-            log.Fatalf("mqtt send of QPGS2 failed with: %v", err)
-        }
+		if err != nil {
+			log.Fatalf("mqtt send of QPGS2 failed with: %v", err)
+		}
 
-        log.Printf("%v sent to mqtt with err: %v",QPGSResponse, err)
+		log.Printf("%v sent to mqtt with err: %v", QPGSResponse, err)
 		return err
 	case "QID":
 		log.Println("send QID")

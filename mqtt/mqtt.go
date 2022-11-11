@@ -15,7 +15,7 @@ func Setup() {
 	mqtt.ERROR = log.New(os.Stdout, "[ERROR] ", 0)
 	mqtt.CRITICAL = log.New(os.Stdout, "[CRIT] ", 0)
 	mqtt.WARN = log.New(os.Stdout, "[WARN]  ", 0)
-    mqtt.DEBUG = log.New(os.Stdout, "[DEBUG] ", 0)
+	mqtt.DEBUG = log.New(os.Stdout, "[DEBUG] ", 0)
 	var mqtt_broker = "192.168.88.124" // TODO these should be config vars
 	var mqtt_port = 1883
 	opts := mqtt.NewClientOptions()
@@ -35,13 +35,13 @@ func Setup() {
 }
 
 func Send(topic string, qos byte, retained bool, payload interface{}, timeout time.Duration) error {
-    token := client.Publish(topic, qos, retained, payload)
-    err := token.Error()
-    if (err != nil){
-        token.WaitTimeout(timeout)
-        err = token.Error()
-    }
-    return err
+	token := client.Publish(topic, qos, retained, payload)
+	err := token.Error()
+	if err != nil {
+		token.WaitTimeout(timeout)
+		err = token.Error()
+	}
+	return err
 }
 
 // mqtt handlers
