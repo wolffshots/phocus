@@ -1,14 +1,16 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin" // for web server
-	"github.com/google/uuid"   // for generating UUIDs for commands
-	"log"                      // formatted logging
-	"net/http"                 // for statuses primarily
-	"time"                     // for sleeping
-	"wolffshots/phocus/mqtt"   // comms with mqtt broker
+	"github.com/gin-gonic/gin"   // for web server
+	"github.com/google/uuid"     // for generating UUIDs for commands
+	"log"                        // formatted logging
+	"net/http"                   // for statuses primarily
+	"time"                       // for sleeping
+	"wolffshots/phocus/messages" // message structures
+	"wolffshots/phocus/mqtt"     // comms with mqtt broker
 	"wolffshots/phocus/sensors"
 	"wolffshots/phocus/serial" // comms with inverter
+	// "encoding/json"
 )
 
 // shape of a message for phocus to interpret and handle queuing of
@@ -19,16 +21,16 @@ type message struct {
 }
 
 // queue of messages seeded with QID to run at startup
-var messages = []message{
+var queue = []message{
 	{ID: uuid.New(), Command: "QID", Payload: ""},
 }
 
 // loop and add QPGSi x n to the queue as long as it isn't too long
 func QueueQPGSn() {
 	for {
-		if len(messages) < 20 {
-			messages = append(
-				messages,
+		if len(queue) < 20 {
+			queue = append(
+				queue,
 				message{ID: uuid.New(), Command: "QPGSn", Payload: ""},
 			)
 		}
@@ -37,30 +39,30 @@ func QueueQPGSn() {
 }
 
 // enqueue new message manually (requires knowledge of commands and a generated uuid on the request)
-func PostMessages(c *gin.Context) {
+func PostMessage(c *gin.Context) {
 	var newMessage message
 	// Call BindJSON to bind the received JSON to
 	// newMessage - will throw an error if it can't cast ID to UUID
 	if err := c.BindJSON(&newMessage); err != nil {
 		return
 	}
-	messages = append(messages, newMessage)
+	queue = append(queue, newMessage)
 	c.IndentedJSON(http.StatusCreated, newMessage)
 }
 
 // view current queue
-func GetMessages(c *gin.Context) {
-	c.IndentedJSON(http.StatusOK, messages)
+func GetQueue(c *gin.Context) {
+	c.IndentedJSON(http.StatusOK, queue)
 }
 
 // get specific message
-func GetMessageByID(c *gin.Context) {
+func GetMessage(c *gin.Context) {
 	id := c.Param("id")
 
-	if id == "next" && len(messages) > 0 {
-		c.IndentedJSON(http.StatusOK, messages[0])
+	if id == "next" && len(queue) > 0 {
+		c.IndentedJSON(http.StatusOK, queue[0])
 	} else {
-		for _, a := range messages {
+		for _, a := range queue {
 			if a.ID.String() == id {
 				c.IndentedJSON(http.StatusOK, a)
 				return
@@ -71,24 +73,41 @@ func GetMessageByID(c *gin.Context) {
 }
 
 // clear current queue
-func DeleteMessages(c *gin.Context) {
-	messages = []message{}
+func DeleteQueue(c *gin.Context) {
+	queue = []message{}
 }
 
 // function to interpret message and run relevant action (command or query)
-func Interpret(input message) {
+func Interpret(input message) error {
 	switch input.Command {
 	case "QPGSn":
-		{
-			log.Println("QPGS0") // if debug
-			log.Println("QPGS1")
-			log.Println("QPGS2")
-		}
-    case "QID":
-        {
-            log.Println("send QID")
+		log.Println("QPGS0") // if debug
+
+		log.Println("QPGS1")
+		serial.Write("QPGS1")
+		response, err := serial.Read()
+		QPGSResponse := messages.NewQPGSnResponse(response)
+        err = mqtt.Send("phocus/stats/qpgs1", 0, false, QPGSResponse, 10)
+        if (err != nil){
+            log.Fatalf("mqtt send of QPGS1 failed with: %v", err)
         }
-    }
+        log.Printf("%v sent to mqtt with err: %v",QPGSResponse, err)
+
+		log.Println("QPGS2")
+		serial.Write("QPGS2")
+		response, err = serial.Read()
+		QPGSResponse = messages.NewQPGSnResponse(response)
+		err = mqtt.Send("phocus/stats/qpgs2", 0, false, QPGSResponse, 10)
+        if (err != nil){
+            log.Fatalf("mqtt send of QPGS2 failed with: %v", err)
+        }
+
+        log.Printf("%v sent to mqtt with err: %v",QPGSResponse, err)
+		return err
+	case "QID":
+		log.Println("send QID")
+	}
+	return nil
 }
 
 func main() {
@@ -97,15 +116,13 @@ func main() {
 
 	// serial
 	serial.Setup()
-	serial.Write("QPGS0")
-	log.Println(serial.Read())
 
 	// router setup for async rest api for queueing
 	router := gin.Default()
-	router.GET("/messages", GetMessages)
-	router.GET("/messages/:id", GetMessageByID)
-	router.POST("/messages", PostMessages)
-	router.DELETE("/messages", DeleteMessages)
+	router.GET("/queue", GetQueue)
+	router.GET("/queue/:id", GetMessage)
+	router.POST("/queue", PostMessage)
+	router.DELETE("/queue", DeleteQueue)
 
 	// spawns a go-routine which handles web requests
 	go router.Run("localhost:8080")
@@ -124,11 +141,11 @@ func main() {
 
 	// loop to check queue and dequeue index 0, run it process result and wait 30 seconds
 	for {
-		log.Printf("re-checking queue of length: %d", len(messages))
+		log.Printf("re-checking queue of length: %d", len(queue))
 		// if there is an entry at [0] then run that command
-		if len(messages) > 0 {
-			Interpret(messages[0])
-			messages = messages[1:len(messages)]
+		if len(queue) > 0 {
+			Interpret(queue[0])
+			queue = queue[1:len(queue)]
 		}
 		// min sleep between comms with inverter
 		time.Sleep(10 * time.Second)
