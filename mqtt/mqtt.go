@@ -15,7 +15,7 @@ func Setup() {
 	mqtt.ERROR = log.New(os.Stdout, "[ERROR] ", 0)
 	mqtt.CRITICAL = log.New(os.Stdout, "[CRIT] ", 0)
 	mqtt.WARN = log.New(os.Stdout, "[WARN]  ", 0)
-	mqtt.DEBUG = log.New(os.Stdout, "[DEBUG] ", 0)
+	// mqtt.DEBUG = log.New(os.Stdout, "[DEBUG] ", 0)
 	var mqtt_broker = "192.168.88.124" // TODO these should be config vars
 	var mqtt_port = 1883
 	opts := mqtt.NewClientOptions()
@@ -30,7 +30,7 @@ func Setup() {
 		panic(token.Error())
 	}
 
-	Send("homeassistant/sensor/phocus/start_time", 0, true, `{"unique_id":"phocus_start_time","name":"phocus - Start Time","state_topic":"phocus/stats/start_time","icon":"mdi:hammer-wrench","device":{"name":"phocus","identifiers":["phocus"],"model":"phocus","manufacturer":"phocus","sw_version":"1.1.0"},"force_update":false}`, 10)
+	Send("homeassistant/sensor/phocus/start_time/config", 0, true, `{"unique_id":"phocus_start_time","name":"phocus - Start Time","state_topic":"phocus/stats/start_time","icon":"mdi:hammer-wrench","device":{"name":"phocus","identifiers":["phocus"],"model":"phocus","manufacturer":"phocus","sw_version":"1.1.0"},"force_update":false}`, 10)
 	Send("phocus/stats/start_time", 0, false, time.Now().Format(time.RFC822), 10)
 }
 

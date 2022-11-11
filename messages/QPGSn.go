@@ -136,7 +136,7 @@ type QPGSnResponse struct {
 }
 
 func NewQPGSnResponse(input string) QPGSnResponse {
-	buffer := strings.Split(input, " ")
+	buffer := strings.Split(input[:len(input)-3], " ")
 	buffer[0] = strings.Trim(buffer[0], "(") // strip start byte
 	log.Printf("%v\n", buffer)
 	wantedLength := 27
@@ -184,8 +184,8 @@ func NewQPGSnResponse(input string) QPGSnResponse {
 		MaxChargingCurrentPossible:   buffer[23],
 		MaxACChargingCurrentSet:      buffer[24],
 		PVInputCurrent:               buffer[25],
-		BatteryDischargeCurrent:      buffer[26][0:3],
-		Checksum:                     buffer[26][3:len(buffer[26])],
+		BatteryDischargeCurrent:      buffer[26],
+		Checksum:                     input[len(input)-3:],
 	}
 
 }

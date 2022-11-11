@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"github.com/gin-gonic/gin"   // for web server
 	"github.com/google/uuid"     // for generating UUIDs for commands
 	"log"                        // formatted logging
@@ -10,7 +11,6 @@ import (
 	"wolffshots/phocus/mqtt"     // comms with mqtt broker
 	"wolffshots/phocus/sensors"
 	"wolffshots/phocus/serial" // comms with inverter
-	// "encoding/json"
 )
 
 // shape of a message for phocus to interpret and handle queuing of
@@ -86,23 +86,37 @@ func Interpret(input message) error {
 		log.Println("QPGS1")
 		serial.Write("QPGS1")
 		response, err := serial.Read()
-		QPGSResponse := messages.NewQPGSnResponse(response)
-		err = mqtt.Send("phocus/stats/qpgs1", 0, false, QPGSResponse, 10)
 		if err != nil {
-			log.Fatalf("mqtt send of QPGS1 failed with: %v", err)
+			log.Fatalf("failed to read from serial with :%v", err)
 		}
-		log.Printf("%v sent to mqtt with err: %v", QPGSResponse, err)
+		QPGSResponse := messages.NewQPGSnResponse(response)
+		jsonQPGSResponse, err := json.Marshal(QPGSResponse)
+		if err != nil {
+			log.Fatalf("failed to parse response to json with :%v", err)
+		}
+		err = mqtt.Send("phocus/stats/qpgs1", 0, false, string(jsonQPGSResponse), 10)
+		if err != nil {
+			log.Fatalf("mqtt send of QPGS1 failed with: %v\ntype of thing sent was: %T", err, jsonQPGSResponse)
+		}
+		log.Printf("%v sent to mqtt with err: %v\njson object looked like: %s\n", QPGSResponse, err, jsonQPGSResponse)
 
 		log.Println("QPGS2")
 		serial.Write("QPGS2")
 		response, err = serial.Read()
-		QPGSResponse = messages.NewQPGSnResponse(response)
-		err = mqtt.Send("phocus/stats/qpgs2", 0, false, QPGSResponse, 10)
 		if err != nil {
-			log.Fatalf("mqtt send of QPGS2 failed with: %v", err)
+			log.Fatalf("failed to read from serial with :%v", err)
+		}
+		QPGSResponse = messages.NewQPGSnResponse(response)
+		jsonQPGSResponse, err = json.Marshal(QPGSResponse)
+		if err != nil {
+			log.Fatalf("failed to parse response to json with :%v", err)
+		}
+		err = mqtt.Send("phocus/stats/qpgs2", 0, false, string(jsonQPGSResponse), 10)
+		if err != nil {
+			log.Fatalf("mqtt send of QPGS2 failed with: %v\ntype of thing sent was: %T", err, jsonQPGSResponse)
 		}
 
-		log.Printf("%v sent to mqtt with err: %v", QPGSResponse, err)
+		log.Printf("%v sent to mqtt with err: %v\njson object looked like: %s\n", QPGSResponse, err, jsonQPGSResponse)
 		return err
 	case "QID":
 		log.Println("send QID")
