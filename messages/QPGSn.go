@@ -3,6 +3,8 @@ package messages
 import (
 	"log"
 	"strings"
+    "errors"
+    "fmt"
 )
 
 type OperationMode string
@@ -135,13 +137,13 @@ type QPGSnResponse struct {
 	Checksum                            string
 }
 
-func NewQPGSnResponse(input string) QPGSnResponse {
+func NewQPGSnResponse(input string) (*QPGSnResponse, error) {
 	buffer := strings.Split(input[:len(input)-3], " ")
 	buffer[0] = strings.Trim(buffer[0], "(") // strip start byte
 	log.Printf("%v\n", buffer)
 	wantedLength := 27
 	if len(buffer) != wantedLength {
-		log.Fatalf("QPGS buffer should have been %d but was %d\n", wantedLength, len(buffer))
+		return nil, errors.New(fmt.Sprintf("Input for QPGSnResponse was %v but should have been %v", len(buffer), wantedLength))
 	}
 
 	inverterStatusBuffer := strings.Split(buffer[19], "")
@@ -150,7 +152,7 @@ func NewQPGSnResponse(input string) QPGSnResponse {
 	if len(inverterStatusBuffer) != wantedLength {
 		log.Fatalf("QPGS inverter status buffer should have been %d but was %d\n", wantedLength, len(inverterStatusBuffer))
 	}
-	return QPGSnResponse{
+	return &QPGSnResponse{
 		OtherUnits:                          buffer[0] == "1" || buffer[0] == "(1",
 		SerialNumber:                        buffer[1],
 		OperationMode:                       OperationModes[buffer[2]],
@@ -186,6 +188,6 @@ func NewQPGSnResponse(input string) QPGSnResponse {
 		PVInputCurrent:               buffer[25],
 		BatteryDischargeCurrent:      buffer[26],
 		Checksum:                     input[len(input)-3:],
-	}
+	}, nil
 
 }

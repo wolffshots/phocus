@@ -90,7 +90,7 @@ func Interpret(input message) error {
 			log.Printf("failed to read from serial with :%v\n", err)
 			return err
 		}
-		QPGSResponse := messages.NewQPGSnResponse(response)
+		QPGSResponse, err := messages.NewQPGSnResponse(response)
 		jsonQPGSResponse, err := json.Marshal(QPGSResponse)
 		if err != nil {
 			log.Fatalf("failed to parse response to json with :%v", err)
@@ -108,7 +108,7 @@ func Interpret(input message) error {
 			log.Printf("failed to read from serial with :%v\n", err)
 			return err
 		}
-		QPGSResponse = messages.NewQPGSnResponse(response)
+		QPGSResponse, err = messages.NewQPGSnResponse(response)
 		jsonQPGSResponse, err = json.Marshal(QPGSResponse)
 		if err != nil {
 			log.Fatalf("failed to parse response to json with :%v", err)
