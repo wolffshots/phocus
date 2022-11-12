@@ -85,9 +85,10 @@ func Interpret(input message) error {
 
 		log.Println("QPGS1")
 		serial.Write("QPGS1")
-		response, err := serial.Read()
+		response, err := serial.Read(2 * time.Second)
 		if err != nil {
-			log.Fatalf("failed to read from serial with :%v", err)
+			log.Printf("failed to read from serial with :%v\n", err)
+			return err
 		}
 		QPGSResponse := messages.NewQPGSnResponse(response)
 		jsonQPGSResponse, err := json.Marshal(QPGSResponse)
@@ -102,9 +103,10 @@ func Interpret(input message) error {
 
 		log.Println("QPGS2")
 		serial.Write("QPGS2")
-		response, err = serial.Read()
+		response, err = serial.Read(2 * time.Second)
 		if err != nil {
-			log.Fatalf("failed to read from serial with :%v", err)
+			log.Printf("failed to read from serial with :%v\n", err)
+			return err
 		}
 		QPGSResponse = messages.NewQPGSnResponse(response)
 		jsonQPGSResponse, err = json.Marshal(QPGSResponse)
@@ -158,7 +160,10 @@ func main() {
 		log.Printf("re-checking queue of length: %d", len(queue))
 		// if there is an entry at [0] then run that command
 		if len(queue) > 0 {
-			Interpret(queue[0])
+			err := Interpret(queue[0])
+			if err != nil {
+				log.Printf("Handle error (retry or not, maybe config or attempts): %v\n", err)
+			}
 			queue = queue[1:len(queue)]
 		}
 		// min sleep between comms with inverter
