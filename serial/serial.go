@@ -5,7 +5,6 @@ import (
 	"go.bug.st/serial" // rs232 serial
 	"log"              // logging
 	"wolffshots/phocus/crc"
-	"wolffshots/phocus/messages"
 )
 
 var port serial.Port
@@ -36,7 +35,10 @@ func Write(input string) (int, error) {
 	return n, err
 }
 
+// Reads from the open serial port until reaching a carriage return, nil or nothing
+// TODO implement timeout
 func Read() (string, error) {
+    log.Printf("Starting read\n")
 	buff := make([]byte, 140)
 	var response = ""
 	// doesn't need to be this big but the biggest response we expect is 135 chars so might as well be slightly bigger than that
@@ -46,23 +48,17 @@ func Read() (string, error) {
 		if err != nil {
 			log.Fatal(err)
 			break
-		}
-		if n == 0 {
+        } else if n == 0 {
 			log.Println("\nEOF")
 			break
-		}
-		response = fmt.Sprintf("%v%v", response, string(buff[:n]))
-		if string(buff[:n]) == "\r" {
-			log.Print("read a \\r - response was: ")
-			// this is what needs to be parsed for values based on the type of query it was
-			log.Printf("response:  \t%v\n", messages.NewQPGSnResponse(response))
-			// TODO seperate out the deserialisation of the commands to a generic function call with the input type as a parameter
-			// we can handle updating mqtt values from that parser
-			// TODO capture and make sense of the CRC in the response
-			// crc.CalculateCRC("some input string")
-			// crc.Verify
+        } else if string(buff[:n]) == "\r" {
+		    response = fmt.Sprintf("%v%v", response, string(buff[:n]))
 			break
-		}
+        } else{
+            // log.Printf("%v",string(buff[:n]))
+            // default case, no need to do anything special
+        }
+		response = fmt.Sprintf("%v%v", response, string(buff[:n]))
 	}
 
 	return response, err

@@ -162,6 +162,6 @@ func main() {
 			queue = queue[1:len(queue)]
 		}
 		// min sleep between comms with inverter
-		time.Sleep(10 * time.Second)
+		time.Sleep(5 * time.Second)
 	}
 }
