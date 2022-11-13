@@ -1,0 +1,9 @@
+[Unit]
+Description = phocus inverter monitor app
+After = network.target
+
+[Service]
+ExecStart = /usr/bin/phocus
+
+[Install]
+WantedBy = multi-user.target
