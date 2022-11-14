@@ -132,7 +132,7 @@ func Interpret(input message) error {
 		if err != nil {
 			log.Fatalf("mqtt send of QPGS2 failed with: %v\ntype of thing sent was: %T", err, jsonQPGSResponse)
 		}
-        log.Printf("Sent to MQTT:\n%v\n%s\n", QPGSResponse, jsonQPGSResponse)
+		log.Printf("Sent to MQTT:\n%v\n%s\n", QPGSResponse, jsonQPGSResponse)
 		return err
 	case "QID":
 		log.Println("send QID")
@@ -146,9 +146,9 @@ func main() {
 
 	// serial
 	err := serial.Setup()
-    if err != nil {
-        log.Fatalf("Failed to set up serial with err: %v", err)
-    }
+	if err != nil {
+		log.Fatalf("Failed to set up serial with err: %v", err)
+	}
 
 	// router setup for async rest api for queueing
 	router := gin.Default()
