@@ -33,7 +33,6 @@ func Write(input string) (int, error) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Printf("Sent %v bytes\n", n)
 	return n, err
 }
 

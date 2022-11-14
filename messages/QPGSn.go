@@ -1,10 +1,10 @@
 package messages
 
 import (
+	"errors"
+	"fmt"
 	"log"
 	"strings"
-    "errors"
-    "fmt"
 )
 
 type OperationMode string

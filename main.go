@@ -50,12 +50,12 @@ func PostMessage(c *gin.Context) {
 	c.IndentedJSON(http.StatusCreated, newMessage)
 }
 
-// view current queue
+// GetQueue is called to view the current queue as JSON
 func GetQueue(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, queue)
 }
 
-// get specific message
+// GetMessage attempts to select a specified message from the queue and returns it or fails
 func GetMessage(c *gin.Context) {
 	id := c.Param("id")
 
@@ -72,25 +72,34 @@ func GetMessage(c *gin.Context) {
 	}
 }
 
-// clear current queue
+// DeleteQueue clears the current queue
 func DeleteQueue(c *gin.Context) {
 	queue = []message{}
 }
 
-// function to interpret message and run relevant action (command or query)
+// Interpret converts the generic `phocus` message into a specific inverter message
+// TODO add even more generalisation and separated implementation details here
 func Interpret(input message) error {
 	switch input.Command {
 	case "QPGSn":
-		log.Println("QPGS0") // if debug
+		//		log.Println("QPGS0") // if debug
 
 		log.Println("QPGS1")
-		serial.Write("QPGS1")
+		bytes, err := serial.Write("QPGS1")
+		log.Printf("Sent %v bytes\n", bytes)
+		if err != nil {
+			log.Printf("failed to write to serial with :%v\n", err)
+			return err
+		}
 		response, err := serial.Read(2 * time.Second)
 		if err != nil {
 			log.Printf("failed to read from serial with :%v\n", err)
 			return err
 		}
 		QPGSResponse, err := messages.NewQPGSnResponse(response)
+		if err != nil {
+			log.Fatalf("failed to create response with :%v", err)
+		}
 		jsonQPGSResponse, err := json.Marshal(QPGSResponse)
 		if err != nil {
 			log.Fatalf("failed to parse response to json with :%v", err)
@@ -102,13 +111,21 @@ func Interpret(input message) error {
 		log.Printf("%v sent to mqtt with err: %v\njson object looked like: %s\n", QPGSResponse, err, jsonQPGSResponse)
 
 		log.Println("QPGS2")
-		serial.Write("QPGS2")
+		bytes, err = serial.Write("QPGS2")
+		log.Printf("Sent %v bytes\n", bytes)
+		if err != nil {
+			log.Printf("failed to write to serial with :%v\n", err)
+			return err
+		}
 		response, err = serial.Read(2 * time.Second)
 		if err != nil {
 			log.Printf("failed to read from serial with :%v\n", err)
 			return err
 		}
 		QPGSResponse, err = messages.NewQPGSnResponse(response)
+		if err != nil {
+			log.Fatalf("failed to create response with :%v", err)
+		}
 		jsonQPGSResponse, err = json.Marshal(QPGSResponse)
 		if err != nil {
 			log.Fatalf("failed to parse response to json with :%v", err)
