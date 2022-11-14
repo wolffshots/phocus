@@ -95,7 +95,7 @@ func Interpret(input message) error {
 			return err
 		}
 		QPGSResponse, err := messages.NewQPGSnResponse(response)
-		if err != nil {
+		if err != nil || QPGSResponse == nil {
 			log.Fatalf("failed to create response with :%v", err)
 		}
 		jsonQPGSResponse, err := json.Marshal(QPGSResponse)
@@ -121,7 +121,7 @@ func Interpret(input message) error {
 			return err
 		}
 		QPGSResponse, err = messages.NewQPGSnResponse(response)
-		if err != nil {
+        if err != nil || QPGSResponse == nil {
 			log.Fatalf("failed to create response with :%v", err)
 		}
 		jsonQPGSResponse, err = json.Marshal(QPGSResponse)

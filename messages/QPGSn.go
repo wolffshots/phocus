@@ -138,6 +138,9 @@ type QPGSnResponse struct {
 }
 
 func NewQPGSnResponse(input string) (*QPGSnResponse, error) {
+    if input == "" {
+        log.Fatalf("Can't create a response from an empty string")
+    }
 	buffer := strings.Split(input[:len(input)-3], " ")
 	buffer[0] = strings.Trim(buffer[0], "(") // strip start byte
 	log.Printf("%v\n", buffer)
