@@ -24,6 +24,9 @@ func Setup() error { // TODO add error handling
 	return err
 }
 
+// Write a string to the open serial port
+// The input should be the "payload" string as
+// the CRC is calculated and added to that in Write
 func Write(input string) (int, error) {
 	message, err := crc.Encode(input)
 	if err != nil {
@@ -36,7 +39,7 @@ func Write(input string) (int, error) {
 	return n, err
 }
 
-// Reads from the open serial port until reaching a carriage return, nil or nothing
+// Read from the open serial port until reaching a carriage return, nil or nothing
 // Takes a duration as an input and times out the read after that long
 // Returns the read string and the error
 func Read(timeout time.Duration) (string, error) {
@@ -51,7 +54,6 @@ func Read(timeout time.Duration) (string, error) {
 			n, err := port.Read(buff)
 			if err != nil {
 				log.Fatal(err)
-				break
 			} else if n == 0 {
 				log.Println("\nEOF")
 				break
@@ -70,6 +72,6 @@ func Read(timeout time.Duration) (string, error) {
 	case results := <-dataChannel:
 		return results, err
 	case <-time.After(timeout):
-		return "", errors.New("Read timed out")
+		return "", errors.New("read timed out")
 	}
 }

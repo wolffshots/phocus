@@ -1,4 +1,4 @@
-// Package containing all the dependencies and functions
+// Package crc contains all the dependencies and functions
 // for calculating and verifying checksums.
 package crc
 
@@ -7,7 +7,7 @@ import (
 	"log"
 )
 
-// Takes an input string and returns the crc for that
+// Checksum takes an input string and returns the crc for that
 // string.
 func Checksum(input string) (uint16, error) {
 	table := crc16.MakeTable(crc16.CRC16_XMODEM)
@@ -15,7 +15,7 @@ func Checksum(input string) (uint16, error) {
 	return result, nil
 }
 
-// Takes an input string and returns that same string
+// Encode takes an input string and returns that same string
 // with it's crc attached.
 func Encode(input string) (string, error) {
 	checksum, err := Checksum(input)

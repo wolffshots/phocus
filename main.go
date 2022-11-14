@@ -25,7 +25,7 @@ var queue = []message{
 	{ID: uuid.New(), Command: "QID", Payload: ""},
 }
 
-// loop and add QPGSi x n to the queue as long as it isn't too long
+// QueueQPGSn is a simple loop to add QPGSn to the queue as long as it isn't too long
 func QueueQPGSn() {
 	for {
 		if len(queue) < 20 {
@@ -34,11 +34,11 @@ func QueueQPGSn() {
 				message{ID: uuid.New(), Command: "QPGSn", Payload: ""},
 			)
 		}
-		time.Sleep(30 * time.Second)
+		time.Sleep(60 * time.Second)
 	}
 }
 
-// enqueue new message manually (requires knowledge of commands and a generated uuid on the request)
+// PostMessage enqueues a new message manually (requires knowledge of commands and a generated uuid on the request)
 func PostMessage(c *gin.Context) {
 	var newMessage message
 	// Call BindJSON to bind the received JSON to
@@ -82,8 +82,6 @@ func DeleteQueue(c *gin.Context) {
 func Interpret(input message) error {
 	switch input.Command {
 	case "QPGSn":
-		//		log.Println("QPGS0") // if debug
-
 		log.Println("QPGS1")
 		bytes, err := serial.Write("QPGS1")
 		log.Printf("Sent %v bytes\n", bytes)
@@ -92,7 +90,7 @@ func Interpret(input message) error {
 			return err
 		}
 		response, err := serial.Read(2 * time.Second)
-		if err != nil {
+		if err != nil || response == "" {
 			log.Printf("failed to read from serial with :%v\n", err)
 			return err
 		}
@@ -108,7 +106,7 @@ func Interpret(input message) error {
 		if err != nil {
 			log.Fatalf("mqtt send of QPGS1 failed with: %v\ntype of thing sent was: %T", err, jsonQPGSResponse)
 		}
-		log.Printf("%v sent to mqtt with err: %v\njson object looked like: %s\n", QPGSResponse, err, jsonQPGSResponse)
+		log.Printf("Sent to MQTT:\n%v\n%s\n", QPGSResponse, jsonQPGSResponse)
 
 		log.Println("QPGS2")
 		bytes, err = serial.Write("QPGS2")
@@ -134,8 +132,7 @@ func Interpret(input message) error {
 		if err != nil {
 			log.Fatalf("mqtt send of QPGS2 failed with: %v\ntype of thing sent was: %T", err, jsonQPGSResponse)
 		}
-
-		log.Printf("%v sent to mqtt with err: %v\njson object looked like: %s\n", QPGSResponse, err, jsonQPGSResponse)
+        log.Printf("Sent to MQTT:\n%v\n%s\n", QPGSResponse, jsonQPGSResponse)
 		return err
 	case "QID":
 		log.Println("send QID")
@@ -148,7 +145,10 @@ func main() {
 	log.Println("Starting up phocus")
 
 	// serial
-	serial.Setup()
+	err := serial.Setup()
+    if err != nil {
+        log.Fatalf("Failed to set up serial with err: %v", err)
+    }
 
 	// router setup for async rest api for queueing
 	router := gin.Default()
