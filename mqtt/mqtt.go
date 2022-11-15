@@ -1,11 +1,11 @@
 package mqtt
 
 import (
-	"fmt"
+	"fmt"                                 // string formatting
 	"github.com/eclipse/paho.mqtt.golang" // mqtt client
-	"log"
-	"os"
-	"time"
+	"log"                                 // logging to stdout
+	"os"                                  // verbose logging
+	"time"                                // current time and timeouts
 )
 
 var client mqtt.Client
@@ -16,10 +16,10 @@ func Setup() {
 	mqtt.CRITICAL = log.New(os.Stdout, "[CRIT] ", 0)
 	mqtt.WARN = log.New(os.Stdout, "[WARN]  ", 0)
 	// mqtt.DEBUG = log.New(os.Stdout, "[DEBUG] ", 0)
-	var mqtt_broker = "192.168.88.124" // TODO these should be config vars
-	var mqtt_port = 1883
+	var mqttBroker = "192.168.88.124" // TODO these should be config vars
+	var mqttPort = 1883
 	opts := mqtt.NewClientOptions()
-	opts.AddBroker(fmt.Sprintf("tcp://%s:%d", mqtt_broker, mqtt_port))
+	opts.AddBroker(fmt.Sprintf("tcp://%s:%d", mqttBroker, mqttPort))
 	opts.SetClientID("go_phocus_client")
 	opts.SetDefaultPublishHandler(messagePublishedHandler)
 	opts.OnConnect = connectionHandler

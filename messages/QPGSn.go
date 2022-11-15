@@ -138,23 +138,23 @@ type QPGSnResponse struct {
 }
 
 func NewQPGSnResponse(input string) (*QPGSnResponse, error) {
-    if input == "" {
-        log.Fatalf("Can't create a response from an empty string")
-    }
+	if input == "" {
+        return nil, errors.New("can't create a response from an empty string")
+	}
 	buffer := strings.Split(input[:len(input)-3], " ")
 	buffer[0] = strings.Trim(buffer[0], "(") // strip start byte
 	log.Printf("%v\n", buffer)
 	wantedLength := 27
 	if len(buffer) != wantedLength {
-		return nil, errors.New(fmt.Sprintf("Input for QPGSnResponse was %v but should have been %v", len(buffer), wantedLength))
+		return nil, errors.New(fmt.Sprintf("input for QPGSnResponse was %v but should have been %v", len(buffer), wantedLength))
 	}
 
 	inverterStatusBuffer := strings.Split(buffer[19], "")
 	log.Printf("%v\n", buffer)
 	wantedLength = 8
 	if len(inverterStatusBuffer) != wantedLength {
-		log.Fatalf("QPGS inverter status buffer should have been %d but was %d\n", wantedLength, len(inverterStatusBuffer))
-	}
+        return nil, errors.New(fmt.Sprintf("inverter status buffer should have been %d but was %d\n", wantedLength, len(inverterStatusBuffer)))
+    }
 	return &QPGSnResponse{
 		OtherUnits:                          buffer[0] == "1" || buffer[0] == "(1",
 		SerialNumber:                        buffer[1],

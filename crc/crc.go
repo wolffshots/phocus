@@ -3,8 +3,8 @@
 package crc
 
 import (
-	"github.com/sigurn/crc16"
-	"log"
+	"github.com/sigurn/crc16" // 16 bit checksum generation
+	"log"                     // logging to stdout
 )
 
 // Checksum takes an input string and returns the crc for that
@@ -19,13 +19,10 @@ func Checksum(input string) (uint16, error) {
 // with it's crc attached.
 func Encode(input string) (string, error) {
 	checksum, err := Checksum(input)
-	log.Printf("crc for encode: %x\n", checksum)
 	if err != nil {
 		log.Fatal(err)
 	}
 	result := input + string([]byte{byte((checksum >> 8) & 0xff), byte(checksum & 0xff)}) + "\r"
-
-	log.Printf("result to be written: %s\n", result)
 
 	return result, err
 }
