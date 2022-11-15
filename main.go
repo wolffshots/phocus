@@ -1,7 +1,8 @@
 package main
 
 import (
-	"encoding/json"              // encoding to json for mqtt
+	"encoding/json" // encoding to json for mqtt
+	"errors"
 	"fmt"                        // string formatting
 	"github.com/gin-gonic/gin"   // for web server
 	"github.com/google/uuid"     // for generating UUIDs for commands
@@ -140,7 +141,7 @@ func HandleQPGS(inverterNum int) error {
 		return err
 	}
 	valid, err := crc.Verify(response)
-	if err != nil || response == "" {
+	if err != nil {
 		log.Fatalf("Verification of response from inverter produced an error :%v\n", err)
 		return err
 	}
@@ -159,7 +160,8 @@ func HandleQPGS(inverterNum int) error {
 		}
 		log.Printf("Sent to MQTT:\n%s\n", jsonQPGSResponse)
 	} else {
-		log.Println("")
+		log.Println("Invalid response from QPGSn")
+		err = errors.New("invalid response from QPGSn")
 	}
 	return err
 }
