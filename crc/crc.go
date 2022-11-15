@@ -35,6 +35,9 @@ func Encode(input string) (string, error) {
 func Verify(input string) (bool, error) {
 	crc := input[len(input)-3 : len(input)-1]
 	remainder := input[:len(input)-3]
+    if remainder == "" { // we take the stance that empty inputs aren't valid
+        return false, nil
+    }
 	calculatedCrc, err := Checksum(remainder)
 	calculatedCrcString := string([]byte{byte((calculatedCrc >> 8) & 0xff), byte(calculatedCrc & 0xff)})
 	encodedRemainder, err := Encode(remainder)

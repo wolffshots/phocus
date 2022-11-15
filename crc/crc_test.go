@@ -27,7 +27,7 @@ func TestEncode(t *testing.T) {
 
 func TestVerify(t *testing.T) {
 	inputs := []string{"QPGS0\x3F\xDA\r", "QPGS1\x2F\xFB\r", "QPGS4\x3F\xDA\r", "QPGS2\x2F\xFB\r", "\x00\x00\r"}
-	wants := []bool{true, true, false, false, true}
+	wants := []bool{true, true, false, false, false}
 	for index, input := range inputs {
 		result, err := Verify(input)
         assert.Equal(t, nil, err)
