@@ -17,15 +17,8 @@ import (
 	"wolffshots/phocus/serial"   // comms with inverter
 )
 
-// shape of a message for phocus to interpret and handle queuing of
-type message struct {
-	ID      uuid.UUID `json:"id"`
-	Command string    `json:"command"`
-	Payload string    `json:"payload"`
-}
-
 // queue of messages seeded with QID to run at startup
-var queue = []message{
+var queue = []messages.Message{
 	{ID: uuid.New(), Command: "QID", Payload: ""},
 }
 var queueMutex sync.Mutex
@@ -37,7 +30,7 @@ func QueueQPGSn() {
 		if len(queue) < 20 {
 			queue = append(
 				queue,
-				message{ID: uuid.New(), Command: "QPGSn", Payload: ""},
+				messages.Message{ID: uuid.New(), Command: "QPGSn", Payload: ""},
 			)
 		}
 		queueMutex.Unlock()
@@ -47,7 +40,7 @@ func QueueQPGSn() {
 
 // PostMessage enqueues a new message manually (requires knowledge of commands and a generated uuid on the request)
 func PostMessage(c *gin.Context) {
-	var newMessage message
+	var newMessage messages.Message
 	// Call BindJSON to bind the received JSON to
 	// newMessage - will throw an error if it can't cast ID to UUID
 	if err := c.BindJSON(&newMessage); err != nil || newMessage.Command == "" {
@@ -97,7 +90,7 @@ func GetMessage(c *gin.Context) {
 // DeleteQueue clears the current queue
 func DeleteQueue(c *gin.Context) {
 	queueMutex.Lock()
-	queue = []message{}
+	queue = []messages.Message{}
 	queueMutex.Unlock()
 	c.Status(http.StatusNoContent)
 }
@@ -168,7 +161,7 @@ func HandleQPGS(inverterNum int) error {
 
 // Interpret converts the generic `phocus` message into a specific inverter message
 // TODO add even more generalisation and separated implementation details here
-func Interpret(input message) error {
+func Interpret(input messages.Message) error {
 	switch input.Command {
 	case "QPGSn":
 		err := HandleQPGS(1)

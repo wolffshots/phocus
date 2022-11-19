@@ -30,11 +30,8 @@ func Setup() {
 		panic(token.Error())
 	}
 
-	err := Send("homeassistant/sensor/phocus/start_time/config", 0, true, `{"unique_id":"phocus_start_time","name":"phocus - Start Time","state_topic":"phocus/stats/start_time","icon":"mdi:hammer-wrench","device":{"name":"phocus","identifiers":["phocus"],"model":"phocus","manufacturer":"phocus","sw_version":"1.1.0"},"force_update":false}`, 10)
-	if err != nil {
-		log.Fatalf("Failed to send initial setup stats to MQTT with err: %v", err)
-	}
-	err = Send("phocus/stats/start_time", 0, false, time.Now().Format(time.RFC822), 10)
+    // TODO extract to a update function that uses Send
+	err := Send("phocus/stats/start_time", 0, false, time.Now().Format(time.RFC822), 10)
 	if err != nil {
 		log.Fatalf("Failed to send initial setup stats to MQTT with err: %v", err)
 	}
