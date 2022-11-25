@@ -134,9 +134,19 @@ func main() {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds | log.Llongfile)
 	log.Println("Starting up phocus")
 
-	// serial
-	err := phocus_serial.Setup()
+	// mqtt
+	err := phocus_mqtt.Setup("192.168.88.124", "go_phocus_client'")
 	if err != nil {
+		log.Fatalf("Failed to set up mqtt with err: %v", err)
+	}
+
+	// serial
+	err = phocus_serial.Setup()
+	if err != nil {
+		pubErr := phocus_mqtt.Error(0, false, err, 10)
+		if pubErr != nil {
+			log.Printf("Failed to post previous error (%v) to mqtt: %v\n", err, pubErr)
+		}
 		log.Fatalf("Failed to set up serial with err: %v", err)
 	}
 
@@ -144,15 +154,23 @@ func main() {
 	go func() {
 		err := setupRouter().Run("localhost:8080")
 		if err != nil {
+			pubErr := phocus_mqtt.Error(0, false, err, 10)
+			if pubErr != nil {
+				log.Printf("Failed to post previous error (%v) to mqtt: %v\n", err, pubErr)
+			}
 			log.Fatalf("Failed to run http routine with err: %v", err)
 		}
 	}()
 
-	// mqtt
-	phocus_mqtt.Setup("192.168.88.124", "go_phocus_client'")
-
 	// sensors
-	phocus_sensors.Register()
+	err = phocus_sensors.Register()
+	if err != nil {
+		pubErr := phocus_mqtt.Error(0, false, err, 10)
+		if pubErr != nil {
+			log.Printf("Failed to post previous error (%v) to mqtt: %v\n", err, pubErr)
+		}
+		log.Fatalf("Failed to set up sensors with err: %v", err)
+	}
 
 	// sleep to make sure web server comes on before polling starts
 	time.Sleep(5 * time.Second)
@@ -168,7 +186,10 @@ func main() {
 		if len(queue) > 0 {
 			err := phocus_messages.Interpret(queue[0])
 			if err != nil {
-				log.Printf("Handle error (retry or not, maybe config or attempts): %v\n", err)
+				pubErr := phocus_mqtt.Error(0, false, err, 10)
+				if pubErr != nil {
+					log.Printf("Failed to post previous error (%v) to mqtt: %v\n", err, pubErr)
+				}
 			}
 			queue = queue[1:]
 		}
