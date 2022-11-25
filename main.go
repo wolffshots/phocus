@@ -1,16 +1,12 @@
 package main
 
 import (
-	"encoding/json" // encoding to json for mqtt
-	"errors"
-	"fmt"                        // string formatting
 	"github.com/gin-gonic/gin"   // for web server
 	"github.com/google/uuid"     // for generating UUIDs for commands
 	"log"                        // formatted logging
 	"net/http"                   // for statuses primarily
 	"sync"                       // mutexes for mutating queue
 	"time"                       // for sleeping
-	"wolffshots/phocus/crc"      // checksum calculations
 	"wolffshots/phocus/messages" // message structures
 	"wolffshots/phocus/mqtt"     // comms with mqtt broker
 	"wolffshots/phocus/sensors"  // registering common sensors
@@ -48,9 +44,15 @@ func PostMessage(c *gin.Context) {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "Coudln't bind JSON to message"})
 	} else {
 		queueMutex.Lock()
-		queue = append(queue, newMessage)
-		queueMutex.Unlock()
-		c.IndentedJSON(http.StatusCreated, newMessage)
+        // append new message to the queue if there is space
+        if len(queue)<50 {
+            queue = append(queue, newMessage)
+            queueMutex.Unlock()
+            c.IndentedJSON(http.StatusCreated, newMessage)
+        }else{
+            queueMutex.Unlock()
+            c.IndentedJSON(http.StatusInsufficientStorage, gin.H{"message": "Message queue already full!"})
+        }
 	}
 }
 
@@ -116,72 +118,7 @@ func DeleteMessage(c *gin.Context) {
 	}
 }
 
-// HandleQPGS writes the query to the inverter and
-// reads the response, deserialises it into a response
-// object and sends it to MQTT
-func HandleQPGS(inverterNum int) error {
-	query := fmt.Sprintf("QPGS%d", inverterNum)
-	log.Println(query)
-	bytes, err := serial.Write(query)
-	log.Printf("Sent %v bytes\n", bytes)
-	if err != nil {
-		log.Printf("Failed to write to serial with :%v\n", err)
-		return err
-	}
-	response, err := serial.Read(2 * time.Second)
-	if err != nil || response == "" {
-		log.Printf("Failed to read from serial with :%v\n", err)
-		return err
-	}
-	valid, err := crc.Verify(response)
-	if err != nil {
-		log.Fatalf("Verification of response from inverter produced an error :%v\n", err)
-		return err
-	}
-	if valid {
-		QPGSResponse, err := messages.NewQPGSnResponse(response)
-		if err != nil || QPGSResponse == nil {
-			log.Fatalf("Failed to create response with :%v", err)
-		}
-		jsonQPGSResponse, err := json.Marshal(QPGSResponse)
-		if err != nil {
-			log.Fatalf("Failed to parse response to json with :%v", err)
-		}
-		err = mqtt.Send(fmt.Sprintf("phocus/stats/qpgs%d", inverterNum), 0, false, string(jsonQPGSResponse), 10)
-		if err != nil {
-			log.Fatalf("MQTT send of %s failed with: %v\ntype of thing sent was: %T", query, err, jsonQPGSResponse)
-		}
-		log.Printf("Sent to MQTT:\n%s\n", jsonQPGSResponse)
-	} else {
-		log.Println("Invalid response from QPGSn")
-		err = errors.New("invalid response from QPGSn")
-	}
-	return err
-}
 
-// Interpret converts the generic `phocus` message into a specific inverter message
-// TODO add even more generalisation and separated implementation details here
-func Interpret(input messages.Message) error {
-	switch input.Command {
-	case "QPGSn":
-		err := HandleQPGS(1)
-		if err != nil {
-			log.Printf("Failed to handle QPGS1 :%v\n", err)
-			return err
-		}
-		err = HandleQPGS(2)
-		if err != nil {
-			log.Printf("Failed to handle QPGS2 :%v\n", err)
-			return err
-		}
-		return err
-	case "QID":
-		log.Println("TODO send QID")
-	default:
-		log.Println("Unexpected message on queue")
-	}
-	return nil
-}
 
 func setupRouter() *gin.Engine {
 	// router setup for async rest api for queueing
@@ -231,11 +168,11 @@ func main() {
 		log.Printf("re-checking queue of length: %d", len(queue))
 		// if there is an entry at [0] then run that command
 		if len(queue) > 0 {
-			err := Interpret(queue[0])
+			err := messages.Interpret(queue[0])
 			if err != nil {
 				log.Printf("Handle error (retry or not, maybe config or attempts): %v\n", err)
 			}
-			queue = queue[1:len(queue)] // TODO wrap in a mutex
+			queue = queue[1:]
 		}
 		queueMutex.Unlock()
 		// min sleep between comms with inverter

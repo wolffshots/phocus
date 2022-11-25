@@ -45,5 +45,5 @@ main
 .fleet
 phocus
 
-messages/private
-messages/.private
+messages
+.tmp
