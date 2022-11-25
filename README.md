@@ -1,3 +1,4 @@
+![Worklow Status](https://github.com/wolffshots/phocus/actions/workflows/go.yml/badge.svg)
 # phocus
 For use with Phocos inverters
 
