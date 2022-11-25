@@ -19,13 +19,14 @@ jobs:
         go-version: 1.19
 
     - name: Build
-      run: go build -v ./...
-
-    - name: Test
-      run: go test -v ./...
-      
+      run: go build -o ./build/phocus -v main.go
     - name: Upload a Build Artifact
       uses: actions/upload-artifact@v3.1.1
       with:
         name: phocus
         path: phocus*
+        
+    - name: Test
+      run: go test -v ./...
+      
+
