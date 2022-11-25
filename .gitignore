@@ -44,3 +44,7 @@ main
 .idea
 .fleet
 phocus
+
+messages
+.tmp
+._*

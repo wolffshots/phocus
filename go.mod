@@ -3,15 +3,19 @@ module wolffshots/phocus
 go 1.19
 
 require (
-	github.com/eclipse/paho.mqtt.golang v1.4.2
 	github.com/gin-gonic/gin v1.8.1
 	github.com/google/uuid v1.3.0
-	github.com/sigurn/crc16 v0.0.0-20211026045750-20ab5afb07e3
-	go.bug.st/serial v1.4.0
+	github.com/stretchr/testify v1.8.1
+	github.com/wolffshots/phocus_messages v0.0.0-20221125142604-48b55ace262c
+	github.com/wolffshots/phocus_mqtt v0.0.0-20221125231711-921fd37b71a7
+	github.com/wolffshots/phocus_sensors v0.0.0-20221125231636-4fc42f80865b
+	github.com/wolffshots/phocus_serial v0.0.0-20221125135724-a9b31e82ec1c
 )
 
 require (
 	github.com/creack/goselect v0.1.2 // indirect
+	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/eclipse/paho.mqtt.golang v1.4.2 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-playground/locales v0.14.0 // indirect
 	github.com/go-playground/universal-translator v0.18.0 // indirect
@@ -24,7 +28,12 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180228061459-e0a39a4cb421 // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.1 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/sigurn/crc16 v0.0.0-20211026045750-20ab5afb07e3 // indirect
 	github.com/ugorji/go/codec v1.2.7 // indirect
+	github.com/wolffshots/ha_types v0.0.0-20221125170828-a8f12082a5de // indirect
+	github.com/wolffshots/phocus_crc v0.0.0-20221125202826-bcacfb3a76be // indirect
+	go.bug.st/serial v1.4.0 // indirect
 	golang.org/x/crypto v0.0.0-20210711020723-a769d52b0f97 // indirect
 	golang.org/x/net v0.0.0-20210226172049-e18ecbb05110 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
@@ -32,4 +41,17 @@ require (
 	golang.org/x/text v0.3.6 // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
+
+// // Helpful to override packages either for development or
+// // to use drop in replacements for packages such as the messages
+// // eg. replace github.com/wolffshots/phocus_messages => github.com/your_name/some_other_messages
+//
+//replace github.com/wolffshots/phocus_messages => ../phocus_messages
+//
+//replace github.com/wolffshots/phocus_mqtt => ../phocus_mqtt
+//
+//replace github.com/wolffshots/phocus_sensors => ../phocus_sensors
+//
+//replace github.com/wolffshots/phocus_serial => ../phocus_serial
