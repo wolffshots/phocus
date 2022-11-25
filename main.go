@@ -1,20 +1,20 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"   // for web server
-	"github.com/google/uuid"     // for generating UUIDs for commands
-	"log"                        // formatted logging
-	"net/http"                   // for statuses primarily
-	"sync"                       // mutexes for mutating queue
-	"time"                       // for sleeping
-	"wolffshots/phocus/messages" // message structures
-	"wolffshots/phocus/mqtt"     // comms with mqtt broker
-	"wolffshots/phocus/sensors"  // registering common sensors
-	"wolffshots/phocus/serial"   // comms with inverter
+	"github.com/gin-gonic/gin"              // for web server
+	"github.com/google/uuid"                // for generating UUIDs for commands
+	"github.com/wolffshots/phocus_messages" // message structures
+	"github.com/wolffshots/phocus_mqtt"     // comms with mqtt broker
+	"github.com/wolffshots/phocus_sensors"  // registering common sensors
+	"github.com/wolffshots/phocus_serial"   // comms with inverter
+	"log"                                   // formatted logging
+	"net/http"                              // for statuses primarily
+	"sync"                                  // mutexes for mutating queue
+	"time"                                  // for sleeping
 )
 
 // queue of messages seeded with QID to run at startup
-var queue = []messages.Message{
+var queue = []phocus_messages.Message{
 	{ID: uuid.New(), Command: "QID", Payload: ""},
 }
 var queueMutex sync.Mutex
@@ -26,7 +26,7 @@ func QueueQPGSn() {
 		if len(queue) < 20 {
 			queue = append(
 				queue,
-				messages.Message{ID: uuid.New(), Command: "QPGSn", Payload: ""},
+				phocus_messages.Message{ID: uuid.New(), Command: "QPGSn", Payload: ""},
 			)
 		}
 		queueMutex.Unlock()
@@ -36,7 +36,7 @@ func QueueQPGSn() {
 
 // PostMessage enqueues a new message manually (requires knowledge of commands and a generated uuid on the request)
 func PostMessage(c *gin.Context) {
-	var newMessage messages.Message
+	var newMessage phocus_messages.Message
 	// Call BindJSON to bind the received JSON to
 	// newMessage - will throw an error if it can't cast ID to UUID
 	if err := c.BindJSON(&newMessage); err != nil || newMessage.Command == "" {
@@ -44,15 +44,15 @@ func PostMessage(c *gin.Context) {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "Coudln't bind JSON to message"})
 	} else {
 		queueMutex.Lock()
-        // append new message to the queue if there is space
-        if len(queue)<50 {
-            queue = append(queue, newMessage)
-            queueMutex.Unlock()
-            c.IndentedJSON(http.StatusCreated, newMessage)
-        }else{
-            queueMutex.Unlock()
-            c.IndentedJSON(http.StatusInsufficientStorage, gin.H{"message": "Message queue already full!"})
-        }
+		// append new message to the queue if there is space
+		if len(queue) < 50 {
+			queue = append(queue, newMessage)
+			queueMutex.Unlock()
+			c.IndentedJSON(http.StatusCreated, newMessage)
+		} else {
+			queueMutex.Unlock()
+			c.IndentedJSON(http.StatusInsufficientStorage, gin.H{"message": "Message queue already full!"})
+		}
 	}
 }
 
@@ -92,7 +92,7 @@ func GetMessage(c *gin.Context) {
 // DeleteQueue clears the current queue
 func DeleteQueue(c *gin.Context) {
 	queueMutex.Lock()
-	queue = []messages.Message{}
+	queue = []phocus_messages.Message{}
 	queueMutex.Unlock()
 	c.Status(http.StatusNoContent)
 }
@@ -118,8 +118,6 @@ func DeleteMessage(c *gin.Context) {
 	}
 }
 
-
-
 func setupRouter() *gin.Engine {
 	// router setup for async rest api for queueing
 	router := gin.Default()
@@ -137,7 +135,7 @@ func main() {
 	log.Println("Starting up phocus")
 
 	// serial
-	err := serial.Setup()
+	err := phocus_serial.Setup()
 	if err != nil {
 		log.Fatalf("Failed to set up serial with err: %v", err)
 	}
@@ -151,10 +149,10 @@ func main() {
 	}()
 
 	// mqtt
-	mqtt.Setup()
+	phocus_mqtt.Setup("192.168.88.124", "go_phocus_client'")
 
 	// sensors
-	sensors.Register()
+	phocus_sensors.Register()
 
 	// sleep to make sure web server comes on before polling starts
 	time.Sleep(5 * time.Second)
@@ -168,7 +166,7 @@ func main() {
 		log.Printf("re-checking queue of length: %d", len(queue))
 		// if there is an entry at [0] then run that command
 		if len(queue) > 0 {
-			err := messages.Interpret(queue[0])
+			err := phocus_messages.Interpret(queue[0])
 			if err != nil {
 				log.Printf("Handle error (retry or not, maybe config or attempts): %v\n", err)
 			}
