@@ -48,10 +48,10 @@ require (
 // // to use drop in replacements for packages such as the messages
 // // eg. replace github.com/wolffshots/phocus_messages => github.com/your_name/some_other_messages
 //
-replace github.com/wolffshots/phocus_messages => ../phocus_messages
-
-replace github.com/wolffshots/phocus_mqtt => ../phocus_mqtt
-
-replace github.com/wolffshots/phocus_sensors => ../phocus_sensors
-
-replace github.com/wolffshots/phocus_serial => ../phocus_serial
+//replace github.com/wolffshots/phocus_messages => ../phocus_messages
+//
+//replace github.com/wolffshots/phocus_mqtt => ../phocus_mqtt
+//
+//replace github.com/wolffshots/phocus_sensors => ../phocus_sensors
+//
+//replace github.com/wolffshots/phocus_serial => ../phocus_serial
