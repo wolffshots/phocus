@@ -7,7 +7,7 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/stretchr/testify v1.8.1
 	github.com/wolffshots/phocus_messages v0.0.0-20221125142604-48b55ace262c
-	github.com/wolffshots/phocus_mqtt v0.0.0-20221125231711-921fd37b71a7
+	github.com/wolffshots/phocus_mqtt v0.0.0-20221126000659-acd9ed8a73fa
 	github.com/wolffshots/phocus_sensors v0.0.0-20221125231636-4fc42f80865b
 	github.com/wolffshots/phocus_serial v0.0.0-20221125135724-a9b31e82ec1c
 )
@@ -48,10 +48,10 @@ require (
 // // to use drop in replacements for packages such as the messages
 // // eg. replace github.com/wolffshots/phocus_messages => github.com/your_name/some_other_messages
 //
-//replace github.com/wolffshots/phocus_messages => ../phocus_messages
-//
-//replace github.com/wolffshots/phocus_mqtt => ../phocus_mqtt
-//
-//replace github.com/wolffshots/phocus_sensors => ../phocus_sensors
-//
-//replace github.com/wolffshots/phocus_serial => ../phocus_serial
+replace github.com/wolffshots/phocus_messages => ../phocus_messages
+
+replace github.com/wolffshots/phocus_mqtt => ../phocus_mqtt
+
+replace github.com/wolffshots/phocus_sensors => ../phocus_sensors
+
+replace github.com/wolffshots/phocus_serial => ../phocus_serial
