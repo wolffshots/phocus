@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"                                // creating custom errors
 	"github.com/gin-gonic/gin"              // for web server
 	"github.com/google/uuid"                // for generating UUIDs for commands
 	"github.com/wolffshots/phocus_messages" // message structures
@@ -9,6 +10,7 @@ import (
 	"github.com/wolffshots/phocus_serial"   // comms with inverter
 	"log"                                   // formatted logging
 	"net/http"                              // for statuses primarily
+	"os/exec"                               // auto restart
 	"sync"                                  // mutexes for mutating queue
 	"time"                                  // for sleeping
 )
@@ -184,12 +186,25 @@ func main() {
 		log.Printf("re-checking queue of length: %d", len(queue))
 		// if there is an entry at [0] then run that command
 		if len(queue) > 0 {
-			err := phocus_messages.Interpret(queue[0])
+			err, consecutiveErrors := phocus_messages.Interpret(queue[0])
 			if err != nil {
 				pubErr := phocus_mqtt.Error(0, false, err, 10)
 				if pubErr != nil {
 					log.Printf("Failed to post previous error (%v) to mqtt: %v\n", err, pubErr)
 				}
+			} else if consecutiveErrors >= 10 {
+				pubErr := phocus_mqtt.Error(0, false, errors.New("greater than 10 errors, waiting 5 minutes then restarting"), 10)
+				if pubErr != nil {
+					log.Printf("Failed to post previous error (%v) to mqtt: %v\n", err, pubErr)
+				}
+				time.Sleep(5 * time.Minute)
+				cmd, err := exec.Command("bash", "-c", "sudo service phocus restart").Output()
+				// it should die here
+				log.Printf("cmd=================>%s\n", cmd)
+				if err != nil {
+					log.Fatal(err)
+				}
+				// if it reaches here at all that implies it didn't restart properly
 			}
 			queue = queue[1:]
 		}
