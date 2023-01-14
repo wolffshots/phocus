@@ -2,7 +2,8 @@ package main
 
 import (
 	"errors"                                // creating custom errors
-	"github.com/gin-gonic/gin"              // for web server
+    "fmt"
+    "github.com/gin-gonic/gin"              // for web server
 	"github.com/google/uuid"                // for generating UUIDs for commands
 	"github.com/wolffshots/phocus_messages" // message structures
 	"github.com/wolffshots/phocus_mqtt"     // comms with mqtt broker
@@ -10,9 +11,10 @@ import (
 	"github.com/wolffshots/phocus_serial"   // comms with inverter
 	"log"                                   // formatted logging
 	"net/http"                              // for statuses primarily
-	"os/exec"                               // auto restart
-	"sync"                                  // mutexes for mutating queue
-	"time"                                  // for sleeping
+    "os"
+    "os/exec" // auto restart
+	"sync"    // mutexes for mutating queue
+	"time"    // for sleeping
 )
 
 // queue of messages seeded with QID to run at startup
@@ -186,14 +188,14 @@ func main() {
 		log.Printf("re-checking queue of length: %d", len(queue))
 		// if there is an entry at [0] then run that command
 		if len(queue) > 0 {
-			err, consecutiveErrors := phocus_messages.Interpret(queue[0])
+			err := phocus_messages.Interpret(queue[0])
 			if err != nil {
 				pubErr := phocus_mqtt.Error(0, false, err, 10)
 				if pubErr != nil {
 					log.Printf("Failed to post previous error (%v) to mqtt: %v\n", err, pubErr)
 				}
-			} else if consecutiveErrors >= 10 {
-				pubErr := phocus_mqtt.Error(0, false, errors.New("greater than 10 errors, waiting 5 minutes then restarting"), 10)
+            } else if fmt.Sprint(err) == "read timed out" { // immediately jailed when read timeout
+				pubErr := phocus_mqtt.Error(0, false, errors.New("read timed out, waiting 5 minutes then restarting"), 10)
 				if pubErr != nil {
 					log.Printf("Failed to post previous error (%v) to mqtt: %v\n", err, pubErr)
 				}
@@ -205,6 +207,7 @@ func main() {
 					log.Fatal(err)
 				}
 				// if it reaches here at all that implies it didn't restart properly
+                os.Exit(1)
 			}
 			queue = queue[1:]
 		}
