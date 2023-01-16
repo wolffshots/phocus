@@ -194,21 +194,22 @@ func main() {
 				if pubErr != nil {
 					log.Printf("Failed to post previous error (%v) to mqtt: %v\n", err, pubErr)
 				}
-            } else if fmt.Sprint(err) == "read timed out" { // immediately jailed when read timeout
-				pubErr := phocus_mqtt.Error(0, false, errors.New("read timed out, waiting 5 minutes then restarting"), 10)
-				if pubErr != nil {
-					log.Printf("Failed to post previous error (%v) to mqtt: %v\n", err, pubErr)
-				}
-				time.Sleep(5 * time.Minute)
-				cmd, err := exec.Command("bash", "-c", "sudo service phocus restart").Output()
-				// it should die here
-				log.Printf("cmd=================>%s\n", cmd)
-				if err != nil {
-					log.Fatal(err)
-				}
-				// if it reaches here at all that implies it didn't restart properly
-                os.Exit(1)
-			}
+                if fmt.Sprint(err) == "read timed out" { // immediately jailed when read timeout
+                    pubErr := phocus_mqtt.Error(0, false, errors.New("read timed out, waiting 5 minutes then restarting"), 10)
+                    if pubErr != nil {
+                        log.Printf("Failed to post previous error (%v) to mqtt: %v\n", err, pubErr)
+                    }
+                    time.Sleep(5 * time.Minute)
+                    cmd, err := exec.Command("bash", "-c", "sudo service phocus restart").Output()
+                    // it should die here
+                    log.Printf("cmd=================>%s\n", cmd)
+                    if err != nil {
+                        log.Fatal(err)
+                    }
+                    // if it reaches here at all that implies it didn't restart properly
+                    os.Exit(1)
+                }
+            }
 			queue = queue[1:]
 		}
 		queueMutex.Unlock()
