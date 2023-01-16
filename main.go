@@ -143,6 +143,11 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to set up mqtt with err: %v", err)
 	}
+    // reset error
+    pubErr := phocus_mqtt.Send("phocus/stats/error", 0, false, fmt.Sprint(""), 10)
+    if pubErr != nil {
+        log.Printf("Failed to clear previous error: %v\n", pubErr)
+    }
 
 	// serial
 	err = phocus_serial.Setup()
