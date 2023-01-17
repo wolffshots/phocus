@@ -1,6 +1,8 @@
 package main
 
 import (
+	"errors" // creating custom errors
+	"fmt"
 	"github.com/gin-gonic/gin"              // for web server
 	"github.com/google/uuid"                // for generating UUIDs for commands
 	"github.com/wolffshots/phocus_messages" // message structures
@@ -9,8 +11,10 @@ import (
 	"github.com/wolffshots/phocus_serial"   // comms with inverter
 	"log"                                   // formatted logging
 	"net/http"                              // for statuses primarily
-	"sync"                                  // mutexes for mutating queue
-	"time"                                  // for sleeping
+	"os"
+	"os/exec" // auto restart
+	"sync"    // mutexes for mutating queue
+	"time"    // for sleeping
 )
 
 // queue of messages seeded with QID to run at startup
@@ -139,6 +143,11 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to set up mqtt with err: %v", err)
 	}
+	// reset error
+	pubErr := phocus_mqtt.Send("phocus/stats/error", 0, false, fmt.Sprint(""), 10)
+	if pubErr != nil {
+		log.Printf("Failed to clear previous error: %v\n", pubErr)
+	}
 
 	// serial
 	err = phocus_serial.Setup()
@@ -189,6 +198,21 @@ func main() {
 				pubErr := phocus_mqtt.Error(0, false, err, 10)
 				if pubErr != nil {
 					log.Printf("Failed to post previous error (%v) to mqtt: %v\n", err, pubErr)
+				}
+				if fmt.Sprint(err) == "read timed out" { // immediately jailed when read timeout
+					pubErr := phocus_mqtt.Error(0, false, errors.New("read timed out, waiting 5 minutes then restarting"), 10)
+					if pubErr != nil {
+						log.Printf("Failed to post previous error (%v) to mqtt: %v\n", err, pubErr)
+					}
+					time.Sleep(5 * time.Minute)
+					cmd, err := exec.Command("bash", "-c", "sudo service phocus restart").Output()
+					// it should die here
+					log.Printf("cmd=================>%s\n", cmd)
+					if err != nil {
+						log.Fatal(err)
+					}
+					// if it reaches here at all that implies it didn't restart properly
+					os.Exit(1)
 				}
 			}
 			queue = queue[1:]
