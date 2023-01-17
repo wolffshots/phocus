@@ -73,12 +73,10 @@ github.com/wolffshots/ha_types v0.0.0-20221125170828-a8f12082a5de h1:BYpTpvqcge7
 github.com/wolffshots/ha_types v0.0.0-20221125170828-a8f12082a5de/go.mod h1:iLzWsZCwUTAqBzVcxcoBEKffaJ4ZPmy42c8a7wK8WjY=
 github.com/wolffshots/phocus_crc v0.0.0-20221125202826-bcacfb3a76be h1:5l6VYu26TXU8zoCSslPCIwXTvzlfz9tVFFRcM0yaT6A=
 github.com/wolffshots/phocus_crc v0.0.0-20221125202826-bcacfb3a76be/go.mod h1:mVr8Z32dnNTzYB+vQHsXAJgL/9AY/no0LXPkxIsgPIg=
-github.com/wolffshots/phocus_messages v0.0.0-20221129132216-9d50b340113c h1:ge2H9hkmALb3Qmxvfdfs9vJx88FalkxvijGYkUL1EmI=
-github.com/wolffshots/phocus_messages v0.0.0-20221129132216-9d50b340113c/go.mod h1:3kkp1NRqWPu/hTq16TXWPYjsqhZZOiyZus+Ymu6meec=
-github.com/wolffshots/phocus_messages v0.0.0-20230112071558-8284b6334064 h1:hXDIPyrdE1cXCsS7lL5eP0mApbBYZqK27wuiuAw4LYg=
-github.com/wolffshots/phocus_messages v0.0.0-20230112071558-8284b6334064/go.mod h1:3kkp1NRqWPu/hTq16TXWPYjsqhZZOiyZus+Ymu6meec=
 github.com/wolffshots/phocus_messages v0.0.0-20230114190024-8defffe11e72 h1:tcl0F868w0kKIqdXDpBCw45jwXls9w/zx2UkSccN2OY=
 github.com/wolffshots/phocus_messages v0.0.0-20230114190024-8defffe11e72/go.mod h1:3kkp1NRqWPu/hTq16TXWPYjsqhZZOiyZus+Ymu6meec=
+github.com/wolffshots/phocus_messages v0.0.0-20230117123748-ccbe9eb9b697 h1:x+7jA0V6jIFi0epk1Y8yP9ujZsaMqwTAawaMbSzuWPI=
+github.com/wolffshots/phocus_messages v0.0.0-20230117123748-ccbe9eb9b697/go.mod h1:3kkp1NRqWPu/hTq16TXWPYjsqhZZOiyZus+Ymu6meec=
 github.com/wolffshots/phocus_mqtt v0.0.0-20221126000659-acd9ed8a73fa h1:IzTJLF4eBji6Sdzz0qgAXCodioVBw2iPNh/3kShALh4=
 github.com/wolffshots/phocus_mqtt v0.0.0-20221126000659-acd9ed8a73fa/go.mod h1:HGcAGb2vGdPHs4GCk8HrbRgw1ctKy9LhwJm81e07Ocg=
 github.com/wolffshots/phocus_sensors v0.0.0-20221125231636-4fc42f80865b h1:jighk++/JimvcQzmfMqzN+M22ML+eVcjrJ9vphhKhA4=
