@@ -28,22 +28,20 @@ var queueMutex sync.Mutex
 func QueueQPGSn() {
 	for {
 		queueMutex.Lock()
-		if len(queue) < 20 {
+		if len(queue) < 10 {
 			queue = append(
 				queue,
 				phocus_messages.Message{ID: uuid.New(), Command: "QPGS1", Payload: ""},
 			)
-		}
-        time.Sleep(time.Duration(15+rand.Intn(5)) * time.Second)
-		queueMutex.Unlock()
-		queueMutex.Lock()
-		if len(queue) < 20 {
+			time.Sleep(time.Duration(15+rand.Intn(5)) * time.Second)
+			queueMutex.Unlock()
+			queueMutex.Lock()
 			queue = append(
 				queue,
 				phocus_messages.Message{ID: uuid.New(), Command: "QPGS2", Payload: ""},
 			)
+			time.Sleep(time.Duration(15+rand.Intn(5)) * time.Second)
 		}
-		time.Sleep(time.Duration(15+rand.Intn(5)) * time.Second)
 		queueMutex.Unlock()
 	}
 }
@@ -226,10 +224,10 @@ func main() {
 				}
 			}
 			queue = queue[1:]
-		}else{
-            // min sleep between actual comms with inverter
-            time.Sleep(5 * time.Second)
-        }
+		} else {
+			// min sleep between actual comms with inverter
+			time.Sleep(5 * time.Second)
+		}
 		queueMutex.Unlock()
 		// min sleep between queue checks
 		time.Sleep(1 * time.Second)
