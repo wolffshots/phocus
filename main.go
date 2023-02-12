@@ -10,11 +10,12 @@ import (
 	"github.com/wolffshots/phocus_sensors"  // registering common sensors
 	"github.com/wolffshots/phocus_serial"   // comms with inverter
 	"log"                                   // formatted logging
+	"math/rand"                             // queue randomisation
 	"net/http"                              // for statuses primarily
-	"os"
-	"os/exec" // auto restart
-	"sync"    // mutexes for mutating queue
-	"time"    // for sleeping
+	"os"                                    // exiting
+	"os/exec"                               // auto restart
+	"sync"                                  // mutexes for mutating queue
+	"time"                                  // for sleeping
 )
 
 // queue of messages seeded with QID to run at startup
@@ -30,11 +31,20 @@ func QueueQPGSn() {
 		if len(queue) < 20 {
 			queue = append(
 				queue,
-				phocus_messages.Message{ID: uuid.New(), Command: "QPGSn", Payload: ""},
+				phocus_messages.Message{ID: uuid.New(), Command: "QPGS1", Payload: ""},
 			)
 		}
 		queueMutex.Unlock()
-		time.Sleep(60 * time.Second)
+		time.Sleep(time.Duration(15+rand.Intn(5)) * time.Second)
+		queueMutex.Lock()
+		if len(queue) < 20 {
+			queue = append(
+				queue,
+				phocus_messages.Message{ID: uuid.New(), Command: "QPGS2", Payload: ""},
+			)
+		}
+		time.Sleep(time.Duration(15+rand.Intn(5)) * time.Second)
+		queueMutex.Unlock()
 	}
 }
 
@@ -204,7 +214,7 @@ func main() {
 					if pubErr != nil {
 						log.Printf("Failed to post previous error (%v) to mqtt: %v\n", err, pubErr)
 					}
-					time.Sleep(5 * time.Minute)
+					time.Sleep(3 * time.Minute)
 					cmd, err := exec.Command("bash", "-c", "sudo service phocus restart").Output()
 					// it should die here
 					log.Printf("cmd=================>%s\n", cmd)

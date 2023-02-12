@@ -6,7 +6,7 @@ require (
 	github.com/gin-gonic/gin v1.8.1
 	github.com/google/uuid v1.3.0
 	github.com/stretchr/testify v1.8.1
-	github.com/wolffshots/phocus_messages v0.0.0-20230117155323-091bc373213e
+	github.com/wolffshots/phocus_messages v0.0.0-20230212160714-eb4cab70e962
 	github.com/wolffshots/phocus_mqtt v0.0.0-20221126000659-acd9ed8a73fa
 	github.com/wolffshots/phocus_sensors v0.0.0-20221125231636-4fc42f80865b
 	github.com/wolffshots/phocus_serial v0.0.0-20221125135724-a9b31e82ec1c
