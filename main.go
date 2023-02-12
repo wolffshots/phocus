@@ -200,7 +200,7 @@ func main() {
 	// loop to check queue and dequeue index 0, run it process result and wait 30 seconds
 	for {
 		queueMutex.Lock()
-		log.Printf("re-checking queue of length: %d", len(queue))
+		log.Print(".")
 		// if there is an entry at [0] then run that command
 		if len(queue) > 0 {
 			err := phocus_messages.Interpret(queue[0])
@@ -226,9 +226,12 @@ func main() {
 				}
 			}
 			queue = queue[1:]
-		}
+		}else{
+            // min sleep between actual comms with inverter
+            time.Sleep(5 * time.Second)
+        }
 		queueMutex.Unlock()
-		// min sleep between comms with inverter
-		time.Sleep(5 * time.Second)
+		// min sleep between queue checks
+		time.Sleep(1 * time.Second)
 	}
 }
