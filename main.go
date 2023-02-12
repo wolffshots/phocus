@@ -34,8 +34,8 @@ func QueueQPGSn() {
 				phocus_messages.Message{ID: uuid.New(), Command: "QPGS1", Payload: ""},
 			)
 		}
+        time.Sleep(time.Duration(15+rand.Intn(5)) * time.Second)
 		queueMutex.Unlock()
-		time.Sleep(time.Duration(15+rand.Intn(5)) * time.Second)
 		queueMutex.Lock()
 		if len(queue) < 20 {
 			queue = append(
