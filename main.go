@@ -1,8 +1,8 @@
 package main
 
 import (
-	"errors" // creating custom errors
-	"fmt"
+	"errors"                                // creating custom errors
+	"fmt"                                   // string formatting
 	"github.com/gin-gonic/gin"              // for web server
 	"github.com/google/uuid"                // for generating UUIDs for commands
 	"github.com/wolffshots/phocus_messages" // message structures
