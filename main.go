@@ -28,21 +28,24 @@ var queueMutex sync.Mutex
 func QueueQPGSn() {
 	for {
 		queueMutex.Lock()
-		if len(queue) < 10 {
+		if len(queue) < 2 {
 			queue = append(
 				queue,
 				phocus_messages.Message{ID: uuid.New(), Command: "QPGS1", Payload: ""},
 			)
-			time.Sleep(time.Duration(15+rand.Intn(5)) * time.Second)
 			queueMutex.Unlock()
+			time.Sleep(time.Duration(15+rand.Intn(5)) * time.Second)
 			queueMutex.Lock()
 			queue = append(
 				queue,
 				phocus_messages.Message{ID: uuid.New(), Command: "QPGS2", Payload: ""},
 			)
+			queueMutex.Unlock()
 			time.Sleep(time.Duration(15+rand.Intn(5)) * time.Second)
+		} else {
+			queueMutex.Unlock()
 		}
-		queueMutex.Unlock()
+
 	}
 }
 
