@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/bash
 
 go build -o ./build/phocus main.go
 sudo mv ./build/phocus /usr/bin

@@ -6,10 +6,10 @@ require (
 	github.com/gin-gonic/gin v1.8.1
 	github.com/google/uuid v1.3.0
 	github.com/stretchr/testify v1.8.1
-	github.com/wolffshots/phocus_messages v0.0.0-20230212160714-eb4cab70e962
-	github.com/wolffshots/phocus_mqtt v0.0.0-20221126000659-acd9ed8a73fa
-	github.com/wolffshots/phocus_sensors v0.0.0-20221125231636-4fc42f80865b
-	github.com/wolffshots/phocus_serial v0.0.0-20221125135724-a9b31e82ec1c
+	github.com/wolffshots/phocus_messages v0.0.0-20230426094233-60c6b8b9f275
+	github.com/wolffshots/phocus_mqtt v0.0.0-20230426094209-f0c6624403ec
+	github.com/wolffshots/phocus_sensors v0.0.0-20230426094315-33365268bdd5
+	github.com/wolffshots/phocus_serial v0.0.0-20230426094352-cb3cb2bd9744
 )
 
 require (
@@ -31,8 +31,8 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/sigurn/crc16 v0.0.0-20211026045750-20ab5afb07e3 // indirect
 	github.com/ugorji/go/codec v1.2.7 // indirect
-	github.com/wolffshots/ha_types v0.0.0-20221125170828-a8f12082a5de // indirect
-	github.com/wolffshots/phocus_crc v0.0.0-20230117155203-4b1561503f55 // indirect
+	github.com/wolffshots/ha_types v0.0.0-20230426094329-747137c5bee4 // indirect
+	github.com/wolffshots/phocus_crc v0.0.0-20230426095151-f366c86994c3 // indirect
 	go.bug.st/serial v1.4.0 // indirect
 	golang.org/x/crypto v0.6.0 // indirect
 	golang.org/x/net v0.7.0 // indirect
