@@ -8,7 +8,7 @@ require (
 	github.com/stretchr/testify v1.8.1
 	github.com/wolffshots/phocus_messages v0.0.0-20230426105100-58bb669225b5
 	github.com/wolffshots/phocus_mqtt v0.0.0-20230426105149-7f39b6f21cd2
-	github.com/wolffshots/phocus_sensors v0.0.0-20230426115847-53838e0120e7
+	github.com/wolffshots/phocus_sensors v0.0.0-20230427092536-6148aafe86f5
 	github.com/wolffshots/phocus_serial v0.0.0-20230426105436-e8a7e9fff872
 )
 
