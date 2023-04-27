@@ -1,21 +1,22 @@
 package main
 
 import (
-	"errors"                                // creating custom errors
-	"fmt"                                   // string formatting
+	"errors"    // creating custom errors
+	"fmt"       // string formatting
+	"log"       // formatted logging
+	"math/rand" // queue randomisation
+	"net/http"  // for statuses primarily
+	"os"        // exiting
+	"os/exec"   // auto restart
+	"sync"      // mutexes for mutating queue
+	"time"      // for sleeping
+
 	"github.com/gin-gonic/gin"              // for web server
 	"github.com/google/uuid"                // for generating UUIDs for commands
 	"github.com/wolffshots/phocus_messages" // message structures
 	"github.com/wolffshots/phocus_mqtt"     // comms with mqtt broker
 	"github.com/wolffshots/phocus_sensors"  // registering common sensors
 	"github.com/wolffshots/phocus_serial"   // comms with inverter
-	"log"                                   // formatted logging
-	"math/rand"                             // queue randomisation
-	"net/http"                              // for statuses primarily
-	"os"                                    // exiting
-	"os/exec"                               // auto restart
-	"sync"                                  // mutexes for mutating queue
-	"time"                                  // for sleeping
 )
 
 // queue of messages seeded with QID to run at startup
@@ -150,12 +151,12 @@ func main() {
 	log.Println("Starting up phocus")
 
 	// mqtt
-	err := phocus_mqtt.Setup("192.168.88.124", "go_phocus_client'")
+	err := phocus_mqtt.Setup("192.168.88.14", "go_phocus_client'")
 	if err != nil {
 		log.Fatalf("Failed to set up mqtt with err: %v", err)
 	}
 	// reset error
-	pubErr := phocus_mqtt.Send("phocus/stats/error", 0, false, fmt.Sprint(""), 10)
+	pubErr := phocus_mqtt.Send("phocus/stats/error", 0, false, "", 10)
 	if pubErr != nil {
 		log.Printf("Failed to clear previous error: %v\n", pubErr)
 	}
