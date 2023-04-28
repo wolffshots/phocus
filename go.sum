@@ -69,8 +69,8 @@ github.com/ugorji/go/codec v1.2.11 h1:BMaWp1Bb6fHwEtbplGBGJ498wD+LKlNSl25MjdZY4d
 github.com/ugorji/go/codec v1.2.11/go.mod h1:UNopzCgEMSXjBc6AOMqYvWC1ktqTAfzJZUZgYf6w6lg=
 github.com/wolffshots/ha_types v0.0.0-20230427095531-5eedb97ab9be h1:dPtIfVybWZ06QPd/GEbGKJMdc5lqI/IZIVNMh3yNSlk=
 github.com/wolffshots/ha_types v0.0.0-20230427095531-5eedb97ab9be/go.mod h1:iLzWsZCwUTAqBzVcxcoBEKffaJ4ZPmy42c8a7wK8WjY=
-github.com/wolffshots/phocus_api v0.0.0-20230428101042-3e6426b6c7d6 h1:wHBnZpjpTfW5Vld20UVtiqZH/nIPCkzR+L5d9UTeCwU=
-github.com/wolffshots/phocus_api v0.0.0-20230428101042-3e6426b6c7d6/go.mod h1:I60hg5Y260SICgQavufSiGJFuzawJB41gCSh5/g+8CY=
+github.com/wolffshots/phocus_api v0.0.0-20230428101544-8276827f7343 h1:/ytOt8cv8xqDcFtnwlDzGRAFgHZvlI7aIrowaoztMfg=
+github.com/wolffshots/phocus_api v0.0.0-20230428101544-8276827f7343/go.mod h1:I60hg5Y260SICgQavufSiGJFuzawJB41gCSh5/g+8CY=
 github.com/wolffshots/phocus_crc v0.0.0-20230427095540-89ccfbd04f08 h1:cVxfhgMgHOCIr+OuR0puQhRQ9Sx4mv+KB6EKomvwhD0=
 github.com/wolffshots/phocus_crc v0.0.0-20230427095540-89ccfbd04f08/go.mod h1:mVr8Z32dnNTzYB+vQHsXAJgL/9AY/no0LXPkxIsgPIg=
 github.com/wolffshots/phocus_messages v0.0.0-20230427095422-abb375d85267 h1:yfyaH/Bfha7b8YfCfcwiGsAjsYiVg111pK0Q8aszeu4=

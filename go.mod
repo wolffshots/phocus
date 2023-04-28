@@ -3,7 +3,7 @@ module github.com/wolffshots/phocus
 go 1.19
 
 require (
-	github.com/wolffshots/phocus_api v0.0.0-20230428101042-3e6426b6c7d6
+	github.com/wolffshots/phocus_api v0.0.0-20230428101544-8276827f7343
 	github.com/wolffshots/phocus_messages v0.0.0-20230427095422-abb375d85267
 	github.com/wolffshots/phocus_mqtt v0.0.0-20230427095453-31c71b59ce03
 	github.com/wolffshots/phocus_sensors v0.0.0-20230428102926-befe946124f1
