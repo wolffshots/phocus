@@ -6,7 +6,7 @@ require (
 	github.com/wolffshots/phocus_api v0.0.0-20230428101042-3e6426b6c7d6
 	github.com/wolffshots/phocus_messages v0.0.0-20230427095422-abb375d85267
 	github.com/wolffshots/phocus_mqtt v0.0.0-20230427095453-31c71b59ce03
-	github.com/wolffshots/phocus_sensors v0.0.0-20230427095501-96a1e75dc5e7
+	github.com/wolffshots/phocus_sensors v0.0.0-20230428102926-befe946124f1
 	github.com/wolffshots/phocus_serial v0.0.0-20230427095509-8a1517f291a9
 )
 
@@ -53,12 +53,12 @@ require (
 // // to use drop in replacements for packages such as the messages
 // // eg. replace github.com/wolffshots/phocus_messages => github.com/your_name/some_other_messages
 //
-//replace github.com/wolffshots/phocus_messages => ../phocus_messages
+// replace github.com/wolffshots/phocus_messages => ../phocus_messages
 //
-//replace github.com/wolffshots/phocus_mqtt => ../phocus_mqtt
+// replace github.com/wolffshots/phocus_mqtt => ../phocus_mqtt
 //
-//replace github.com/wolffshots/phocus_sensors => ../phocus_sensors
+// replace github.com/wolffshots/phocus_sensors => ../phocus_sensors
 //
-//replace github.com/wolffshots/phocus_serial => ../phocus_serial
+// replace github.com/wolffshots/phocus_serial => ../phocus_serial
 //
 // replace github.com/wolffshots/phocus_api => ../phocus_api

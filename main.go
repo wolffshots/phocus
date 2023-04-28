@@ -16,6 +16,8 @@ import (
 	"github.com/wolffshots/phocus_serial"   // comms with inverter
 )
 
+const version = "1.1.1"
+
 // main is the entrypoint to the app
 func main() {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds | log.Llongfile)
@@ -56,7 +58,7 @@ func main() {
 
 	// sensors
 	// we only add them once we know the mqtt, serial and http aspects are up
-	err = phocus_sensors.Register()
+	err = phocus_sensors.Register(version)
 	if err != nil {
 		pubErr := phocus_mqtt.Error(0, false, err, 10)
 		if pubErr != nil {
