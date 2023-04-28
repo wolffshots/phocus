@@ -3,11 +3,11 @@ module github.com/wolffshots/phocus
 go 1.19
 
 require (
-	github.com/wolffshots/phocus_api v0.0.0-20230428101544-8276827f7343
-	github.com/wolffshots/phocus_messages v0.0.0-20230427095422-abb375d85267
-	github.com/wolffshots/phocus_mqtt v0.0.0-20230427095453-31c71b59ce03
-	github.com/wolffshots/phocus_sensors v0.0.0-20230428102926-befe946124f1
-	github.com/wolffshots/phocus_serial v0.0.0-20230427095509-8a1517f291a9
+	github.com/wolffshots/phocus_api v1.1.1
+	github.com/wolffshots/phocus_messages v1.1.1
+	github.com/wolffshots/phocus_mqtt v1.1.1
+	github.com/wolffshots/phocus_sensors v1.1.1
+	github.com/wolffshots/phocus_serial v1.1.1
 )
 
 require (
@@ -36,8 +36,8 @@ require (
 	github.com/sigurn/crc16 v0.0.0-20211026045750-20ab5afb07e3 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.11 // indirect
-	github.com/wolffshots/ha_types v0.0.0-20230427095531-5eedb97ab9be // indirect
-	github.com/wolffshots/phocus_crc v0.0.0-20230427095540-89ccfbd04f08 // indirect
+	github.com/wolffshots/ha_types v1.1.1 // indirect
+	github.com/wolffshots/phocus_crc v1.1.1 // indirect
 	go.bug.st/serial v1.5.0 // indirect
 	golang.org/x/arch v0.3.0 // indirect
 	golang.org/x/crypto v0.8.0 // indirect
