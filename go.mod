@@ -3,9 +3,7 @@ module github.com/wolffshots/phocus
 go 1.19
 
 require (
-	github.com/gin-gonic/gin v1.9.0
-	github.com/google/uuid v1.3.0
-	github.com/stretchr/testify v1.8.2
+	github.com/wolffshots/phocus_api v0.0.0-20230428101042-3e6426b6c7d6
 	github.com/wolffshots/phocus_messages v0.0.0-20230427095422-abb375d85267
 	github.com/wolffshots/phocus_mqtt v0.0.0-20230427095453-31c71b59ce03
 	github.com/wolffshots/phocus_sensors v0.0.0-20230427095501-96a1e75dc5e7
@@ -13,10 +11,14 @@ require (
 )
 
 require (
+	github.com/gin-gonic/gin v1.9.0 // indirect
+	github.com/google/uuid v1.3.0 // indirect
+)
+
+require (
 	github.com/bytedance/sonic v1.8.8 // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20221115062448-fe3a3abad311 // indirect
 	github.com/creack/goselect v0.1.2 // indirect
-	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/eclipse/paho.mqtt.golang v1.4.2 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
@@ -31,7 +33,6 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.7 // indirect
-	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/sigurn/crc16 v0.0.0-20211026045750-20ab5afb07e3 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.11 // indirect
@@ -59,3 +60,5 @@ require (
 //replace github.com/wolffshots/phocus_sensors => ../phocus_sensors
 //
 //replace github.com/wolffshots/phocus_serial => ../phocus_serial
+//
+// replace github.com/wolffshots/phocus_api => ../phocus_api
