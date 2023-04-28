@@ -1,3 +1,5 @@
+// Package phocus_mqtt handles connecting to and
+// communicating with an MQTT broker
 package phocus_mqtt
 
 import (
@@ -18,7 +20,7 @@ func Setup(hostname string, clientId string) error {
 	mqtt.CRITICAL = log.New(os.Stdout, "[CRIT] ", 0)
 	mqtt.WARN = log.New(os.Stdout, "[WARN]  ", 0)
 	mqtt.DEBUG = log.New(os.Stdout, "[DEBUG] ", 0)
-	var mqttBroker = hostname // TODO these should be config vars
+	var mqttBroker = hostname
 	var mqttPort = 1883
 	opts := mqtt.NewClientOptions()
 	opts.AddBroker(fmt.Sprintf("tcp://%s:%d", mqttBroker, mqttPort))

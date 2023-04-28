@@ -18,21 +18,21 @@ If you don't need to differ from the default setup then it should be as simple a
 
 1. Clone the repo
 
-```sh
-git clone https://github.com/wolffshots/phocus.git
-```
+    ```sh
+    git clone https://github.com/wolffshots/phocus.git
+    ```
 
 2. Run the install script (which builds the app then will ask for your password to put it in the correct place and make a service file for it)
 
-```sh
-cd phocus && ./install.sh
-```
+    ```sh
+    cd phocus && ./install.sh
+    ```
 
 3. (Re)start the service
 
-```sh
-sudo service phocus restart
-```
+    ```sh
+    sudo service phocus restart
+    ```
 
 ## TODO
 - [ ] explain config

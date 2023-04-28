@@ -1,4 +1,4 @@
-// Package phocus_api is the wrapper for the http and queueing api
+// Package phocus_api is the wrapper for the http and queueing systems
 package phocus_api
 
 import (
@@ -10,13 +10,15 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	phocus_messages "github.com/wolffshots/phocus/v2/messages" // message structures
+	messages "github.com/wolffshots/phocus/v2/messages" // message structures
 )
 
 // Queue of messages seeded with QID to run at startup
-var Queue = []phocus_messages.Message{
+var Queue = []messages.Message{
 	{ID: uuid.New(), Command: "QID", Payload: ""},
 }
+
+// QueueMutex controls access to the Queue
 var QueueMutex sync.Mutex
 
 // QueueQPGSn is a simple loop to add QPGSn to the Queue as long as it isn't too long
@@ -26,14 +28,14 @@ func QueueQPGSn() {
 		if len(Queue) < 2 {
 			Queue = append(
 				Queue,
-				phocus_messages.Message{ID: uuid.New(), Command: "QPGS1", Payload: ""},
+				messages.Message{ID: uuid.New(), Command: "QPGS1", Payload: ""},
 			)
 			QueueMutex.Unlock()
 			time.Sleep(time.Duration(15+rand.Intn(5)) * time.Second)
 			QueueMutex.Lock()
 			Queue = append(
 				Queue,
-				phocus_messages.Message{ID: uuid.New(), Command: "QPGS2", Payload: ""},
+				messages.Message{ID: uuid.New(), Command: "QPGS2", Payload: ""},
 			)
 			QueueMutex.Unlock()
 			time.Sleep(time.Duration(15+rand.Intn(5)) * time.Second)
@@ -44,9 +46,10 @@ func QueueQPGSn() {
 	}
 }
 
-// PostMessage enQueues a new message manually (requires knowledge of commands and a generated uuid on the request)
+// PostMessage enqueues a new message manually (requires knowledge of commands and a generated uuid on the request)
+// as long as there is space in the queue for it
 func PostMessage(c *gin.Context) {
-	var newMessage phocus_messages.Message
+	var newMessage messages.Message
 	// Call BindJSON to bind the received JSON to
 	// newMessage - will throw an error if it can't cast ID to UUID
 	if err := c.BindJSON(&newMessage); err != nil || newMessage.Command == "" {
@@ -80,6 +83,10 @@ func GetHealth(c *gin.Context) {
 }
 
 // GetMessage attempts to select a specified message from the Queue and returns it or fails
+//
+// Attempts to get and return the Message with the supplied `id` from the Queue otherwise it returns a 404.
+//
+// Handles `next` as a reserved word for the next Message in the Queue
 func GetMessage(c *gin.Context) {
 	id := c.Param("id")
 	QueueMutex.Lock()
@@ -103,12 +110,14 @@ func GetMessage(c *gin.Context) {
 // DeleteQueue clears the current Queue
 func DeleteQueue(c *gin.Context) {
 	QueueMutex.Lock()
-	Queue = []phocus_messages.Message{}
+	Queue = []messages.Message{}
 	QueueMutex.Unlock()
 	c.Status(http.StatusNoContent)
 }
 
 // DeleteMessage attempts to delete a specified message from the Queue
+//
+// If the Queue is empty it or if the ID is not found it returns a 404 otherwise it returns an empty 204
 func DeleteMessage(c *gin.Context) {
 	id := c.Param("id")
 	QueueMutex.Lock()
@@ -129,7 +138,9 @@ func DeleteMessage(c *gin.Context) {
 	}
 }
 
-// SetupRouter add the endpoints on the router for Queue management
+// SetupRouter adds the endpoints on the router for Queue management
+//
+// returns router object
 func SetupRouter() *gin.Engine {
 	// router setup for async rest api for Queueing
 	router := gin.Default()

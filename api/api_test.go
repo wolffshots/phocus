@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid" // for generating UUIDs for commands
-	phocus_messages "github.com/wolffshots/phocus/v2/messages"
+	messages "github.com/wolffshots/phocus/v2/messages"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -20,13 +20,13 @@ func TestPostMessage(t *testing.T) {
 	qidUUID1 := uuid.New()
 	qidUUID2 := uuid.New()
 	qidUUID3 := uuid.New()
-	Queue = make([]phocus_messages.Message, 0)
+	Queue = make([]messages.Message, 0)
 
 	// test first insertion
-	want := []phocus_messages.Message{
+	want := []messages.Message{
 		{ID: qidUUID2, Command: "QID2", Payload: ""},
 	}
-	body, _ := json.Marshal(phocus_messages.Message{ID: qidUUID2, Command: "QID2", Payload: ""})
+	body, _ := json.Marshal(messages.Message{ID: qidUUID2, Command: "QID2", Payload: ""})
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest(http.MethodPost, "/queue", bytes.NewBuffer(body))
 	req.Header.Set("Content-Type", "application/json")
@@ -35,11 +35,11 @@ func TestPostMessage(t *testing.T) {
 	assert.Equal(t, want, Queue)
 
 	// test second insertion
-	want = []phocus_messages.Message{
+	want = []messages.Message{
 		{ID: qidUUID2, Command: "QID2", Payload: ""},
 		{ID: qidUUID3, Command: "QID3", Payload: ""},
 	}
-	body, _ = json.Marshal(phocus_messages.Message{ID: qidUUID3, Command: "QID3", Payload: ""})
+	body, _ = json.Marshal(messages.Message{ID: qidUUID3, Command: "QID3", Payload: ""})
 	w = httptest.NewRecorder()
 	req, _ = http.NewRequest(http.MethodPost, "/queue", bytes.NewBuffer(body))
 	req.Header.Set("Content-Type", "application/json")
@@ -48,12 +48,12 @@ func TestPostMessage(t *testing.T) {
 	assert.Equal(t, want, Queue)
 
 	// test third insertion
-	want = []phocus_messages.Message{
+	want = []messages.Message{
 		{ID: qidUUID2, Command: "QID2", Payload: ""},
 		{ID: qidUUID3, Command: "QID3", Payload: ""},
 		{ID: qidUUID1, Command: "QID1", Payload: ""},
 	}
-	body, _ = json.Marshal(phocus_messages.Message{ID: qidUUID1, Command: "QID1", Payload: ""})
+	body, _ = json.Marshal(messages.Message{ID: qidUUID1, Command: "QID1", Payload: ""})
 	w = httptest.NewRecorder()
 	req, _ = http.NewRequest(http.MethodPost, "/queue", bytes.NewBuffer(body))
 	req.Header.Set("Content-Type", "application/json")
@@ -62,7 +62,7 @@ func TestPostMessage(t *testing.T) {
 	assert.Equal(t, want, Queue)
 
 	// test invalid message insertion
-	want = []phocus_messages.Message{
+	want = []messages.Message{
 		{ID: qidUUID2, Command: "QID2", Payload: ""},
 		{ID: qidUUID3, Command: "QID3", Payload: ""},
 		{ID: qidUUID1, Command: "QID1", Payload: ""},
@@ -83,12 +83,12 @@ func TestGetQueue(t *testing.T) {
 	qidUUID2 := uuid.New()
 	qidUUID3 := uuid.New()
 
-	Queue = []phocus_messages.Message{
+	Queue = []messages.Message{
 		{ID: qidUUID2, Command: "QID2", Payload: ""},
 		{ID: qidUUID3, Command: "QID3", Payload: ""},
 	}
 
-	want := []phocus_messages.Message{
+	want := []messages.Message{
 		{ID: qidUUID2, Command: "QID2", Payload: ""},
 		{ID: qidUUID3, Command: "QID3", Payload: ""},
 	}
@@ -98,7 +98,7 @@ func TestGetQueue(t *testing.T) {
 	router.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusOK, w.Code)
-	var actualBody []phocus_messages.Message
+	var actualBody []messages.Message
 	err := json.Unmarshal(w.Body.Bytes(), &actualBody)
 	assert.Equal(t, err, nil)
 	assert.Equal(t, want, actualBody)
@@ -124,18 +124,18 @@ func TestGetMessage(t *testing.T) {
 	qidUUID3 := uuid.New()
 	qidUUID4 := uuid.New()
 
-	Queue = []phocus_messages.Message{
+	Queue = []messages.Message{
 		{ID: qidUUID1, Command: "QID1", Payload: ""},
 		{ID: qidUUID2, Command: "QID2", Payload: ""},
 		{ID: qidUUID3, Command: "QID3", Payload: ""},
 	}
-	var actualBody phocus_messages.Message
+	var actualBody messages.Message
 
 	// test first get
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/queue/%s", qidUUID2), nil)
 	router.ServeHTTP(w, req)
-	want := phocus_messages.Message{ID: qidUUID2, Command: "QID2", Payload: ""}
+	want := messages.Message{ID: qidUUID2, Command: "QID2", Payload: ""}
 	err := json.Unmarshal(w.Body.Bytes(), &actualBody)
 	assert.Equal(t, err, nil)
 	assert.Equal(t, http.StatusOK, w.Code)
@@ -145,7 +145,7 @@ func TestGetMessage(t *testing.T) {
 	w = httptest.NewRecorder()
 	req, _ = http.NewRequest(http.MethodGet, fmt.Sprintf("/queue/%s", qidUUID1), nil)
 	router.ServeHTTP(w, req)
-	want = phocus_messages.Message{ID: qidUUID1, Command: "QID1", Payload: ""}
+	want = messages.Message{ID: qidUUID1, Command: "QID1", Payload: ""}
 	err = json.Unmarshal(w.Body.Bytes(), &actualBody)
 	assert.Equal(t, err, nil)
 	assert.Equal(t, http.StatusOK, w.Code)
@@ -155,7 +155,7 @@ func TestGetMessage(t *testing.T) {
 	w = httptest.NewRecorder()
 	req, _ = http.NewRequest(http.MethodGet, fmt.Sprintf("/queue/%s", qidUUID3), nil)
 	router.ServeHTTP(w, req)
-	want = phocus_messages.Message{ID: qidUUID3, Command: "QID3", Payload: ""}
+	want = messages.Message{ID: qidUUID3, Command: "QID3", Payload: ""}
 	err = json.Unmarshal(w.Body.Bytes(), &actualBody)
 	assert.Equal(t, err, nil)
 	assert.Equal(t, http.StatusOK, w.Code)
@@ -180,12 +180,12 @@ func TestDeleteQueue(t *testing.T) {
 	qidUUID1 := uuid.New()
 	qidUUID2 := uuid.New()
 	qidUUID3 := uuid.New()
-	Queue = []phocus_messages.Message{
+	Queue = []messages.Message{
 		{ID: qidUUID1, Command: "QID1", Payload: ""},
 		{ID: qidUUID2, Command: "QID2", Payload: ""},
 		{ID: qidUUID3, Command: "QID3", Payload: ""},
 	}
-	want := make([]phocus_messages.Message, 0)
+	want := make([]messages.Message, 0)
 
 	// test filled case
 	w := httptest.NewRecorder()
@@ -207,14 +207,14 @@ func TestDeleteMessage(t *testing.T) {
 	qidUUID1 := uuid.New()
 	qidUUID2 := uuid.New()
 	qidUUID3 := uuid.New()
-	Queue = []phocus_messages.Message{
+	Queue = []messages.Message{
 		{ID: qidUUID1, Command: "QID1", Payload: ""},
 		{ID: qidUUID2, Command: "QID1", Payload: ""},
 		{ID: qidUUID3, Command: "QID3", Payload: ""},
 	}
 
 	// test first deletion
-	want := []phocus_messages.Message{
+	want := []messages.Message{
 		{ID: qidUUID1, Command: "QID1", Payload: ""},
 		{ID: qidUUID3, Command: "QID3", Payload: ""},
 	}
@@ -225,7 +225,7 @@ func TestDeleteMessage(t *testing.T) {
 	assert.Equal(t, want, Queue)
 
 	// test second deletion
-	want = []phocus_messages.Message{
+	want = []messages.Message{
 		{ID: qidUUID3, Command: "QID3", Payload: ""},
 	}
 	w = httptest.NewRecorder()
@@ -235,7 +235,7 @@ func TestDeleteMessage(t *testing.T) {
 	assert.Equal(t, want, Queue)
 
 	// test third deletion
-	want = make([]phocus_messages.Message, 0)
+	want = make([]messages.Message, 0)
 	w = httptest.NewRecorder()
 	req, _ = http.NewRequest(http.MethodDelete, fmt.Sprintf("/queue/%s", qidUUID3), nil)
 	router.ServeHTTP(w, req)

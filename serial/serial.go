@@ -1,3 +1,5 @@
+// Package phocus_serial facilitates communication
+// over RS232 with an inverter
 package phocus_serial
 
 import (
@@ -6,22 +8,25 @@ import (
 	"log"    // logging
 	"time"   // timeouts
 
-	phocus_crc "github.com/wolffshots/phocus/v2/crc" // checksum generation
-	"go.bug.st/serial"                               // rs232 serial
+	crc "github.com/wolffshots/phocus/v2/crc" // checksum generation
+	"go.bug.st/serial"                        // rs232 serial
 )
 
+// port is the object representing the serial device/connection
 var port serial.Port
+
+// err is the error placeholder for serial connections
 var err error
 
+// Setup opens a connection to the inverter.
+//
+// Returns the error if the port fails to open.
 func Setup() error { // TODO add error handling
 	// specify serial port
 	mode := &serial.Mode{
 		BaudRate: 2400,
 	}
 	port, err = serial.Open("/dev/ttyUSB0", mode) // TODO move to environment variable
-	if err != nil {
-		log.Fatal(err)
-	}
 	return err
 }
 
@@ -29,7 +34,7 @@ func Setup() error { // TODO add error handling
 // The input should be the "payload" string as
 // the CRC is calculated and added to that in Write
 func Write(input string) (int, error) {
-	message, err := phocus_crc.Encode(input)
+	message, err := crc.Encode(input)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -40,8 +45,9 @@ func Write(input string) (int, error) {
 	return n, err
 }
 
-// Read from the open serial port until reaching a carriage return, nil or nothing
-// Takes a duration as an input and times out the read after that long
+// Read from the open serial port until reaching a carriage return, nil or nothing.
+// Takes a duration as an input and times out the read after that long.
+//
 // Returns the read string and the error
 func Read(timeout time.Duration) (string, error) {
 	log.Printf("Starting read\n")
@@ -61,9 +67,6 @@ func Read(timeout time.Duration) (string, error) {
 			} else if string(buff[:n]) == "\r" {
 				response = fmt.Sprintf("%v%v", response, string(buff[:n]))
 				break
-			} else {
-				// log.Printf("%v",string(buff[:n]))
-				// default case, no need to do anything special
 			}
 			response = fmt.Sprintf("%v%v", response, string(buff[:n]))
 		}

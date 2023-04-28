@@ -8,9 +8,9 @@ import (
 	"strings"       // string manipulation
 	"time"          // sleeping
 
-	phocus_crc "github.com/wolffshots/phocus/v2/crc"       // checksum calculations
-	phocus_mqtt "github.com/wolffshots/phocus/v2/mqtt"     // comms with mqtt broker
-	phocus_serial "github.com/wolffshots/phocus/v2/serial" // comms with inverter
+	crc "github.com/wolffshots/phocus/v2/crc"       // checksum calculations
+	mqtt "github.com/wolffshots/phocus/v2/mqtt"     // comms with mqtt broker
+	serial "github.com/wolffshots/phocus/v2/serial" // comms with inverter
 )
 
 type OperationMode string
@@ -210,18 +210,18 @@ func NewQPGSnResponse(input string) (*QPGSnResponse, error) {
 func HandleQPGS(inverterNum int) error {
 	query := fmt.Sprintf("QPGS%d", inverterNum)
 	log.Println(query)
-	bytes, err := phocus_serial.Write(query)
+	bytes, err := serial.Write(query)
 	log.Printf("Sent %v bytes\n", bytes)
 	if err != nil {
 		log.Printf("Failed to write to serial with: %v\n", err)
 		return err
 	}
-	response, err := phocus_serial.Read(2 * time.Second)
+	response, err := serial.Read(2 * time.Second)
 	if err != nil || response == "" {
 		log.Printf("Failed to read from serial with: %v\n", err)
 		return err
 	}
-	valid, err := phocus_crc.Verify(response)
+	valid, err := crc.Verify(response)
 	if err != nil {
 		log.Fatalf("Verification of response from inverter %d produced an error: %v\n", inverterNum, err)
 		return err
@@ -235,7 +235,7 @@ func HandleQPGS(inverterNum int) error {
 		if err != nil {
 			log.Fatalf("Failed to parse response to json with :%v", err)
 		}
-		err = phocus_mqtt.Send(fmt.Sprintf("phocus/stats/qpgs%d", inverterNum), 0, false, string(jsonQPGSResponse), 10)
+		err = mqtt.Send(fmt.Sprintf("phocus/stats/qpgs%d", inverterNum), 0, false, string(jsonQPGSResponse), 10)
 		if err != nil {
 			log.Fatalf("MQTT send of %s failed with: %v\ntype of thing sent was: %T", query, err, jsonQPGSResponse)
 		}
@@ -243,7 +243,7 @@ func HandleQPGS(inverterNum int) error {
 	} else {
 		actual := response[len(response)-3 : len(response)-1]
 		remainder := response[:len(response)-3]
-		wanted, _ := phocus_crc.Checksum(remainder)
+		wanted, _ := crc.Checksum(remainder)
 		message := fmt.Sprintf("invalid response from QPGS%d: CRC should have been %x but was %x", inverterNum, wanted, actual)
 		log.Println(message)
 		err = errors.New(message)

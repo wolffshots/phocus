@@ -1,3 +1,5 @@
+// Package phocus_sensors defines and sensors for phocus and
+// registers them on the MQTT broker
 package phocus_sensors
 
 import (
@@ -8,7 +10,7 @@ import (
 	"github.com/wolffshots/ha_types/device_classes"
 	"github.com/wolffshots/ha_types/state_classes"
 	"github.com/wolffshots/ha_types/units"
-	phocus_mqtt "github.com/wolffshots/phocus/v2/mqtt"
+	mqtt "github.com/wolffshots/phocus/v2/mqtt"
 )
 
 // Sensor is the shape of the sensor for the MQTT Home Assistant integration
@@ -408,7 +410,7 @@ func Register(version string) error {
 	for _, input := range sensors {
 		log.Printf("Registering %s\n", input.Name)
 
-		sensor_string := fmt.Sprintf(
+		sensorDefinition := fmt.Sprintf(
 			"{\""+
 				"unique_id\":\"%s\",\""+
 				"name\":\"%s\",\""+
@@ -427,20 +429,20 @@ func Register(version string) error {
 			version,
 		)
 		if input.Unit != "" {
-			sensor_string += fmt.Sprintf(", \"unit_of_measurement\":\"%s\"", input.Unit)
+			sensorDefinition += fmt.Sprintf(", \"unit_of_measurement\":\"%s\"", input.Unit)
 		}
 		if input.StateClass != "" {
-			sensor_string += fmt.Sprintf(", \"state_class\":\"%s\"", input.StateClass)
+			sensorDefinition += fmt.Sprintf(", \"state_class\":\"%s\"", input.StateClass)
 		}
 		if input.DeviceClass != "" {
-			sensor_string += fmt.Sprintf(", \"device_class\":\"%s\"", input.DeviceClass)
+			sensorDefinition += fmt.Sprintf(", \"device_class\":\"%s\"", input.DeviceClass)
 		}
 		if input.ValueTemplate != "" {
-			sensor_string += fmt.Sprintf(", \"value_template\":\"%s\"", input.ValueTemplate)
+			sensorDefinition += fmt.Sprintf(", \"value_template\":\"%s\"", input.ValueTemplate)
 		}
-		sensor_string += "}"
+		sensorDefinition += "}"
 
-		err := phocus_mqtt.Send(input.SensorTopic, 0, true, sensor_string, 10)
+		err := mqtt.Send(input.SensorTopic, 0, true, sensorDefinition, 10)
 		if err != nil {
 			log.Printf("Failed to send initial setup stats to MQTT with err: %v", err)
 			return err
