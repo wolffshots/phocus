@@ -1,4 +1,4 @@
-module github.com/wolffshots/phocus
+module github.com/wolffshots/phocus/v2
 
 go 1.19
 

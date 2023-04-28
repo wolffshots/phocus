@@ -9,14 +9,14 @@ import (
 	"os/exec" // auto restart
 	"time"    // for sleeping
 
-	phocus_api "github.com/wolffshots/phocus/api"           // api setup
-	phocus_messages "github.com/wolffshots/phocus/messages" // message structures
-	phocus_mqtt "github.com/wolffshots/phocus/mqtt"         // comms with mqtt broker
-	phocus_sensors "github.com/wolffshots/phocus/sensors"   // registering common sensors
-	phocus_serial "github.com/wolffshots/phocus/serial"     // comms with inverter
+	phocus_api "github.com/wolffshots/phocus/v2/api"           // api setup
+	phocus_messages "github.com/wolffshots/phocus/v2/messages" // message structures
+	phocus_mqtt "github.com/wolffshots/phocus/v2/mqtt"         // comms with mqtt broker
+	phocus_sensors "github.com/wolffshots/phocus/v2/sensors"   // registering common sensors
+	phocus_serial "github.com/wolffshots/phocus/v2/serial"     // comms with inverter
 )
 
-const version = "v2.0.1"
+const version = "v2.1.0"
 
 // main is the entrypoint to the app
 func main() {

@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid" // for generating UUIDs for commands
-	phocus_messages "github.com/wolffshots/phocus/messages"
+	phocus_messages "github.com/wolffshots/phocus/v2/messages"
 
 	"github.com/stretchr/testify/assert"
 )

@@ -8,9 +8,9 @@ import (
 	"strings"       // string manipulation
 	"time"          // sleeping
 
-	phocus_crc "github.com/wolffshots/phocus/crc"       // checksum calculations
-	phocus_mqtt "github.com/wolffshots/phocus/mqtt"     // comms with mqtt broker
-	phocus_serial "github.com/wolffshots/phocus/serial" // comms with inverter
+	phocus_crc "github.com/wolffshots/phocus/v2/crc"       // checksum calculations
+	phocus_mqtt "github.com/wolffshots/phocus/v2/mqtt"     // comms with mqtt broker
+	phocus_serial "github.com/wolffshots/phocus/v2/serial" // comms with inverter
 )
 
 type OperationMode string

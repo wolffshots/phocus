@@ -8,7 +8,7 @@ import (
 	"github.com/wolffshots/ha_types/device_classes"
 	"github.com/wolffshots/ha_types/state_classes"
 	"github.com/wolffshots/ha_types/units"
-	phocus_mqtt "github.com/wolffshots/phocus/mqtt"
+	phocus_mqtt "github.com/wolffshots/phocus/v2/mqtt"
 )
 
 // Sensor is the shape of the sensor for the MQTT Home Assistant integration

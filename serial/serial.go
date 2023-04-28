@@ -6,8 +6,8 @@ import (
 	"log"    // logging
 	"time"   // timeouts
 
-	phocus_crc "github.com/wolffshots/phocus/crc" // checksum generation
-	"go.bug.st/serial"                            // rs232 serial
+	phocus_crc "github.com/wolffshots/phocus/v2/crc" // checksum generation
+	"go.bug.st/serial"                               // rs232 serial
 )
 
 var port serial.Port
