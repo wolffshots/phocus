@@ -1,7 +1,7 @@
 App
 
 ![Worklow Status](https://github.com/wolffshots/phocus/actions/workflows/go.yml/badge.svg)
-[![Go Reference](https://pkg.go.dev/badge/github.com/wolffshots/phocus.svg)](https://pkg.go.dev/github.com/wolffshots/phocus)
+[![Go Reference](https://pkg.go.dev/badge/github.com/wolffshots/phocus.svg)](https://pkg.go.dev/github.com/wolffshots/phocus/v2)
 
 # phocus
 
