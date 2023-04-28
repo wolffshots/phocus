@@ -46,7 +46,6 @@ main
 phocus
 build
 
-messages
 .tmp
 ._*
 *DS_Store

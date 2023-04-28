@@ -2,14 +2,6 @@ App
 
 ![Worklow Status](https://github.com/wolffshots/phocus/actions/workflows/go.yml/badge.svg)
 
-Modules
-
-![Worklow Status](https://github.com/wolffshots/phocus_mqtt/actions/workflows/go.yml/badge.svg)
-![Worklow Status](https://github.com/wolffshots/phocus_sensors/actions/workflows/go.yml/badge.svg)
-![Worklow Status](https://github.com/wolffshots/phocus_serial/actions/workflows/go.yml/badge.svg)
-![Worklow Status](https://github.com/wolffshots/phocus_messages/actions/workflows/go.yml/badge.svg)
-![Worklow Status](https://github.com/wolffshots/phocus_crc/actions/workflows/go.yml/badge.svg)
-
 # phocus
 
 A generic set of packages and app to speak to a device via serial and relay the responses to

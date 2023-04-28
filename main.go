@@ -9,11 +9,11 @@ import (
 	"os/exec" // auto restart
 	"time"    // for sleeping
 
-	"github.com/wolffshots/phocus_api"      // api setup
-	"github.com/wolffshots/phocus_messages" // message structures
-	"github.com/wolffshots/phocus_mqtt"     // comms with mqtt broker
-	"github.com/wolffshots/phocus_sensors"  // registering common sensors
-	"github.com/wolffshots/phocus_serial"   // comms with inverter
+	phocus_api "github.com/wolffshots/phocus/api"           // api setup
+	phocus_messages "github.com/wolffshots/phocus/messages" // message structures
+	phocus_mqtt "github.com/wolffshots/phocus/mqtt"         // comms with mqtt broker
+	phocus_sensors "github.com/wolffshots/phocus/sensors"   // registering common sensors
+	phocus_serial "github.com/wolffshots/phocus/serial"     // comms with inverter
 )
 
 const version = "1.1.1"
