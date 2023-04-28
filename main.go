@@ -16,7 +16,7 @@ import (
 	phocus_serial "github.com/wolffshots/phocus/serial"     // comms with inverter
 )
 
-const version = "1.1.1"
+const version = "v2.0.1"
 
 // main is the entrypoint to the app
 func main() {
