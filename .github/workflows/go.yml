@@ -21,8 +21,11 @@ jobs:
     - name: Set Go private repos
       run: go env -w GOPRIVATE="github.com/wolffshots/*"
 
-    - name: Test
-      run: go test -v ./...
+    - name: Test with coverage profile
+      run: go test -v ./... -coverprofile=cov.out
+
+    - name: Convert coverage profile to html
+      run: go tool cover -html=cov.out -o cov.html
 
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v3
