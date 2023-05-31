@@ -10,8 +10,9 @@
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
-cov.html
-cov.xml
+coverage.html
+coverage.xml
+coverage.txt
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
