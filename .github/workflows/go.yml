@@ -21,6 +21,12 @@ jobs:
     - name: Set Go private repos
       run: go env -w GOPRIVATE="github.com/wolffshots/*"
 
+    - name: Test
+      run: go test -v ./...
+
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v3
+
     - name: Build
       run: go build -o ./phocus -v main.go
     
@@ -29,8 +35,3 @@ jobs:
       with:
         name: phocus
         path: phocus*
-        
-    - name: Test
-      run: go test -v ./...
-      
-
