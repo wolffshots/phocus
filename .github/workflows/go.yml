@@ -22,10 +22,7 @@ jobs:
       run: go env -w GOPRIVATE="github.com/wolffshots/*"
 
     - name: Test with coverage profile
-      run: go test -v ./... -coverprofile=coverage.out
-
-    - name: Convert coverage profile to xml
-      run: go run github.com/t-yuki/gocover-cobertura@latest < coverage.out > coverage.xml
+      run: go test -v ./... -coverprofile=coverage.txt
 
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v3
