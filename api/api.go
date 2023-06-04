@@ -21,6 +21,11 @@ var Queue = []messages.Message{
 // QueueMutex controls access to the Queue
 var QueueMutex sync.Mutex
 
+// ValueMutex controls access to the values
+var ValueMutex sync.Mutex
+
+var LastQPGSResponse *messages.QPGSnResponse
+
 // QueueQPGSn is a simple loop to add QPGSn to the Queue as long as it isn't too long
 func QueueQPGSn() {
 	for {
@@ -75,6 +80,19 @@ func GetQueue(c *gin.Context) {
 	tempQueue := Queue
 	QueueMutex.Unlock()
 	c.IndentedJSON(http.StatusOK, tempQueue)
+}
+
+func SetLast(newResponse *messages.QPGSnResponse) {
+	ValueMutex.Lock()
+	LastQPGSResponse = newResponse
+	ValueMutex.Unlock()
+}
+
+// GetLast is called to view the current Last as JSON
+func GetLast(c *gin.Context) {
+	ValueMutex.Lock()
+	c.IndentedJSON(http.StatusOK, LastQPGSResponse)
+	ValueMutex.Unlock()
 }
 
 // GetHealth is a simple endpoint to return a 200

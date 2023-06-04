@@ -113,7 +113,7 @@ var BatteryChargerSourcePriorities = map[string]BatteryChargerSourcePriority{
 
 type QPGSnResponse struct {
 	// (A BBBBBBBBBBBBBB C DD EEE.E FF.FF GGG.G HH.HH IIII JJJJ KKK LL.L MMM NNN OOO.O PPP QQQQQ RRRRR SSS b7b6b5b4b3b2b1b0 T U VVV WWW XX YY.Y ZZZ<CRC><cr>
-	// start byte
+	InverterNumber                      int
 	OtherUnits                          bool
 	SerialNumber                        string
 	OperationMode                       OperationMode
@@ -144,7 +144,7 @@ type QPGSnResponse struct {
 	Checksum                            string
 }
 
-func NewQPGSnResponse(input string) (*QPGSnResponse, error) {
+func NewQPGSnResponse(input string, inverterNum int) (*QPGSnResponse, error) {
 	if input == "" {
 		return nil, errors.New("can't create a response from an empty string")
 	}
@@ -164,6 +164,7 @@ func NewQPGSnResponse(input string) (*QPGSnResponse, error) {
 		return nil, fmt.Errorf("inverter status buffer should have been %d but was %d", wantedLength, len(inverterStatusBuffer))
 	}
 	return &QPGSnResponse{
+		InverterNumber:                      inverterNum,
 		OtherUnits:                          buffer[0] == "1" || buffer[0] == "(1",
 		SerialNumber:                        buffer[1],
 		OperationMode:                       OperationModes[buffer[2]],
@@ -207,27 +208,27 @@ func NewQPGSnResponse(input string) (*QPGSnResponse, error) {
 // HandleQPGS writes the query to the inverter and
 // reads the response, deserialises it into a response
 // object and sends it to MQTT
-func HandleQPGS(inverterNum int) error {
+func HandleQPGS(inverterNum int) (*QPGSnResponse, error) {
 	query := fmt.Sprintf("QPGS%d", inverterNum)
 	log.Println(query)
 	bytes, err := serial.Write(query)
 	log.Printf("Sent %v bytes\n", bytes)
 	if err != nil {
 		log.Printf("Failed to write to serial with: %v\n", err)
-		return err
+		return nil, err
 	}
 	response, err := serial.Read(2 * time.Second)
 	if err != nil || response == "" {
 		log.Printf("Failed to read from serial with: %v\n", err)
-		return err
+		return nil, err
 	}
 	valid, err := crc.Verify(response)
 	if err != nil {
 		log.Fatalf("Verification of response from inverter %d produced an error: %v\n", inverterNum, err)
-		return err
+		return nil, err
 	}
 	if valid {
-		QPGSResponse, err := NewQPGSnResponse(response)
+		QPGSResponse, err := NewQPGSnResponse(response, inverterNum)
 		if err != nil || QPGSResponse == nil {
 			log.Fatalf("Failed to create response with :%v", err)
 		}
@@ -240,6 +241,7 @@ func HandleQPGS(inverterNum int) error {
 			log.Fatalf("MQTT send of %s failed with: %v\ntype of thing sent was: %T", query, err, jsonQPGSResponse)
 		}
 		log.Printf("Sent to MQTT:\n%s\n", jsonQPGSResponse)
+		return QPGSResponse, err
 	} else {
 		actual := response[len(response)-3 : len(response)-1]
 		remainder := response[:len(response)-3]
@@ -248,5 +250,5 @@ func HandleQPGS(inverterNum int) error {
 		log.Println(message)
 		err = errors.New(message)
 	}
-	return err
+	return nil, err
 }
