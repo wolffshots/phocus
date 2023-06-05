@@ -222,11 +222,7 @@ func HandleQPGS(inverterNum int) (*QPGSnResponse, error) {
 		log.Printf("Failed to read from serial with: %v\n", err)
 		return nil, err
 	}
-	valid, err := crc.Verify(response)
-	if err != nil {
-		log.Fatalf("Verification of response from inverter %d produced an error: %v\n", inverterNum, err)
-		return nil, err
-	}
+	valid := crc.Verify(response)
 	if valid {
 		QPGSResponse, err := NewQPGSnResponse(response, inverterNum)
 		if err != nil || QPGSResponse == nil {
@@ -245,7 +241,7 @@ func HandleQPGS(inverterNum int) (*QPGSnResponse, error) {
 	} else {
 		actual := response[len(response)-3 : len(response)-1]
 		remainder := response[:len(response)-3]
-		wanted, _ := crc.Checksum(remainder)
+		wanted := crc.Checksum(remainder)
 		message := fmt.Sprintf("invalid response from QPGS%d: CRC should have been %x but was %x", inverterNum, wanted, actual)
 		log.Println(message)
 		err = errors.New(message)
