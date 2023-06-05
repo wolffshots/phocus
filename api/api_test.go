@@ -14,6 +14,18 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestAddQPGSnMessages(t *testing.T) {
+	assert.Equal(t, 1, len(Queue))
+	assert.Equal(t, "QID", Queue[0].Command)
+	AddQPGSnMessages(0)
+	assert.Equal(t, 3, len(Queue))
+	assert.Equal(t, "QID", Queue[0].Command)
+	assert.Equal(t, "QPGS1", Queue[1].Command)
+	assert.Equal(t, "QPGS2", Queue[2].Command)
+	AddQPGSnMessages(0) // shouldn't add to the queue since there is already over 2
+	assert.Equal(t, 3, len(Queue))
+}
+
 func TestPostMessage(t *testing.T) {
 	router := SetupRouter()
 

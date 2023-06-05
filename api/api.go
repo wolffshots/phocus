@@ -26,28 +26,32 @@ var ValueMutex sync.Mutex
 
 var LastQPGSResponse *messages.QPGSnResponse
 
+// AddQPGSnMessages is the meat of the QueueQPGSn functionality
+func AddQPGSnMessages(timeBetween time.Duration) {
+	QueueMutex.Lock()
+	if len(Queue) < 2 {
+		Queue = append(
+			Queue,
+			messages.Message{ID: uuid.New(), Command: "QPGS1", Payload: ""},
+		)
+		QueueMutex.Unlock()
+		time.Sleep(timeBetween)
+		QueueMutex.Lock()
+		Queue = append(
+			Queue,
+			messages.Message{ID: uuid.New(), Command: "QPGS2", Payload: ""},
+		)
+		QueueMutex.Unlock()
+		time.Sleep(timeBetween)
+	} else {
+		QueueMutex.Unlock()
+	}
+}
+
 // QueueQPGSn is a simple loop to add QPGSn to the Queue as long as it isn't too long
 func QueueQPGSn() {
 	for {
-		QueueMutex.Lock()
-		if len(Queue) < 2 {
-			Queue = append(
-				Queue,
-				messages.Message{ID: uuid.New(), Command: "QPGS1", Payload: ""},
-			)
-			QueueMutex.Unlock()
-			time.Sleep(time.Duration(15+rand.Intn(5)) * time.Second)
-			QueueMutex.Lock()
-			Queue = append(
-				Queue,
-				messages.Message{ID: uuid.New(), Command: "QPGS2", Payload: ""},
-			)
-			QueueMutex.Unlock()
-			time.Sleep(time.Duration(15+rand.Intn(5)) * time.Second)
-		} else {
-			QueueMutex.Unlock()
-		}
-
+		AddQPGSnMessages(time.Duration(15+rand.Intn(5)) * time.Second)
 	}
 }
 
