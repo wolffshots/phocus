@@ -30,13 +30,21 @@ func Interpret(input Message) (*Response, error) {
 		if err != nil {
 			log.Printf("Failed to handle %s :%v\n", input.Command, err)
 		}
-		return &Response{QPGSnResponse: *response}, err
+		if response == nil {
+			return nil, err
+		} else {
+			return &Response{QPGSnResponse: *response}, err
+		}
 	case "QPGS2":
 		response, err := HandleQPGS(2)
 		if err != nil {
 			log.Printf("Failed to handle %s :%v\n", input.Command, err)
 		}
-		return &Response{QPGSnResponse: *response}, err
+		if response == nil {
+			return nil, err
+		} else {
+			return &Response{QPGSnResponse: *response}, err
+		}
 	case "QID":
 		log.Println("TODO send QID")
 	default:
