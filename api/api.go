@@ -88,10 +88,25 @@ func SetLast(newResponse *messages.QPGSnResponse) {
 	ValueMutex.Unlock()
 }
 
-// GetLast is called to view the current Last as JSON
+// GetLast is called to view the current Last Response as JSON
 func GetLast(c *gin.Context) {
 	ValueMutex.Lock()
 	c.JSON(http.StatusOK, LastQPGSResponse)
+	ValueMutex.Unlock()
+}
+
+type LastStateOfCharge struct {
+	BatteryStateOfCharge string
+}
+
+// GetLastStateOfCharge is called to view the current Last State of Charge as JSON
+func GetLastStateOfCharge(c *gin.Context) {
+	ValueMutex.Lock()
+	if LastQPGSResponse != nil {
+		c.JSON(http.StatusOK, LastStateOfCharge{BatteryStateOfCharge: LastQPGSResponse.BatteryStateOfCharge})
+	} else {
+		c.JSON(http.StatusOK, LastStateOfCharge{BatteryStateOfCharge: "null"})
+	}
 	ValueMutex.Unlock()
 }
 
@@ -166,6 +181,7 @@ func SetupRouter() *gin.Engine {
 	router.GET("/queue", GetQueue)
 	router.GET("/queue/:id", GetMessage)
 	router.GET("/last", GetLast)
+	router.GET("/last/soc", GetLastStateOfCharge)
 	router.POST("/queue", PostMessage)
 	router.DELETE("/queue", DeleteQueue)
 	router.DELETE("/queue/:id", DeleteMessage)

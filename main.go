@@ -16,7 +16,7 @@ import (
 	serial "github.com/wolffshots/phocus/v2/serial"     // comms with inverter
 )
 
-const version = "v2.2.0"
+const version = "v2.3.0"
 
 // main is the entrypoint to the app
 func main() {
@@ -46,7 +46,7 @@ func main() {
 
 	// spawns a go-routine which handles web requests
 	go func() {
-		err := api.SetupRouter().Run("localhost:8080")
+		err := api.SetupRouter().Run("0.0.0.0:8080")
 		if err != nil {
 			pubErr := mqtt.Error(0, false, err, 10)
 			if pubErr != nil {
