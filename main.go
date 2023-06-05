@@ -46,7 +46,7 @@ func main() {
 
 	// spawns a go-routine which handles web requests
 	go func() {
-		err := api.SetupRouter().Run("localhost:8080")
+		err := api.SetupRouter().Run("0.0.0.0:8080")
 		if err != nil {
 			pubErr := mqtt.Error(0, false, err, 10)
 			if pubErr != nil {
