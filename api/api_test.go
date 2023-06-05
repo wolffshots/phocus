@@ -116,6 +116,34 @@ func TestGetHealth(t *testing.T) {
 	assert.Equal(t, "UP", w.Body.String())
 }
 
+func TestGetLast(t *testing.T) {
+	router := SetupRouter()
+
+	// test with empty LastQPGSResponse (like pre first request)
+	LastQPGSResponse = (*messages.QPGSnResponse)(nil)
+
+	w := httptest.NewRecorder()
+	req, err := http.NewRequest(http.MethodGet, "/last", nil)
+	assert.Equal(t, err, nil)
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(t, "null", w.Body.String())
+
+	// test with relistic response
+	input := "(1 92932004102443 B 00 237.0 50.01 000.0 00.00 0483 0387 009 51.1 000 069 020.4 000 00942 00792 007 00000010 1 1 060 080 10 00.0 006\xf2\x2d\r"
+	actual, err := messages.NewQPGSnResponse(input, 1)
+	assert.Equal(t, err, nil)
+	LastQPGSResponse = actual
+
+	w = httptest.NewRecorder()
+	req, err = http.NewRequest(http.MethodGet, "/last", nil)
+	assert.Equal(t, err, nil)
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, "{\"InverterNumber\":1,\"OtherUnits\":true,\"SerialNumber\":\"92932004102443\",\"OperationMode\":\"Off-grid\",\"FaultCode\":\"\",\"ACInputVoltage\":\"237.0\",\"ACInputFrequency\":\"50.01\",\"ACOutputVoltage\":\"000.0\",\"ACOutputFrequency\":\"00.00\",\"ACOutputApparentPower\":\"0483\",\"ACOutputActivePower\":\"0387\",\"PercentageOfNominalOutputPower\":\"009\",\"BatteryVoltage\":\"51.1\",\"BatteryChargingCurrent\":\"000\",\"BatteryStateOfCharge\":\"069\",\"PVInputVoltage\":\"020.4\",\"TotalChargingCurrent\":\"000\",\"TotalACOutputApparentPower\":\"00942\",\"TotalACOutputActivePower\":\"00792\",\"TotalPercentageOfNominalOutputPower\":\"007\",\"InverterStatus\":{\"MPPT\":\"off\",\"ACCharging\":\"off\",\"SolarCharging\":\"off\",\"BatteryStatus\":\"Battery voltage normal\",\"ACInput\":\"connected\",\"ACOutput\":\"on\",\"Reserved\":\"0\"},\"ACOutputMode\":\"Parallel output\",\"BatteryChargerSourcePriority\":\"Solar first\",\"MaxChargingCurrentSet\":\"060\",\"MaxChargingCurrentPossible\":\"080\",\"MaxACChargingCurrentSet\":\"10\",\"PVInputCurrent\":\"00.0\",\"BatteryDischargeCurrent\":\"006\",\"Checksum\":\"0xf22d\"}", w.Body.String())
+}
+
 func TestGetMessage(t *testing.T) {
 	router := SetupRouter()
 

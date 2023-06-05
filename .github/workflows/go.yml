@@ -1,14 +1,24 @@
 name: phocus
 
-on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+on: push
 
 jobs:
-
   build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: 1.19
+
+    - name: Set Go private repos
+      run: go env -w GOPRIVATE="github.com/wolffshots/*"
+
+    - name: Build
+      run: go build -o ./phocus -v main.go
+  test:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
@@ -26,12 +36,27 @@ jobs:
 
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v3
+  upload:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    needs: [test, build]
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: 1.19
+
+    - name: Set Go private repos
+      run: go env -w GOPRIVATE="github.com/wolffshots/*"
 
     - name: Build
       run: go build -o ./phocus -v main.go
     
     - name: Upload a Build Artifact
       uses: actions/upload-artifact@v3.1.1
+      if: github.ref == 'refs/heads/main'
       with:
         name: phocus
         path: phocus*
