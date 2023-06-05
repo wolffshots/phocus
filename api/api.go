@@ -91,7 +91,7 @@ func SetLast(newResponse *messages.QPGSnResponse) {
 // GetLast is called to view the current Last as JSON
 func GetLast(c *gin.Context) {
 	ValueMutex.Lock()
-	c.IndentedJSON(http.StatusOK, LastQPGSResponse)
+	c.JSON(http.StatusOK, LastQPGSResponse)
 	ValueMutex.Unlock()
 }
 
@@ -165,6 +165,7 @@ func SetupRouter() *gin.Engine {
 	router.GET("/health", GetHealth)
 	router.GET("/queue", GetQueue)
 	router.GET("/queue/:id", GetMessage)
+	router.GET("/last", GetLast)
 	router.POST("/queue", PostMessage)
 	router.DELETE("/queue", DeleteQueue)
 	router.DELETE("/queue/:id", DeleteMessage)
