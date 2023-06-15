@@ -33,7 +33,7 @@ func TerminateCmd(cmd *exec.Cmd) {
 
 func TestSerial(t *testing.T) {
 	cmd := StartCmd("socat", "PTY,link=./com1", "PTY,link=./com2")
-	time.Sleep(50 * time.Millisecond)
+	time.Sleep(200 * time.Millisecond)
 
 	t.Run("TestSetup", func(t *testing.T) {
 		port, err := Setup("./com1")
