@@ -13,32 +13,34 @@ import (
 )
 
 // port is the object representing the serial device/connection
-var port serial.Port
+// var port serial.Port
+
+type Port struct {
+	Port serial.Port
+	Path string
+}
 
 // err is the error placeholder for serial connections
 var err error
 
 // Setup opens a connection to the inverter.
 //
-// Returns the error if the port fails to open.
-func Setup() error { // TODO add error handling
+// Returns the port or an error if the port fails to open.
+func Setup(portPath string) (Port, error) {
 	// specify serial port
 	mode := &serial.Mode{
 		BaudRate: 2400,
 	}
-	port, err = serial.Open("/dev/ttyUSB0", mode) // TODO move to environment variable
-	return err
+	port, err := serial.Open(portPath, mode) // TODO move to environment variable
+	return Port{port, portPath}, err
 }
 
 // Write a string to the open serial port
 // The input should be the "payload" string as
 // the CRC is calculated and added to that in Write
-func Write(input string) (int, error) {
-	message, err := crc.Encode(input)
-	if err != nil {
-		log.Fatal(err)
-	}
-	n, err := port.Write([]byte(message))
+func (p *Port) Write(input string) (int, error) {
+	message := crc.Encode(input)
+	n, err := p.Port.Write([]byte(message))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -49,7 +51,7 @@ func Write(input string) (int, error) {
 // Takes a duration as an input and times out the read after that long.
 //
 // Returns the read string and the error
-func Read(timeout time.Duration) (string, error) {
+func (p *Port) Read(timeout time.Duration) (string, error) {
 	log.Printf("Starting read\n")
 	buff := make([]byte, 140)
 	dataChannel := make(chan string, 1)
@@ -58,9 +60,9 @@ func Read(timeout time.Duration) (string, error) {
 	// even though it reads one at a time in the current setup
 	go func() {
 		for {
-			n, err := port.Read(buff)
+			n, err := p.Port.Read(buff)
 			if err != nil {
-				log.Fatal(err)
+				log.Printf("Err reading from port: %v", err)
 			} else if n == 0 {
 				log.Println("\nEOF")
 				break

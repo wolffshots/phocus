@@ -24,6 +24,7 @@ func main() {
 	log.Println("Starting up phocus")
 
 	// mqtt
+	// wrap in a for loop to retry Setup
 	err := mqtt.Setup("192.168.88.14", "go_phocus_client'")
 	if err != nil {
 		log.Fatalf("Failed to set up mqtt with err: %v", err)
@@ -35,12 +36,14 @@ func main() {
 	}
 
 	// serial
-	err = serial.Setup()
+	// wrap in a for loop to retry Setup
+	port, err := serial.Setup("/dev/ttyUSB0")
 	if err != nil {
 		pubErr := mqtt.Error(0, false, err, 10)
 		if pubErr != nil {
 			log.Printf("Failed to post previous error (%v) to mqtt: %v\n", err, pubErr)
 		}
+		port.Port.Close()
 		log.Fatalf("Failed to set up serial with err: %v", err)
 	}
 
@@ -52,6 +55,7 @@ func main() {
 			if pubErr != nil {
 				log.Printf("Failed to post previous error (%v) to mqtt: %v\n", err, pubErr)
 			}
+			port.Port.Close()
 			log.Fatalf("Failed to run http routine with err: %v", err)
 		}
 	}()
@@ -64,6 +68,7 @@ func main() {
 		if pubErr != nil {
 			log.Printf("Failed to post previous error (%v) to mqtt: %v\n", err, pubErr)
 		}
+		port.Port.Close()
 		log.Fatalf("Failed to set up sensors with err: %v", err)
 	}
 
@@ -79,13 +84,14 @@ func main() {
 		log.Print(".")
 		// if there is an entry at [0] then run that command
 		if len(api.Queue) > 0 {
-			response, err := messages.Interpret(api.Queue[0])
+			response, err := messages.Interpret(port, api.Queue[0])
 			if err != nil {
 				pubErr := mqtt.Error(0, false, err, 10)
 				if pubErr != nil {
 					log.Printf("Failed to post previous error (%v) to mqtt: %v\n", err, pubErr)
 				}
 				if fmt.Sprint(err) == "read timed out" { // immediately jailed when read timeout
+					port.Port.Close()
 					pubErr := mqtt.Error(0, false, errors.New("read timed out, waiting 5 minutes then restarting"), 10)
 					if pubErr != nil {
 						log.Printf("Failed to post previous error (%v) to mqtt: %v\n", err, pubErr)
