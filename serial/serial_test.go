@@ -13,9 +13,14 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func Run(cmd *exec.Cmd) {
+	err := cmd.Run()
+	log.Fatalf("Couldn't run cmd: %v", err)
+}
+
 func StartCmd(name string, arg ...string) *exec.Cmd {
 	cmd := exec.Command(name, arg...)
-	go cmd.Run()
+	go Run(cmd)
 	return cmd
 }
 
@@ -35,27 +40,22 @@ func TestSerial(t *testing.T) {
 	cmd := StartCmd("socat", "PTY,link=./com1", "PTY,link=./com2")
 	time.Sleep(200 * time.Millisecond)
 
-	t.Run("TestSetup", func(t *testing.T) {
-		port, err := Setup("./com1")
-		if err != nil {
-			log.Println(err)
-		}
-		assert.Equal(t, nil, err)
-		assert.NotEqual(t, nil, port)
+	var port1 Port
+	var port2 Port
 
-		port.Port.Close()
-		assert.Equal(t, nil, err)
-	})
+	port1, err := Setup("./com1")
+	assert.Equal(t, nil, err)
+	assert.NotEqual(t, nil, port1)
+
+	port2, err = Setup("./com2")
+	assert.Equal(t, nil, err)
+	assert.NotEqual(t, nil, port2)
+
 	t.Run("TestWrite", func(t *testing.T) {
-		port, err := Setup("./com1")
-		if err != nil {
-			log.Println(err)
-		}
-		written, err := port.Write("test")
+		written, err := port2.Write("test")
 		assert.Equal(t, 7, written)
 		assert.Equal(t, nil, err)
 
-		port.Port.Close()
 		assert.Equal(t, nil, err)
 	})
 	t.Run("TestRead", func(t *testing.T) {
@@ -66,14 +66,8 @@ func TestSerial(t *testing.T) {
 		assert.Equal(t, "", read)
 		assert.Equal(t, errors.New("read timed out"), err)
 
-		port2, err := Setup("./com2")
-		assert.Equal(t, nil, err)
-
 		written, err := port1.Write("test")
 		assert.Equal(t, 7, written)
-		assert.Equal(t, nil, err)
-
-		err = port1.Port.Close()
 		assert.Equal(t, nil, err)
 
 		read, err = port2.Read(1000 * time.Millisecond)
@@ -83,7 +77,7 @@ func TestSerial(t *testing.T) {
 		// currently read times out since the virtual ports aren't linked quite right
 
 	})
-	t.Cleanup(func() {
-		TerminateCmd(cmd)
-	})
+	port1.Port.Close()
+	port2.Port.Close()
+	TerminateCmd(cmd)
 }
