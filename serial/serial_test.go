@@ -70,7 +70,7 @@ func TestSerial(t *testing.T) {
 		assert.Equal(t, 7, written)
 		assert.Equal(t, nil, err)
 
-		read, err = port2.Read(1000 * time.Millisecond)
+		read, err = port2.Read(10 * time.Millisecond)
 		assert.Equal(t, "", read)
 		assert.Equal(t, errors.New("read timed out"), err)
 		// assert.Equal(t, nil, err)
