@@ -59,8 +59,6 @@ func TestSerial(t *testing.T) {
 		assert.Equal(t, nil, err)
 	})
 	t.Run("TestRead", func(t *testing.T) {
-		port1, err := Setup("./com1")
-		assert.Equal(t, nil, err)
 		// this isn't written to the port so should timeout
 		read, err := port1.Read(1 * time.Millisecond)
 		assert.Equal(t, "", read)
