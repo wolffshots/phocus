@@ -8,9 +8,9 @@ import (
 	"strings"       // string manipulation
 	"time"          // sleeping
 
-	crc "github.com/wolffshots/phocus/v2/crc"       // checksum calculations
-	mqtt "github.com/wolffshots/phocus/v2/mqtt"     // comms with mqtt broker
-	serial "github.com/wolffshots/phocus/v2/serial" // comms with inverter
+	crc "github.com/wolffshots/phocus/v2/crc"   // checksum calculations
+	mqtt "github.com/wolffshots/phocus/v2/mqtt" // comms with mqtt broker
+	phocus_serial "github.com/wolffshots/phocus/v2/serial"
 )
 
 type OperationMode string
@@ -208,16 +208,16 @@ func NewQPGSnResponse(input string, inverterNum int) (*QPGSnResponse, error) {
 // HandleQPGS writes the query to the inverter and
 // reads the response, deserialises it into a response
 // object and sends it to MQTT
-func HandleQPGS(inverterNum int) (*QPGSnResponse, error) {
+func HandleQPGS(port phocus_serial.Port, inverterNum int) (*QPGSnResponse, error) {
 	query := fmt.Sprintf("QPGS%d", inverterNum)
 	log.Println(query)
-	bytes, err := serial.Write(query)
+	bytes, err := port.Write(query)
 	log.Printf("Sent %v bytes\n", bytes)
 	if err != nil {
 		log.Printf("Failed to write to serial with: %v\n", err)
 		return nil, err
 	}
-	response, err := serial.Read(2 * time.Second)
+	response, err := port.Read(2 * time.Second)
 	if err != nil || response == "" {
 		log.Printf("Failed to read from serial with: %v\n", err)
 		return nil, err
