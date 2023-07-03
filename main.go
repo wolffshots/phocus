@@ -9,11 +9,11 @@ import (
 	"os/exec" // auto restart
 	"time"    // for sleeping
 
-	api "github.com/wolffshots/phocus/v2/api"         // api setup
-	mqtt "github.com/wolffshots/phocus/v2/mqtt"       // comms with mqtt broker
-	sensors "github.com/wolffshots/phocus/v2/sensors" // registering common sensors
-	serial "github.com/wolffshots/phocus/v2/serial"   // comms with inverter
-	messages "github.com/wolffshots/phocus_messages"  // message structures
+	api "github.com/wolffshots/phocus/v2/api"           // api setup
+	messages "github.com/wolffshots/phocus/v2/messages" // message structures
+	mqtt "github.com/wolffshots/phocus/v2/mqtt"         // comms with mqtt broker
+	sensors "github.com/wolffshots/phocus/v2/sensors"   // registering common sensors
+	serial "github.com/wolffshots/phocus/v2/serial"     // comms with inverter
 )
 
 const version = "v2.3.0"
@@ -84,7 +84,7 @@ func main() {
 		log.Print(".")
 		// if there is an entry at [0] then run that command
 		if len(api.Queue) > 0 {
-			response, err := messages.Interpret(port, api.Queue[0])
+			err := messages.Interpret(port, api.Queue[0])
 			if err != nil {
 				pubErr := mqtt.Error(0, false, err, 10)
 				if pubErr != nil {
@@ -105,10 +105,6 @@ func main() {
 					}
 					// if it reaches here at all that implies it didn't restart properly
 					os.Exit(1)
-				}
-			} else {
-				if response != nil {
-					api.SetLast(&response.QPGSnResponse)
 				}
 			}
 			api.Queue = api.Queue[1:]

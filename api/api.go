@@ -10,7 +10,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	messages "github.com/wolffshots/phocus_messages" // message structures
+	messages "github.com/wolffshots/phocus/v2/messages"
 )
 
 // Queue of messages seeded with QID to run at startup

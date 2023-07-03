@@ -23,16 +23,10 @@ If you don't need to differ from the default setup then it should be as simple a
     git clone https://github.com/wolffshots/phocus.git
     ```
 
-2. Clone the necessary messages package (this will depend on the messages you're supporting)
-
-    ```sh
-    cd phocus && git clone git@github.com:wolffshots/phocus_messages.git messages
-    ```
-
 2. Run the install script (which builds the app then will ask for your password to put it in the correct place and make a service file for it)
 
     ```sh
-    ./install.sh
+    cd phocus && ./install.sh
     ```
 
 3. (Re)start the service
