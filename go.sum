@@ -72,14 +72,6 @@ github.com/ugorji/go/codec v1.2.11 h1:BMaWp1Bb6fHwEtbplGBGJ498wD+LKlNSl25MjdZY4d
 github.com/ugorji/go/codec v1.2.11/go.mod h1:UNopzCgEMSXjBc6AOMqYvWC1ktqTAfzJZUZgYf6w6lg=
 github.com/wolffshots/ha_types v1.1.1 h1:QxEXqgxLTGTBC5DOp/PEVLfiRppnA2KiJsX6dJAXspE=
 github.com/wolffshots/ha_types v1.1.1/go.mod h1:iLzWsZCwUTAqBzVcxcoBEKffaJ4ZPmy42c8a7wK8WjY=
-github.com/wolffshots/phocus_crc v0.0.0-20230426105240-c3f33a1eb597 h1:6ytTGqm5GT/2naFmdwH3eGDgrQD84b0xTseXzo6tdJU=
-github.com/wolffshots/phocus_crc v0.0.0-20230426105240-c3f33a1eb597/go.mod h1:mVr8Z32dnNTzYB+vQHsXAJgL/9AY/no0LXPkxIsgPIg=
-github.com/wolffshots/phocus_messages v1.1.1 h1:sINqYViVdoxvrUywYwSb/Vb95Hk7C9DZiJmD9Rsb69Y=
-github.com/wolffshots/phocus_messages v1.1.1/go.mod h1:olQ7HbZlWViI/uxUZdtxViJP0ImG4+Hd5wHybXD/H3o=
-github.com/wolffshots/phocus_mqtt v0.0.0-20230426105149-7f39b6f21cd2 h1:1S6XaaezGyOpCPxVbMXPSZK96HjyCMT5cnsN6Y2N1u8=
-github.com/wolffshots/phocus_mqtt v0.0.0-20230426105149-7f39b6f21cd2/go.mod h1:HGcAGb2vGdPHs4GCk8HrbRgw1ctKy9LhwJm81e07Ocg=
-github.com/wolffshots/phocus_serial v0.0.0-20230426105436-e8a7e9fff872 h1:ALdiz6Q7v9tPSiwZr/lRTDrte/u1gyYN7DYzDBfv+g4=
-github.com/wolffshots/phocus_serial v0.0.0-20230426105436-e8a7e9fff872/go.mod h1:s4TA0huzm7y2RrNr3SFzZI42aCEaOj8CCkPpbOx+ZI8=
 go.bug.st/serial v1.5.0 h1:ThuUkHpOEmCVXxGEfpoExjQCS2WBVV4ZcUKVYInM9T4=
 go.bug.st/serial v1.5.0/go.mod h1:UABfsluHAiaNI+La2iESysd9Vetq7VRdpxvjx7CmmOE=
 golang.org/x/arch v0.0.0-20210923205945-b76863e36670/go.mod h1:5om86z9Hs0C8fWVUuoMHwpExlXzs5Tkyp9hOrfG7pp8=

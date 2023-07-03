@@ -35,9 +35,6 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.11 // indirect
-	github.com/wolffshots/phocus_crc v0.0.0-20230426105240-c3f33a1eb597 // indirect
-	github.com/wolffshots/phocus_mqtt v0.0.0-20230426105149-7f39b6f21cd2 // indirect
-	github.com/wolffshots/phocus_serial v0.0.0-20230426105436-e8a7e9fff872 // indirect
 	golang.org/x/arch v0.3.0 // indirect
 	golang.org/x/crypto v0.9.0 // indirect
 	golang.org/x/net v0.10.0 // indirect

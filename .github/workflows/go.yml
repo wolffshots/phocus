@@ -15,10 +15,13 @@ jobs:
 
     - name: Set Go private repos
       run: go env -w GOPRIVATE="github.com/wolffshots/*"
-
+      
     - name: Checkout default messages
-      run: git clone git@github.com:wolffshots/phocus_messages.git messages
-
+      uses: actions/checkout@v3
+      with: 
+        repository: wolffshots/phocus_messages
+        path: messages
+  
     - name: Go mod tidy
       run: go mod tidy
 
@@ -38,7 +41,10 @@ jobs:
       run: go env -w GOPRIVATE="github.com/wolffshots/*"
 
     - name: Checkout default messages
-      run: git clone git@github.com:wolffshots/phocus_messages.git messages
+      uses: actions/checkout@v3
+      with: 
+        repository: wolffshots/phocus_messages
+        path: messages
 
     - name: Go mod tidy
       run: go mod tidy
@@ -70,7 +76,10 @@ jobs:
       run: go env -w GOPRIVATE="github.com/wolffshots/*"
 
     - name: Checkout default messages
-      run: git clone git@github.com:wolffshots/phocus_messages.git messages
+      uses: actions/checkout@v3
+      with: 
+        repository: wolffshots/phocus_messages
+        path: messages
 
     - name: Go mod tidy
       run: go mod tidy
