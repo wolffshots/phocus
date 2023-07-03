@@ -41,6 +41,7 @@ func SendGeneric(port phocus_serial.Port, command string, payload interface{}) (
 func ReceiveGeneric(port phocus_serial.Port, command string, timeout time.Duration) (string, error) {
 	// read from port
 	response, err := port.Read(timeout)
+	log.Println(response)
 	// verify
 	if err != nil || response == "" {
 		log.Printf("Failed to read from serial with: %v\n", err)

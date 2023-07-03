@@ -29,6 +29,7 @@ func SendQID(port phocus_serial.Port, payload interface{}) (int, error) {
 func ReceiveQID(port phocus_serial.Port, timeout time.Duration) (string, error) {
 	// read from port
 	response, err := port.Read(timeout)
+	log.Println(response)
 	// verify
 	if err != nil || response == "" {
 		log.Printf("Failed to read from serial with: %v\n", err)
