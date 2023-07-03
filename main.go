@@ -9,11 +9,11 @@ import (
 	"os/exec" // auto restart
 	"time"    // for sleeping
 
-	api "github.com/wolffshots/phocus/v2/api"           // api setup
-	messages "github.com/wolffshots/phocus/v2/messages" // message structures
-	mqtt "github.com/wolffshots/phocus/v2/mqtt"         // comms with mqtt broker
-	sensors "github.com/wolffshots/phocus/v2/sensors"   // registering common sensors
-	serial "github.com/wolffshots/phocus/v2/serial"     // comms with inverter
+	api "github.com/wolffshots/phocus/v2/api"         // api setup
+	mqtt "github.com/wolffshots/phocus/v2/mqtt"       // comms with mqtt broker
+	sensors "github.com/wolffshots/phocus/v2/sensors" // registering common sensors
+	serial "github.com/wolffshots/phocus/v2/serial"   // comms with inverter
+	messages "github.com/wolffshots/phocus_messages"  // message structures
 )
 
 const version = "v2.3.0"

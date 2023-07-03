@@ -9,6 +9,7 @@ require (
 	github.com/sigurn/crc16 v0.0.0-20211026045750-20ab5afb07e3
 	github.com/stretchr/testify v1.8.3
 	github.com/wolffshots/ha_types v1.1.1
+	github.com/wolffshots/phocus_messages v1.1.1
 	go.bug.st/serial v1.5.0
 )
 
@@ -34,6 +35,9 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.11 // indirect
+	github.com/wolffshots/phocus_crc v0.0.0-20230426105240-c3f33a1eb597 // indirect
+	github.com/wolffshots/phocus_mqtt v0.0.0-20230426105149-7f39b6f21cd2 // indirect
+	github.com/wolffshots/phocus_serial v0.0.0-20230426105436-e8a7e9fff872 // indirect
 	golang.org/x/arch v0.3.0 // indirect
 	golang.org/x/crypto v0.9.0 // indirect
 	golang.org/x/net v0.10.0 // indirect
@@ -48,7 +52,8 @@ require (
 // // to use drop in replacements for packages such as the messages
 // // eg. replace github.com/wolffshots/phocus_messages => github.com/your_name/some_other_messages
 //
-// replace github.com/wolffshots/phocus_messages => ../phocus_messages
+// replace github.com/wolffshots/phocus_messages => ./messages
+
 //
 // replace github.com/wolffshots/phocus_mqtt => ../phocus_mqtt
 //
