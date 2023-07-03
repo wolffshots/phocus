@@ -14,14 +14,6 @@ import (
 
 // port is the object representing the serial device/connection
 // var port serial.Port
-<<<<<<< HEAD
-=======
-
-type Port struct {
-	Port serial.Port
-	Path string
-}
->>>>>>> main
 
 type Port struct {
 	Port serial.Port
