@@ -14,6 +14,14 @@ import (
 
 // port is the object representing the serial device/connection
 // var port serial.Port
+<<<<<<< HEAD
+=======
+
+type Port struct {
+	Port serial.Port
+	Path string
+}
+>>>>>>> main
 
 type Port struct {
 	Port serial.Port
@@ -48,10 +56,6 @@ func (p *Port) Write(input string) (int, error) {
 // Takes a duration as an input and times out the read after that long.
 //
 // Returns the read string and the error
-// Read from the open serial port until reaching a carriage return, nil, or nothing.
-// Takes a duration as an input and times out the read after that long.
-//
-// Returns the read string and the error.
 func (p *Port) Read(timeout time.Duration) (string, error) {
 	log.Printf("Starting read\n")
 	buff := make([]byte, 140)
