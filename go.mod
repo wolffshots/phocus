@@ -52,7 +52,7 @@ require (
 // // to use drop in replacements for packages such as the messages
 // // eg. replace github.com/wolffshots/phocus_messages => github.com/your_name/some_other_messages
 //
-// replace github.com/wolffshots/phocus_messages => ./messages
+replace github.com/wolffshots/phocus_messages => ./messages
 
 //
 // replace github.com/wolffshots/phocus_mqtt => ../phocus_mqtt
