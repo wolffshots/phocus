@@ -3,6 +3,7 @@ package phocus_messages
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"strings"
 	"time"
@@ -29,16 +30,23 @@ func ReceiveQID(port phocus_serial.Port, timeout time.Duration) (string, error) 
 	// read from port
 	response, err := port.Read(timeout)
 	// verify
-	if err != nil {
+	if err != nil || response == "" {
+		log.Printf("Failed to read from serial with: %v\n", err)
 		return "", err
 	} else {
 		if phocus_crc.Verify(response) {
 			serialNumber := strings.Trim(response[:len(response)-3], "(")
 			// return
 			// TODO add check for length
+			log.Printf("Serial number queried: %s\n", serialNumber)
 			return serialNumber, nil
 		} else {
-			return "", errors.New("invalid CRC for QID")
+			actual := response[len(response)-3 : len(response)-1]
+			remainder := response[:len(response)-3]
+			wanted := phocus_crc.Checksum(remainder)
+			message := fmt.Sprintf("invalid response from QID: CRC should have been %x but was %x", wanted, actual)
+			log.Println(message)
+			return "", errors.New(message)
 		}
 	}
 }

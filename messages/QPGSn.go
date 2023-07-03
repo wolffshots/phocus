@@ -8,8 +8,8 @@ import (
 	"strings"       // string manipulation
 	"time"          // sleeping
 
-	crc "github.com/wolffshots/phocus/v2/crc"   // checksum calculations
-	mqtt "github.com/wolffshots/phocus/v2/mqtt" // comms with mqtt broker
+	phocus_crc "github.com/wolffshots/phocus/v2/crc"   // checksum calculations
+	phocus_mqtt "github.com/wolffshots/phocus/v2/mqtt" // comms with mqtt broker
 	phocus_serial "github.com/wolffshots/phocus/v2/serial"
 )
 
@@ -148,7 +148,7 @@ func SendQPGSn(port phocus_serial.Port, payload interface{}) (int, error) {
 	switch payload.(type) {
 	case int:
 		query := fmt.Sprintf("QPGS%d", payload)
-		written, err := port.Write(crc.Encode(query))
+		written, err := port.Write(phocus_crc.Encode(query))
 		if err != nil {
 			return -1, err
 		} else {
@@ -158,7 +158,7 @@ func SendQPGSn(port phocus_serial.Port, payload interface{}) (int, error) {
 		return -1, errors.New("qpgsn does not support string payloads")
 	default:
 		log.Println("Payload type for QPGSn was not handled, proceeding as QPGS0")
-		written, err := port.Write(crc.Encode("QPGS0"))
+		written, err := port.Write(phocus_crc.Encode("QPGS0"))
 		if err != nil {
 			return -1, err
 		} else {
@@ -171,15 +171,16 @@ func ReceiveQPGSn(port phocus_serial.Port, timeout time.Duration, inverterNum in
 	// read from port
 	response, err := port.Read(timeout)
 	// verify
-	if err != nil {
+	if err != nil || response == "" {
+		log.Printf("Failed to read from serial with: %v\n", err)
 		return "", err
 	} else {
-		if crc.Verify(response) {
+		if phocus_crc.Verify(response) {
 			return response, nil
 		} else {
 			actual := response[len(response)-3 : len(response)-1]
 			remainder := response[:len(response)-3]
-			wanted := crc.Checksum(remainder)
+			wanted := phocus_crc.Checksum(remainder)
 			message := fmt.Sprintf("invalid response from QPGS%d: CRC should have been %x but was %x", inverterNum, wanted, actual)
 			log.Println(message)
 			return "", errors.New(message)
@@ -252,7 +253,7 @@ func PublishQPGSn(response *QPGSnResponse, inverterNum int) error {
 	if err != nil {
 		log.Fatalf("Failed to parse response to json with :%v", err)
 	}
-	err = mqtt.Send(fmt.Sprintf("phocus/stats/qpgs%d", inverterNum), 0, false, string(jsonQPGSResponse), 10)
+	err = phocus_mqtt.Send(fmt.Sprintf("phocus/stats/qpgs%d", inverterNum), 0, false, string(jsonQPGSResponse), 10)
 	if err != nil {
 		log.Fatalf("MQTT send of QPGS%d failed with: %v\ntype of thing sent was: %T", inverterNum, err, jsonQPGSResponse)
 	}

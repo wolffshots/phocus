@@ -42,7 +42,8 @@ func ReceiveGeneric(port phocus_serial.Port, command string, timeout time.Durati
 	// read from port
 	response, err := port.Read(timeout)
 	// verify
-	if err != nil {
+	if err != nil || response == "" {
+		log.Printf("Failed to read from serial with: %v\n", err)
 		return "", err
 	} else {
 		if phocus_crc.Verify(response) {
@@ -51,7 +52,7 @@ func ReceiveGeneric(port phocus_serial.Port, command string, timeout time.Durati
 			// TODO check for success
 			return result, nil
 		} else {
-			return "", errors.New(fmt.Sprintf("invalid CRC for %s", command))
+			return "", fmt.Errorf("invalid CRC for %s", command)
 		}
 	}
 }
