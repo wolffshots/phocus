@@ -8,8 +8,7 @@ import (
 	"strings"       // string manipulation
 	"time"          // sleeping
 
-	crc "github.com/wolffshots/phocus/v2/crc" // checksum calculations
-	phocus_crc "github.com/wolffshots/phocus/v2/crc"
+	crc "github.com/wolffshots/phocus/v2/crc"   // checksum calculations
 	mqtt "github.com/wolffshots/phocus/v2/mqtt" // comms with mqtt broker
 	phocus_serial "github.com/wolffshots/phocus/v2/serial"
 )
@@ -149,7 +148,7 @@ func SendQPGSn(port phocus_serial.Port, payload interface{}) (int, error) {
 	switch payload.(type) {
 	case int:
 		query := fmt.Sprintf("QPGS%d", payload)
-		written, err := port.Write(phocus_crc.Encode(query))
+		written, err := port.Write(crc.Encode(query))
 		if err != nil {
 			return -1, err
 		} else {
@@ -159,7 +158,7 @@ func SendQPGSn(port phocus_serial.Port, payload interface{}) (int, error) {
 		return -1, errors.New("qpgsn does not support string payloads")
 	default:
 		log.Println("Payload type for QPGSn was not handled, proceeding as QPGS0")
-		written, err := port.Write(phocus_crc.Encode("QPGS0"))
+		written, err := port.Write(crc.Encode("QPGS0"))
 		if err != nil {
 			return -1, err
 		} else {
@@ -175,7 +174,7 @@ func ReceiveQPGSn(port phocus_serial.Port, timeout time.Duration, inverterNum in
 	if err != nil {
 		return "", err
 	} else {
-		if phocus_crc.Verify(response) {
+		if crc.Verify(response) {
 			return response, nil
 		} else {
 			actual := response[len(response)-3 : len(response)-1]
