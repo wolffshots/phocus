@@ -20,17 +20,19 @@ type GenericResponse struct {
 func SendGeneric(port phocus_serial.Port, command string, payload interface{}) (int, error) {
 	switch payload.(type) {
 	case int:
-		written, err := port.Write(phocus_crc.Encode(fmt.Sprintf("%s%d", command, payload)))
+		written, err := port.Write(fmt.Sprintf("%s%d", command, payload))
 		if err != nil {
 			return -1, err
 		} else {
+			fmt.Printf("Wrote %s of %d bytes\n", command, written)
 			return written, nil
 		}
 	case string:
-		written, err := port.Write(phocus_crc.Encode(fmt.Sprintf("%s%s", command, payload)))
+		written, err := port.Write(fmt.Sprintf("%s%s", command, payload))
 		if err != nil {
 			return -1, err
 		} else {
+			fmt.Printf("Wrote %s of %d bytes\n", command, written)
 			return written, nil
 		}
 	default:

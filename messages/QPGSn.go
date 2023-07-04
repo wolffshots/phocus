@@ -148,20 +148,22 @@ func SendQPGSn(port phocus_serial.Port, payload interface{}) (int, error) {
 	switch payload.(type) {
 	case int:
 		query := fmt.Sprintf("QPGS%d", payload)
-		written, err := port.Write(phocus_crc.Encode(query))
+		written, err := port.Write(query)
 		if err != nil {
 			return -1, err
 		} else {
+			fmt.Printf("Wrote QPGS%d of %d bytes\n", payload, written)
 			return written, nil
 		}
 	case string:
 		return -1, errors.New("qpgsn does not support string payloads")
 	default:
 		log.Println("Payload type for QPGSn was not handled, proceeding as QPGS0")
-		written, err := port.Write(phocus_crc.Encode("QPGS0"))
+		written, err := port.Write("QPGS0")
 		if err != nil {
 			return -1, err
 		} else {
+			fmt.Printf("Wrote QPGSn of %d bytes\n", written)
 			return written, nil
 		}
 	}

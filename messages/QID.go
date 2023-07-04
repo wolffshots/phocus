@@ -18,10 +18,11 @@ type QIDResponse struct {
 }
 
 func SendQID(port phocus_serial.Port, payload interface{}) (int, error) {
-	written, err := port.Write(phocus_crc.Encode("QID"))
+	written, err := port.Write("QID")
 	if err != nil {
 		return -1, err
 	} else {
+		fmt.Printf("Wrote QID of %d bytes\n", written)
 		return written, nil
 	}
 }

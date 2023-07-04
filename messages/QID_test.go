@@ -8,6 +8,10 @@ import (
 	phocus_crc "github.com/wolffshots/phocus/v2/crc"
 )
 
+func TestSendQID(t *testing.T) {
+	assert.Equal(t, "QID\xd6\xea\r", phocus_crc.Encode("QID"))
+}
+
 func TestInterpretQID(t *testing.T) {
 	// test grabbed input
 	input := "(92932004102443\x94\x7b\r"
