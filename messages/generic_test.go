@@ -10,15 +10,15 @@ import (
 
 func TestInterpretGeneric(t *testing.T) {
 	// test grabbed input
-	input := "(92932004102443\x94\x7b\r"
+	input := "(92932004102443\x2e\x2a\r"
 	want := &GenericResponse{"92932004102443"}
 	actual, err := InterpretGeneric(input)
 	assert.Equal(t, nil, err)
 	assert.Equal(t, want, actual)
 
-	assert.Equal(t, true, phocus_crc.Verify(input[1:]))
+	assert.Equal(t, false, phocus_crc.Verify(input[1:]))
 	assert.Equal(t, true, phocus_crc.Verify(input))
-	assert.Equal(t, uint16(0x947b), phocus_crc.Checksum(input[1:len(input)-3]))
+	assert.Equal(t, uint16(0x2e2a), phocus_crc.Checksum(input[:len(input)-3]))
 
 	// test grabbed input
 	input = "(ACK\x94\x7b\r"
