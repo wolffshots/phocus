@@ -3,6 +3,7 @@
 package phocus_crc
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/sigurn/crc16" // 16 bit checksum generation
@@ -27,10 +28,11 @@ func Encode(input string) string {
 // Verify requires an input string with the crc attached and
 // will return whether the crc matches the content.
 func Verify(input string) bool {
-	input = strings.Trim(input, "(")
-	input = strings.Trim(input, "[")
-	crc := input[len(input)-3 : len(input)-1]
-	remainder := input[:len(input)-3]
+	// input = strings.TrimLeft(input, "(")
+	// input = strings.TrimLeft(input, "[")
+	input = strings.TrimRight(input, "\r")
+	crc := input[len(input)-2:]
+	remainder := input[:len(input)-2]
 	if remainder == "" { // we take the stance that empty inputs aren't valid
 		return false
 	}
@@ -38,5 +40,10 @@ func Verify(input string) bool {
 	calculatedCrcString := string([]byte{byte((calculatedCrc >> 8) & 0xff), byte(calculatedCrc & 0xff)})
 	encodedRemainder := Encode(remainder)
 
-	return calculatedCrcString == crc && input == encodedRemainder
+	result := calculatedCrcString == crc && (input+"\r") == encodedRemainder
+	if !result {
+		fmt.Printf("%x\n", strings.TrimRight(encodedRemainder[len(input)-2:], "\r"))
+		fmt.Printf("crc matches: %t\ninput matches: %t\ncrc: %x\nshould be: %x\n\n", calculatedCrcString == crc, (input+"\r") == encodedRemainder, crc, calculatedCrcString)
+	}
+	return result
 }

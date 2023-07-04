@@ -42,9 +42,9 @@ func ReceiveQID(port phocus_serial.Port, timeout time.Duration) (string, error) 
 			log.Printf("Serial number queried: %s\n", response)
 			return response, nil
 		} else {
-			actual := response[len(response)-3 : len(response)-1]
-			remainder := response[:len(response)-3]
-			wanted := phocus_crc.Checksum(remainder)
+			actual := response[len(response)-3 : len(response)-1] // 2 bytes of crc
+			remainder := response[:len(response)-3]               // actual response
+			wanted := phocus_crc.Checksum(remainder)              // response calculated on response data
 			message := fmt.Sprintf("invalid response from QID: CRC should have been %x but was %x", wanted, actual)
 			log.Println(message)
 			return "", errors.New(message)
