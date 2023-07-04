@@ -401,6 +401,28 @@ var sensors = []Sensor{
 		StateTopic:    "phocus/stats/qpgs2",
 		Icon:          "mdi:check",
 	},
+	{
+		SensorTopic:   "homeassistant/sensor/phocus/generic_response/config",
+		UniqueId:      "phocus_generic_response",
+		Unit:          units.None,
+		StateClass:    state_classes.None,
+		DeviceClass:   device_classes.None,
+		Name:          "Generic Response",
+		ValueTemplate: "{{ value_json.Result }}",
+		StateTopic:    "phocus/stats/generic",
+		Icon:          "fab:readme",
+	},
+	{
+		SensorTopic:   "homeassistant/sensor/phocus/qid_serial/config",
+		UniqueId:      "phocus_qid_serial",
+		Unit:          units.None,
+		StateClass:    state_classes.None,
+		DeviceClass:   device_classes.None,
+		Name:          "QID Serial",
+		ValueTemplate: "{{ value_json.SerialNumber }}",
+		StateTopic:    "phocus/stats/qid",
+		Icon:          "mdi:update",
+	},
 }
 
 // Register adds some sensors to Home Assistant MQTT
