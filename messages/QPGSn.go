@@ -170,7 +170,7 @@ func SendQPGSn(port phocus_serial.Port, payload interface{}) (int, error) {
 func ReceiveQPGSn(port phocus_serial.Port, timeout time.Duration, inverterNum int) (string, error) {
 	// read from port
 	response, err := port.Read(timeout)
-	log.Println(response)
+	log.Printf("%s\n", response)
 	// verify
 	if err != nil || response == "" {
 		log.Printf("Failed to read from serial with: %v\n", err)
