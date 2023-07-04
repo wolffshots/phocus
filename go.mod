@@ -7,7 +7,7 @@ require (
 	github.com/gin-gonic/gin v1.9.1
 	github.com/google/uuid v1.3.0
 	github.com/sigurn/crc16 v0.0.0-20211026045750-20ab5afb07e3
-	github.com/stretchr/testify v1.8.3
+	github.com/stretchr/testify v1.8.4
 	github.com/wolffshots/ha_types v1.1.1
 	go.bug.st/serial v1.5.0
 )
@@ -43,17 +43,3 @@ require (
 	google.golang.org/protobuf v1.30.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
-
-// // Helpful to override packages either for development or
-// // to use drop in replacements for packages such as the messages
-// // eg. replace github.com/wolffshots/phocus_messages => github.com/your_name/some_other_messages
-//
-// replace github.com/wolffshots/phocus_messages => ../phocus_messages
-//
-// replace github.com/wolffshots/phocus_mqtt => ../phocus_mqtt
-//
-// replace github.com/wolffshots/phocus_sensors => ../phocus_sensors
-//
-// replace github.com/wolffshots/phocus_serial => ../phocus_serial
-//
-// replace github.com/wolffshots/phocus_api => ../phocus_api

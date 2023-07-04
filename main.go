@@ -16,7 +16,7 @@ import (
 	serial "github.com/wolffshots/phocus/v2/serial"     // comms with inverter
 )
 
-const version = "v2.3.0"
+const version = "v2.4.4"
 
 // main is the entrypoint to the app
 func main() {
@@ -84,7 +84,7 @@ func main() {
 		log.Print(".")
 		// if there is an entry at [0] then run that command
 		if len(api.Queue) > 0 {
-			response, err := messages.Interpret(port, api.Queue[0])
+			err := messages.Interpret(port, api.Queue[0])
 			if err != nil {
 				pubErr := mqtt.Error(0, false, err, 10)
 				if pubErr != nil {
@@ -105,10 +105,6 @@ func main() {
 					}
 					// if it reaches here at all that implies it didn't restart properly
 					os.Exit(1)
-				}
-			} else {
-				if response != nil {
-					api.SetLast(&response.QPGSnResponse)
 				}
 			}
 			api.Queue = api.Queue[1:]

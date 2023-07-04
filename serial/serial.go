@@ -20,9 +20,6 @@ type Port struct {
 	Path string
 }
 
-// err is the error placeholder for serial connections
-var err error
-
 // Setup opens a connection to the inverter.
 //
 // Returns the port or an error if the port fails to open.
@@ -55,14 +52,14 @@ func (p *Port) Read(timeout time.Duration) (string, error) {
 	log.Printf("Starting read\n")
 	buff := make([]byte, 140)
 	dataChannel := make(chan string, 1)
-	var response = ""
-	// doesn't need to be this big but the biggest response we expect is 135 chars so might as well be slightly bigger than that
-	// even though it reads one at a time in the current setup
+	var err error
 	go func() {
+		var response string
 		for {
 			n, err := p.Port.Read(buff)
 			if err != nil {
 				log.Printf("Err reading from port: %v", err)
+				break
 			} else if n == 0 {
 				log.Println("\nEOF")
 				break
