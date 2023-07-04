@@ -28,8 +28,6 @@ func Encode(input string) string {
 // Verify requires an input string with the crc attached and
 // will return whether the crc matches the content.
 func Verify(input string) bool {
-	// input = strings.TrimLeft(input, "(")
-	// input = strings.TrimLeft(input, "[")
 	input = strings.TrimRight(input, "\r")
 	crc := input[len(input)-2:]
 	remainder := input[:len(input)-2]
