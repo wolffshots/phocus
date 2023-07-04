@@ -3,6 +3,8 @@
 package phocus_crc
 
 import (
+	"strings"
+
 	"github.com/sigurn/crc16" // 16 bit checksum generation
 )
 
@@ -25,6 +27,8 @@ func Encode(input string) string {
 // Verify requires an input string with the crc attached and
 // will return whether the crc matches the content.
 func Verify(input string) bool {
+	input = strings.Trim(input, "(")
+	input = strings.Trim(input, "[")
 	crc := input[len(input)-3 : len(input)-1]
 	remainder := input[:len(input)-3]
 	if remainder == "" { // we take the stance that empty inputs aren't valid

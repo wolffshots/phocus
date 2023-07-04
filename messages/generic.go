@@ -48,10 +48,9 @@ func ReceiveGeneric(port phocus_serial.Port, command string, timeout time.Durati
 		return "", err
 	} else {
 		if phocus_crc.Verify(response) {
-			result := strings.Trim(response[:len(response)-3], "(")
 			// return
 			// TODO check for success
-			return result, nil
+			return response, nil
 		} else {
 			return "", fmt.Errorf("invalid CRC for %s", command)
 		}
@@ -59,8 +58,12 @@ func ReceiveGeneric(port phocus_serial.Port, command string, timeout time.Durati
 }
 
 func InterpretGeneric(response string) (*GenericResponse, error) {
+	if response == "" {
+		return nil, errors.New("can't create a response from an empty string")
+	}
+	result := strings.Trim(response[:len(response)-3], "(")
 	return &GenericResponse{
-		Result: response,
+		Result: result,
 	}, nil
 }
 

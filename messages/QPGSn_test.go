@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	phocus_crc "github.com/wolffshots/phocus/v2/crc"
 )
 
 func TestInterpretQPGSn(t *testing.T) {
@@ -15,6 +16,10 @@ func TestInterpretQPGSn(t *testing.T) {
 	actual, err := InterpretQPGSn(input, 5)
 	assert.Equal(t, nil, err)
 	assert.Equal(t, want, actual)
+
+	assert.Equal(t, true, phocus_crc.Verify(input[1:]))
+	assert.Equal(t, true, phocus_crc.Verify(input))
+	assert.Equal(t, uint16(0xf22d), phocus_crc.Checksum(input[1:len(input)-3]))
 
 	// test empty input
 	input = ""

@@ -36,11 +36,10 @@ func ReceiveQID(port phocus_serial.Port, timeout time.Duration) (string, error) 
 		return "", err
 	} else {
 		if phocus_crc.Verify(response) {
-			serialNumber := strings.Trim(response[:len(response)-3], "(")
 			// return
 			// TODO add check for length
-			log.Printf("Serial number queried: %s\n", serialNumber)
-			return serialNumber, nil
+			log.Printf("Serial number queried: %s\n", response)
+			return response, nil
 		} else {
 			actual := response[len(response)-3 : len(response)-1]
 			remainder := response[:len(response)-3]
@@ -53,8 +52,14 @@ func ReceiveQID(port phocus_serial.Port, timeout time.Duration) (string, error) 
 }
 
 func InterpretQID(response string) (*QIDResponse, error) {
+	if response == "" {
+		return nil, errors.New("can't create a response from an empty string")
+	} else if len(response) < 6 {
+		return nil, errors.New("response is malformed or shorter than expected")
+	}
+	serialNumber := strings.Trim(response[:len(response)-3], "(")
 	return &QIDResponse{
-		SerialNumber: response,
+		SerialNumber: serialNumber,
 	}, nil
 }
 
