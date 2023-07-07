@@ -1,3 +1,5 @@
+//go:build linux || darwin
+
 package phocus_serial
 
 import (
@@ -39,11 +41,11 @@ func TestSerial(t *testing.T) {
 	cmd := StartCmd("socat", "PTY,link=./com1,raw,echo=1,crnl", "PTY,link=./com2,raw,echo=1,crnl")
 	time.Sleep(200 * time.Millisecond)
 
-	port1, err := Setup("./com1")
+	port1, err := Setup("./com1", 2400)
 	assert.Equal(t, nil, err)
 	assert.NotEqual(t, nil, port1)
 
-	port2, err := Setup("./com2")
+	port2, err := Setup("./com2", 2400)
 	assert.Equal(t, nil, err)
 	assert.NotEqual(t, nil, port2)
 

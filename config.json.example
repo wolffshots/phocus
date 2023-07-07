@@ -1,0 +1,13 @@
+{
+  "Serial": {
+    "Port": "/dev/ttyUSB0",
+    "Baud": 2400
+  },
+  "MQTT": {
+    "Host": "192.168.1.1",
+    "Port": 1883,
+    "Client": {
+      "Name": "go_phocus_client"
+    }
+  }
+}

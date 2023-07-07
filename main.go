@@ -9,6 +9,8 @@ import (
 	"os/exec" // auto restart
 	"time"    // for sleeping
 
+	"encoding/json" // for config reading
+
 	api "github.com/wolffshots/phocus/v2/api"           // api setup
 	messages "github.com/wolffshots/phocus/v2/messages" // message structures
 	mqtt "github.com/wolffshots/phocus/v2/mqtt"         // comms with mqtt broker
@@ -16,16 +18,48 @@ import (
 	serial "github.com/wolffshots/phocus/v2/serial"     // comms with inverter
 )
 
-const version = "v2.4.4"
+const version = "v2.5.0"
+
+type Configuration struct {
+	Serial struct {
+		Port string
+		Baud int
+	}
+	MQTT struct {
+		Host   string
+		Port   int
+		Client struct {
+			Name string
+		}
+	}
+}
+
+func ParseConfig(fileName string) (Configuration, error) {
+	file, _ := os.Open(fileName)
+	defer file.Close()
+	decoder := json.NewDecoder(file)
+	configuration := Configuration{}
+	err := decoder.Decode(&configuration)
+	return configuration, err
+}
 
 // main is the entrypoint to the app
 func main() {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds | log.Llongfile)
 	log.Println("Starting up phocus")
 
+	configuration, err := ParseConfig("config.json")
+
+	if err != nil {
+		log.Fatalf("Error parsing config: %v", err)
+	}
+
 	// mqtt
 	// wrap in a for loop to retry Setup
-	err := mqtt.Setup("192.168.88.14", "go_phocus_client'")
+	err = mqtt.Setup(
+		configuration.MQTT.Host,
+		configuration.MQTT.Client.Name,
+	)
 	if err != nil {
 		log.Fatalf("Failed to set up mqtt with err: %v", err)
 	}
@@ -37,7 +71,10 @@ func main() {
 
 	// serial
 	// wrap in a for loop to retry Setup
-	port, err := serial.Setup("/dev/ttyUSB0")
+	port, err := serial.Setup(
+		configuration.Serial.Port,
+		configuration.Serial.Baud,
+	)
 	if err != nil {
 		pubErr := mqtt.Error(0, false, err, 10)
 		if pubErr != nil {

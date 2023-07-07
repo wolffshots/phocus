@@ -23,12 +23,12 @@ type Port struct {
 // Setup opens a connection to the inverter.
 //
 // Returns the port or an error if the port fails to open.
-func Setup(portPath string) (Port, error) {
+func Setup(portPath string, baud int) (Port, error) {
 	// specify serial port
 	mode := &serial.Mode{
-		BaudRate: 2400,
+		BaudRate: baud,
 	}
-	port, err := serial.Open(portPath, mode) // TODO move to environment variable
+	port, err := serial.Open(portPath, mode)
 	return Port{port, portPath}, err
 }
 
