@@ -3,10 +3,12 @@ package phocus_api
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/google/uuid" // for generating UUIDs for commands
 	messages "github.com/wolffshots/phocus/v2/messages"
@@ -17,13 +19,15 @@ import (
 func TestAddQPGSnMessages(t *testing.T) {
 	assert.Equal(t, 1, len(Queue))
 	assert.Equal(t, "QID", Queue[0].Command)
-	AddQPGSnMessages(0)
+	err := AddQPGSnMessages(0)
 	assert.Equal(t, 3, len(Queue))
 	assert.Equal(t, "QID", Queue[0].Command)
 	assert.Equal(t, "QPGS1", Queue[1].Command)
 	assert.Equal(t, "QPGS2", Queue[2].Command)
-	AddQPGSnMessages(0) // shouldn't add to the queue since there is already over 2
+	assert.NoError(t, err)
+	err = AddQPGSnMessages(0) // shouldn't add to the queue since there is already over 2
 	assert.Equal(t, 3, len(Queue))
+	assert.Equal(t, errors.New("Queue too long"), err)
 }
 
 func TestPostMessage(t *testing.T) {
@@ -38,9 +42,11 @@ func TestPostMessage(t *testing.T) {
 	want := []messages.Message{
 		{ID: qidUUID2, Command: "QID2", Payload: ""},
 	}
-	body, _ := json.Marshal(messages.Message{ID: qidUUID2, Command: "QID2", Payload: ""})
+	body, err := json.Marshal(messages.Message{ID: qidUUID2, Command: "QID2", Payload: ""})
+	assert.NoError(t, err)
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest(http.MethodPost, "/queue", bytes.NewBuffer(body))
+	req, err := http.NewRequest(http.MethodPost, "/queue", bytes.NewBuffer(body))
+	assert.NoError(t, err)
 	req.Header.Set("Content-Type", "application/json")
 	router.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusCreated, w.Code)
@@ -51,9 +57,11 @@ func TestPostMessage(t *testing.T) {
 		{ID: qidUUID2, Command: "QID2", Payload: ""},
 		{ID: qidUUID3, Command: "QID3", Payload: ""},
 	}
-	body, _ = json.Marshal(messages.Message{ID: qidUUID3, Command: "QID3", Payload: ""})
+	body, err = json.Marshal(messages.Message{ID: qidUUID3, Command: "QID3", Payload: ""})
+	assert.NoError(t, err)
 	w = httptest.NewRecorder()
-	req, _ = http.NewRequest(http.MethodPost, "/queue", bytes.NewBuffer(body))
+	req, err = http.NewRequest(http.MethodPost, "/queue", bytes.NewBuffer(body))
+	assert.NoError(t, err)
 	req.Header.Set("Content-Type", "application/json")
 	router.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusCreated, w.Code)
@@ -65,9 +73,11 @@ func TestPostMessage(t *testing.T) {
 		{ID: qidUUID3, Command: "QID3", Payload: ""},
 		{ID: qidUUID1, Command: "QID1", Payload: ""},
 	}
-	body, _ = json.Marshal(messages.Message{ID: qidUUID1, Command: "QID1", Payload: ""})
+	body, err = json.Marshal(messages.Message{ID: qidUUID1, Command: "QID1", Payload: ""})
+	assert.NoError(t, err)
 	w = httptest.NewRecorder()
-	req, _ = http.NewRequest(http.MethodPost, "/queue", bytes.NewBuffer(body))
+	req, err = http.NewRequest(http.MethodPost, "/queue", bytes.NewBuffer(body))
+	assert.NoError(t, err)
 	req.Header.Set("Content-Type", "application/json")
 	router.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusCreated, w.Code)
@@ -79,14 +89,38 @@ func TestPostMessage(t *testing.T) {
 		{ID: qidUUID3, Command: "QID3", Payload: ""},
 		{ID: qidUUID1, Command: "QID1", Payload: ""},
 	}
-	body, err := json.Marshal(nil)
-	assert.Equal(t, nil, err)
+	body, err = json.Marshal(nil)
+	assert.NoError(t, err)
+	assert.NoError(t, err)
 	w = httptest.NewRecorder()
-	req, _ = http.NewRequest(http.MethodPost, "/queue", bytes.NewBuffer(body))
+	req, err = http.NewRequest(http.MethodPost, "/queue", bytes.NewBuffer(body))
+	assert.NoError(t, err)
 	req.Header.Set("Content-Type", "application/json")
 	router.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 	assert.Equal(t, want, Queue)
+
+	// test too many insertions (MAX_QUEUE_LENGTH)
+	for i := 4; i <= MAX_QUEUE_LENGTH; i++ {
+		body, err = json.Marshal(messages.Message{ID: uuid.New(), Command: fmt.Sprintf("QID%d", i), Payload: ""})
+		assert.NoError(t, err)
+		w = httptest.NewRecorder()
+		req, err = http.NewRequest(http.MethodPost, "/queue", bytes.NewBuffer(body))
+		assert.NoError(t, err)
+		req.Header.Set("Content-Type", "application/json")
+		router.ServeHTTP(w, req)
+		assert.Equal(t, http.StatusCreated, w.Code)
+	}
+	assert.Equal(t, MAX_QUEUE_LENGTH, len(Queue))
+	body, err = json.Marshal(messages.Message{ID: uuid.New(), Command: fmt.Sprintf("QID%d", 51), Payload: ""})
+	assert.NoError(t, err)
+	w = httptest.NewRecorder()
+	req, err = http.NewRequest(http.MethodPost, "/queue", bytes.NewBuffer(body))
+	assert.NoError(t, err)
+	req.Header.Set("Content-Type", "application/json")
+	router.ServeHTTP(w, req)
+	assert.Equal(t, http.StatusInsufficientStorage, w.Code)
+	assert.Equal(t, MAX_QUEUE_LENGTH, len(Queue)) // should have prevented that insertion
 }
 
 func TestGetQueue(t *testing.T) {
@@ -128,11 +162,10 @@ func TestGetHealth(t *testing.T) {
 	assert.Equal(t, "UP", w.Body.String())
 }
 
-func TestGetLast(t *testing.T) {
+func TestSetAndGetLast(t *testing.T) {
 	router := SetupRouter()
 
-	// test with empty LastQPGSResponse (like pre first request)
-	LastQPGSResponse = (*messages.QPGSnResponse)(nil)
+	SetLast((*messages.QPGSnResponse)(nil))
 
 	w := httptest.NewRecorder()
 	req, err := http.NewRequest(http.MethodGet, "/last", nil)
@@ -142,11 +175,11 @@ func TestGetLast(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code)
 	assert.Equal(t, "null", w.Body.String())
 
-	// test with relistic response
+	// test with realistic response
 	input := "(1 92932004102443 B 00 237.0 50.01 000.0 00.00 0483 0387 009 51.1 000 069 020.4 000 00942 00792 007 00000010 1 1 060 080 10 00.0 006\xf2\x2d\r"
 	actual, err := messages.InterpretQPGSn(input, 1)
 	assert.Equal(t, err, nil)
-	LastQPGSResponse = actual
+	SetLast(actual)
 
 	w = httptest.NewRecorder()
 	req, err = http.NewRequest(http.MethodGet, "/last", nil)
@@ -199,12 +232,22 @@ func TestGetMessage(t *testing.T) {
 	}
 	var actualBody messages.Message
 
-	// test first get
+	// test next get
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/queue/%s", qidUUID2), nil)
+	req, _ := http.NewRequest(http.MethodGet, "/queue/next", nil)
 	router.ServeHTTP(w, req)
-	want := messages.Message{ID: qidUUID2, Command: "QID2", Payload: ""}
+	want := messages.Message{ID: qidUUID1, Command: "QID1", Payload: ""}
 	err := json.Unmarshal(w.Body.Bytes(), &actualBody)
+	assert.Equal(t, err, nil)
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(t, want, actualBody)
+
+	// test first get
+	w = httptest.NewRecorder()
+	req, _ = http.NewRequest(http.MethodGet, fmt.Sprintf("/queue/%s", qidUUID2), nil)
+	router.ServeHTTP(w, req)
+	want = messages.Message{ID: qidUUID2, Command: "QID2", Payload: ""}
+	err = json.Unmarshal(w.Body.Bytes(), &actualBody)
 	assert.Equal(t, err, nil)
 	assert.Equal(t, http.StatusOK, w.Code)
 	assert.Equal(t, want, actualBody)
@@ -275,19 +318,32 @@ func TestDeleteMessage(t *testing.T) {
 	qidUUID1 := uuid.New()
 	qidUUID2 := uuid.New()
 	qidUUID3 := uuid.New()
+	qidUUID4 := uuid.New()
 	Queue = []messages.Message{
 		{ID: qidUUID1, Command: "QID1", Payload: ""},
-		{ID: qidUUID2, Command: "QID1", Payload: ""},
+		{ID: qidUUID2, Command: "QID2", Payload: ""},
 		{ID: qidUUID3, Command: "QID3", Payload: ""},
 	}
 
-	// test first deletion
+	// test non existent deletion
 	want := []messages.Message{
 		{ID: qidUUID1, Command: "QID1", Payload: ""},
+		{ID: qidUUID2, Command: "QID2", Payload: ""},
 		{ID: qidUUID3, Command: "QID3", Payload: ""},
 	}
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest(http.MethodDelete, fmt.Sprintf("/queue/%s", qidUUID2), nil)
+	req, _ := http.NewRequest(http.MethodDelete, fmt.Sprintf("/queue/%s", qidUUID4), nil)
+	router.ServeHTTP(w, req)
+	assert.Equal(t, http.StatusNotFound, w.Code)
+	assert.Equal(t, want, Queue)
+
+	// test first deletion
+	want = []messages.Message{
+		{ID: qidUUID1, Command: "QID1", Payload: ""},
+		{ID: qidUUID3, Command: "QID3", Payload: ""},
+	}
+	w = httptest.NewRecorder()
+	req, _ = http.NewRequest(http.MethodDelete, fmt.Sprintf("/queue/%s", qidUUID2), nil)
 	router.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusNoContent, w.Code)
 	assert.Equal(t, want, Queue)
@@ -316,4 +372,14 @@ func TestDeleteMessage(t *testing.T) {
 	router.ServeHTTP(w, req) // ensure no deadlock and test negative case
 	assert.Equal(t, http.StatusNotFound, w.Code)
 	assert.Equal(t, want, Queue) // assert that it hasn't changed
+}
+
+func TestQueueQPGSn(t *testing.T) {
+	// Start the adder in a goroutine
+	go QueueQPGSn()
+
+	// Wait for a specific duration to allow the server to start
+	time.Sleep(200 * time.Millisecond)
+
+	assert.Equal(t, 1, len(Queue))
 }

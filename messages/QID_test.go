@@ -17,7 +17,7 @@ func TestInterpretQID(t *testing.T) {
 	input := "(92932004102443\x2e\x2a\r"
 	want := &QIDResponse{"92932004102443"}
 	actual, err := InterpretQID(input)
-	assert.Equal(t, nil, err)
+	assert.NoError(t, err)
 	assert.Equal(t, want, actual)
 
 	assert.Equal(t, false, phocus_crc.Verify(input[1:]))

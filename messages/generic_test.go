@@ -13,7 +13,7 @@ func TestInterpretGeneric(t *testing.T) {
 	input := "(92932004102443\x2e\x2a\r"
 	want := &GenericResponse{"92932004102443"}
 	actual, err := InterpretGeneric(input)
-	assert.Equal(t, nil, err)
+	assert.NoError(t, err)
 	assert.Equal(t, want, actual)
 
 	assert.Equal(t, false, phocus_crc.Verify(input[1:]))
@@ -24,14 +24,14 @@ func TestInterpretGeneric(t *testing.T) {
 	input = "(ACK\x94\x7b\r"
 	want = &GenericResponse{"ACK"}
 	actual, err = InterpretGeneric(input)
-	assert.Equal(t, nil, err)
+	assert.NoError(t, err)
 	assert.Equal(t, want, actual)
 
 	// test grabbed input
 	input = "(NAK\x94\x7b\r"
 	want = &GenericResponse{"NAK"}
 	actual, err = InterpretGeneric(input)
-	assert.Equal(t, nil, err)
+	assert.NoError(t, err)
 	assert.Equal(t, want, actual)
 
 	// test empty input

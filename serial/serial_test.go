@@ -42,17 +42,17 @@ func TestSerial(t *testing.T) {
 	time.Sleep(200 * time.Millisecond)
 
 	port1, err := Setup("./com1", 2400)
-	assert.Equal(t, nil, err)
+	assert.NoError(t, err)
 	assert.NotEqual(t, nil, port1)
 
 	port2, err := Setup("./com2", 2400)
-	assert.Equal(t, nil, err)
+	assert.NoError(t, err)
 	assert.NotEqual(t, nil, port2)
 
 	t.Run("TestWrite", func(t *testing.T) {
 		written, err := port1.Write("test")
 		assert.Equal(t, 7, written)
-		assert.Equal(t, nil, err)
+		assert.NoError(t, err)
 	})
 
 	t.Run("TestReadTimeout", func(t *testing.T) {
@@ -75,11 +75,11 @@ func TestSerial(t *testing.T) {
 
 		// written, err := port1.Write("test")
 		// assert.Equal(t, 7, written)
-		// assert.Equal(t, nil, err)
+		// assert.NoError(t, err)
 
 		// select {
 		// case err := <-errChannel:
-		// 	assert.Equal(t, nil, err)
+		// 	assert.NoError(t, err)
 		// case read := <-readChannel:
 		// 	assert.Equal(t, "test", read)
 		// }
