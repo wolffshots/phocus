@@ -14,14 +14,14 @@ import (
 var client mqtt.Client
 
 // Setup sets the logging and opens a connection to the broker
-func Setup(hostname string, clientId string) error {
+func Setup(hostname string, port int, clientId string) error {
 	// start mqtt setup
 	mqtt.ERROR = log.New(os.Stdout, "[ERROR] ", 0)
 	mqtt.CRITICAL = log.New(os.Stdout, "[CRIT] ", 0)
 	mqtt.WARN = log.New(os.Stdout, "[WARN]  ", 0)
 	mqtt.DEBUG = log.New(os.Stdout, "[DEBUG] ", 0)
 	var mqttBroker = hostname
-	var mqttPort = 1883
+	var mqttPort = port
 	opts := mqtt.NewClientOptions()
 	opts.AddBroker(fmt.Sprintf("tcp://%s:%d", mqttBroker, mqttPort))
 	opts.SetClientID(clientId)

@@ -36,7 +36,13 @@ func SendGeneric(port phocus_serial.Port, command string, payload interface{}) (
 			return written, nil
 		}
 	default:
-		return -1, errors.New("qpgsn does not support string payloads")
+		written, err := port.Write(command)
+		if err != nil {
+			return -1, err
+		} else {
+			fmt.Printf("Wrote %s of %d bytes\n", command, written)
+			return written, nil
+		}
 	}
 }
 
@@ -49,13 +55,23 @@ func ReceiveGeneric(port phocus_serial.Port, command string, timeout time.Durati
 		log.Printf("Failed to read from serial with: %v\n", err)
 		return "", err
 	} else {
-		if phocus_crc.Verify(response) {
-			// return
-			// TODO check for success
-			return response, nil
-		} else {
-			return "", fmt.Errorf("invalid CRC for %s", command)
+		return VerifyGeneric(response, command)
+	}
+}
+
+func VerifyGeneric(response string, command string) (string, error) {
+	if phocus_crc.Verify(response) {
+		return response, nil
+	} else {
+		if len(response) < 3 {
+			return "", errors.New(fmt.Sprintf("response not long enough: %s", response))
 		}
+		actual := response[len(response)-3 : len(response)-1] // 2 bytes of crc
+		remainder := response[:len(response)-3]               // actual response
+		wanted := phocus_crc.Checksum(remainder)              // response calculated on response data
+		message := fmt.Sprintf("invalid response from %s: CRC should have been %x but was %x", command, wanted, actual)
+		log.Println(message)
+		return "", errors.New(message)
 	}
 }
 
@@ -69,15 +85,17 @@ func InterpretGeneric(response string) (*GenericResponse, error) {
 	}, nil
 }
 
+func EncodeGeneric(response *GenericResponse) string {
+	jsonGenericResponse, _ := json.Marshal(response) // err ignored because it can't fail with this input
+	return string(jsonGenericResponse)
+}
+
 func PublishGeneric(response *GenericResponse, command string) error {
-	jsonGenericResponse, err := json.Marshal(response)
+	jsonResponse := EncodeGeneric(response)
+	err := phocus_mqtt.Send("phocus/stats/generic", 0, false, jsonResponse, 10)
 	if err != nil {
-		log.Fatalf("Failed to parse response to json with :%v", err)
+		log.Fatalf("MQTT send of %s failed with: %v\ntype of thing sent was: %T", command, err, jsonResponse)
 	}
-	err = phocus_mqtt.Send("phocus/stats/generic", 0, false, string(jsonGenericResponse), 10)
-	if err != nil {
-		log.Fatalf("MQTT send of %s failed with: %v\ntype of thing sent was: %T", command, err, jsonGenericResponse)
-	}
-	log.Printf("Sent to MQTT:\n%s\n", jsonGenericResponse)
+	log.Printf("Sent to MQTT:\n%s\n", jsonResponse)
 	return err
 }

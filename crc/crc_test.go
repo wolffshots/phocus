@@ -34,8 +34,10 @@ func TestVerify(t *testing.T) {
 		"\x00\x00\r",
 		"(1 92932004102443 B 00 237.0 50.01 000.0 00.00 0483 0387 009 51.1 000 069 020.4 000 00942 00792 007 00000010 1 1 060 080 10 00.0 006\x06\x6e\r",
 		"(92932004102453\x1d\x1b\r",
+		"1",
+		"",
 	}
-	wants := []bool{true, true, true, false, false, false, true, true}
+	wants := []bool{true, true, true, false, false, false, true, true, false, false}
 	for index, input := range inputs {
 		result := Verify(input)
 		assert.Equal(t, wants[index], result)

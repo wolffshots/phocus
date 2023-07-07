@@ -72,6 +72,7 @@ func main() {
 	// wrap in a for loop to retry Setup
 	err = mqtt.Setup(
 		configuration.MQTT.Host,
+		configuration.MQTT.Port,
 		configuration.MQTT.Client.Name,
 	)
 	if err != nil {

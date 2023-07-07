@@ -39,13 +39,18 @@ func TerminateCmd(cmd *exec.Cmd) {
 
 func TestSerial(t *testing.T) {
 	cmd := StartCmd("socat", "PTY,link=./com1,raw,echo=1,crnl", "PTY,link=./com2,raw,echo=1,crnl")
+	defer TerminateCmd(cmd)
 	time.Sleep(200 * time.Millisecond)
 
 	port1, err := Setup("./com1", 2400)
+	defer port1.Port.Close()
+
 	assert.NoError(t, err)
 	assert.NotEqual(t, nil, port1)
 
 	port2, err := Setup("./com2", 2400)
+	defer port2.Port.Close()
+
 	assert.NoError(t, err)
 	assert.NotEqual(t, nil, port2)
 
@@ -84,8 +89,4 @@ func TestSerial(t *testing.T) {
 		// 	assert.Equal(t, "test", read)
 		// }
 	})
-
-	port1.Port.Close()
-	port2.Port.Close()
-	TerminateCmd(cmd)
 }
