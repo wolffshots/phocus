@@ -44,7 +44,7 @@ jobs:
       uses: codacy/codacy-coverage-reporter-action@v1
       with:
         project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
-        coverage-reports: ./coverage.txt
+        coverage-reports: coverage.txt
         # or a comma-separated list for multiple reports
         # coverage-reports: <PATH_TO_REPORT>, <PATH_TO_REPORT>
 
