@@ -1,6 +1,7 @@
 ![Worklow Status](https://github.com/wolffshots/phocus/actions/workflows/go.yml/badge.svg)
 [![Go Reference](https://pkg.go.dev/badge/github.com/wolffshots/phocus.svg)](https://pkg.go.dev/github.com/wolffshots/phocus/v2)
 [![codecov](https://codecov.io/github/wolffshots/phocus/branch/main/graph/badge.svg?token=641UGV72AY)](https://codecov.io/github/wolffshots/phocus)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/ae8e8489462c460ab79c61fc2f8d10e9)](https://app.codacy.com/gh/wolffshots/phocus/dashboard)
 
 ## phocus
 
