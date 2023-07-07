@@ -12,8 +12,6 @@ Primarily built to communicate with Phocos branded inverters but the only thing 
 
 ## Installation
 
-Realistically you'll need to change some files to make it connect to your MQTT broker and serial device correctly but those changes should all be straightforward
-
 ### Ubuntu/systemd
 If you don't need to differ from the default setup then it should be as simple as:
 
@@ -23,17 +21,23 @@ If you don't need to differ from the default setup then it should be as simple a
     git clone https://github.com/wolffshots/phocus.git
     ```
 
-2. Run the install script (which builds the app then will ask for your password to put it in the correct place and make a service file for it)
+2. Create a `config.json` file from `config.json.example` and customise your settings
+
+3. Run the install script (which builds the app then will ask for your password to put it in the correct place and makes a service file for it linked to `phocus.service` )
 
     ```sh
     cd phocus && ./install.sh
     ```
 
-3. (Re)start the service
+4. (Re)start the service
 
     ```sh
     sudo service phocus restart
     ```
+
+## Updating
+
+To update you should just be able to pull/checkout the newer version, call `./install.sh` and restart the app with `sudo service phocus restart`
 
 ## TODO
 - [ ] explain config
