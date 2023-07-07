@@ -45,8 +45,7 @@ jobs:
       with:
         project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
         coverage-reports: coverage.txt
-        # or a comma-separated list for multiple reports
-        # coverage-reports: <PATH_TO_REPORT>, <PATH_TO_REPORT>
+        force-coverage-parser: go
 
   upload:
     runs-on: ubuntu-latest
