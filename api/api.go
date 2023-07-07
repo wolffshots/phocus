@@ -2,6 +2,7 @@
 package phocus_api
 
 import (
+	"errors"
 	"log" // formatted logging
 	"math/rand"
 	"net/http"
@@ -12,6 +13,8 @@ import (
 	"github.com/google/uuid"
 	messages "github.com/wolffshots/phocus/v2/messages"
 )
+
+const MAX_QUEUE_LENGTH = 50
 
 // Queue of messages seeded with QID to run at startup
 var Queue = []messages.Message{
@@ -27,7 +30,7 @@ var ValueMutex sync.Mutex
 var LastQPGSResponse *messages.QPGSnResponse
 
 // AddQPGSnMessages is the meat of the QueueQPGSn functionality
-func AddQPGSnMessages(timeBetween time.Duration) {
+func AddQPGSnMessages(timeBetween time.Duration) error {
 	QueueMutex.Lock()
 	if len(Queue) < 2 {
 		Queue = append(
@@ -45,7 +48,9 @@ func AddQPGSnMessages(timeBetween time.Duration) {
 		time.Sleep(timeBetween)
 	} else {
 		QueueMutex.Unlock()
+		return errors.New("Queue too long")
 	}
+	return nil
 }
 
 // QueueQPGSn is a simple loop to add QPGSn to the Queue as long as it isn't too long
@@ -67,7 +72,7 @@ func PostMessage(c *gin.Context) {
 	} else {
 		QueueMutex.Lock()
 		// append new message to the Queue if there is space
-		if len(Queue) < 50 {
+		if len(Queue) < MAX_QUEUE_LENGTH {
 			Queue = append(Queue, newMessage)
 			QueueMutex.Unlock()
 			c.IndentedJSON(http.StatusCreated, newMessage)

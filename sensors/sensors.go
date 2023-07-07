@@ -425,46 +425,52 @@ var sensors = []Sensor{
 	},
 }
 
+func Format(sensor Sensor, version string) string {
+	log.Printf("Registering %s\n", sensor.Name)
+
+	sensorDefinition := fmt.Sprintf(
+		"{\""+
+			"unique_id\":\"%s\",\""+
+			"name\":\"%s\",\""+
+			"state_topic\":\"%s\",\""+
+			"icon\":\"%s\",\""+
+			"device\":{\"name\":\"phocus\",\""+
+			"identifiers\":[\"phocus\"],\""+
+			"model\":\"phocus\",\""+
+			"manufacturer\":\"phocus\",\""+
+			"sw_version\":\"%s\"},\""+
+			"force_update\":false",
+		sensor.UniqueId,
+		sensor.Name,
+		sensor.StateTopic,
+		sensor.Icon,
+		version,
+	)
+	if sensor.Unit != "" {
+		sensorDefinition += fmt.Sprintf(", \"unit_of_measurement\":\"%s\"", sensor.Unit)
+	}
+	if sensor.StateClass != "" {
+		sensorDefinition += fmt.Sprintf(", \"state_class\":\"%s\"", sensor.StateClass)
+	}
+	if sensor.DeviceClass != "" {
+		sensorDefinition += fmt.Sprintf(", \"device_class\":\"%s\"", sensor.DeviceClass)
+	}
+	if sensor.ValueTemplate != "" {
+		sensorDefinition += fmt.Sprintf(", \"value_template\":\"%s\"", sensor.ValueTemplate)
+	}
+	sensorDefinition += "}"
+	return sensorDefinition
+}
+
 // Register adds some sensors to Home Assistant MQTT
 // version is the current version of the system, added in 1.1.1
 func Register(version string) error {
 	log.Println("Registering sensors")
-	for _, input := range sensors {
-		log.Printf("Registering %s\n", input.Name)
+	for _, sensor := range sensors {
 
-		sensorDefinition := fmt.Sprintf(
-			"{\""+
-				"unique_id\":\"%s\",\""+
-				"name\":\"%s\",\""+
-				"state_topic\":\"%s\",\""+
-				"icon\":\"%s\",\""+
-				"device\":{\"name\":\"phocus\",\""+
-				"identifiers\":[\"phocus\"],\""+
-				"model\":\"phocus\",\""+
-				"manufacturer\":\"phocus\",\""+
-				"sw_version\":\"%s\"},\""+
-				"force_update\":false",
-			input.UniqueId,
-			input.Name,
-			input.StateTopic,
-			input.Icon,
-			version,
-		)
-		if input.Unit != "" {
-			sensorDefinition += fmt.Sprintf(", \"unit_of_measurement\":\"%s\"", input.Unit)
-		}
-		if input.StateClass != "" {
-			sensorDefinition += fmt.Sprintf(", \"state_class\":\"%s\"", input.StateClass)
-		}
-		if input.DeviceClass != "" {
-			sensorDefinition += fmt.Sprintf(", \"device_class\":\"%s\"", input.DeviceClass)
-		}
-		if input.ValueTemplate != "" {
-			sensorDefinition += fmt.Sprintf(", \"value_template\":\"%s\"", input.ValueTemplate)
-		}
-		sensorDefinition += "}"
+		sensorDefinition := Format(sensor, version)
 
-		err := mqtt.Send(input.SensorTopic, 0, true, sensorDefinition, 10)
+		err := mqtt.Send(sensor.SensorTopic, 0, true, sensorDefinition, 10)
 		if err != nil {
 			log.Printf("Failed to send initial setup stats to MQTT with err: %v", err)
 			return err

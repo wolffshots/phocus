@@ -29,6 +29,9 @@ func Encode(input string) string {
 // will return whether the crc matches the content.
 func Verify(input string) bool {
 	input = strings.TrimRight(input, "\r")
+	if len(input) < 2 {
+		return false
+	}
 	crc := input[len(input)-2:]
 	remainder := input[:len(input)-2]
 	if remainder == "" { // we take the stance that empty inputs aren't valid

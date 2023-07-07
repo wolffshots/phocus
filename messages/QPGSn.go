@@ -178,16 +178,23 @@ func ReceiveQPGSn(port phocus_serial.Port, timeout time.Duration, inverterNum in
 		log.Printf("Failed to read from serial with: %v\n", err)
 		return "", err
 	} else {
-		if phocus_crc.Verify(response) {
-			return response, nil
-		} else {
-			actual := response[len(response)-3 : len(response)-1]
-			remainder := response[:len(response)-3]
-			wanted := phocus_crc.Checksum(remainder)
-			message := fmt.Sprintf("invalid response from QPGS%d: CRC should have been %x but was %x", inverterNum, wanted, actual)
-			log.Println(message)
-			return "", errors.New(message)
+		return VerifyQPGSn(response, inverterNum)
+	}
+}
+
+func VerifyQPGSn(response string, inverterNum int) (string, error) {
+	if phocus_crc.Verify(response) {
+		return response, nil
+	} else {
+		if len(response) < 3 {
+			return "", errors.New(fmt.Sprintf("response not long enough: %s", response))
 		}
+		actual := response[len(response)-3 : len(response)-1]
+		remainder := response[:len(response)-3]
+		wanted := phocus_crc.Checksum(remainder)
+		message := fmt.Sprintf("invalid response from QPGS%d: CRC should have been %x but was %x", inverterNum, wanted, actual)
+		log.Println(message)
+		return "", errors.New(message)
 	}
 }
 
@@ -251,15 +258,17 @@ func InterpretQPGSn(input string, inverterNum int) (*QPGSnResponse, error) {
 	}, nil
 }
 
+func EncodeQPGSn(response *QPGSnResponse) string {
+	jsonQPGSnResponse, _ := json.Marshal(response) // err ignored because it can't fail with this input
+	return string(jsonQPGSnResponse)
+}
+
 func PublishQPGSn(response *QPGSnResponse, inverterNum int) error {
-	jsonQPGSResponse, err := json.Marshal(response)
+	jsonResponse := EncodeQPGSn(response)
+	err := phocus_mqtt.Send(fmt.Sprintf("phocus/stats/qpgs%d", inverterNum), 0, false, string(jsonResponse), 10)
 	if err != nil {
-		log.Fatalf("Failed to parse response to json with :%v", err)
+		log.Fatalf("MQTT send of QPGS%d failed with: %v\ntype of thing sent was: %T", inverterNum, err, jsonResponse)
 	}
-	err = phocus_mqtt.Send(fmt.Sprintf("phocus/stats/qpgs%d", inverterNum), 0, false, string(jsonQPGSResponse), 10)
-	if err != nil {
-		log.Fatalf("MQTT send of QPGS%d failed with: %v\ntype of thing sent was: %T", inverterNum, err, jsonQPGSResponse)
-	}
-	log.Printf("Sent to MQTT:\n%s\n", jsonQPGSResponse)
+	log.Printf("Sent to MQTT:\n%s\n", jsonResponse)
 	return err
 }

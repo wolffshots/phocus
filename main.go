@@ -43,6 +43,19 @@ func ParseConfig(fileName string) (Configuration, error) {
 	return configuration, err
 }
 
+func Router() error {
+	err := api.SetupRouter().Run("0.0.0.0:8080")
+	if err != nil {
+		pubErr := mqtt.Error(0, false, err, 10)
+		if pubErr != nil {
+			log.Printf("Failed to post previous error (%v) to mqtt: %v\n", err, pubErr)
+		}
+		log.Printf("Failed to run http routine with err: %v", err)
+		os.Exit(1)
+	}
+	return err
+}
+
 // main is the entrypoint to the app
 func main() {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds | log.Llongfile)
@@ -51,17 +64,20 @@ func main() {
 	configuration, err := ParseConfig("config.json")
 
 	if err != nil {
-		log.Fatalf("Error parsing config: %v", err)
+		log.Printf("Error parsing config: %v", err)
+		os.Exit(1)
 	}
 
 	// mqtt
 	// wrap in a for loop to retry Setup
 	err = mqtt.Setup(
 		configuration.MQTT.Host,
+		configuration.MQTT.Port,
 		configuration.MQTT.Client.Name,
 	)
 	if err != nil {
-		log.Fatalf("Failed to set up mqtt with err: %v", err)
+		log.Printf("Failed to set up mqtt with err: %v", err)
+		os.Exit(1)
 	}
 	// reset error
 	pubErr := mqtt.Send("phocus/stats/error", 0, false, "", 10)
@@ -80,22 +96,13 @@ func main() {
 		if pubErr != nil {
 			log.Printf("Failed to post previous error (%v) to mqtt: %v\n", err, pubErr)
 		}
-		port.Port.Close()
-		log.Fatalf("Failed to set up serial with err: %v", err)
+		log.Printf("Failed to set up serial with err: %v", err)
+		os.Exit(1)
 	}
+	defer port.Port.Close()
 
 	// spawns a go-routine which handles web requests
-	go func() {
-		err := api.SetupRouter().Run("0.0.0.0:8080")
-		if err != nil {
-			pubErr := mqtt.Error(0, false, err, 10)
-			if pubErr != nil {
-				log.Printf("Failed to post previous error (%v) to mqtt: %v\n", err, pubErr)
-			}
-			port.Port.Close()
-			log.Fatalf("Failed to run http routine with err: %v", err)
-		}
-	}()
+	go Router()
 
 	// sensors
 	// we only add them once we know the mqtt, serial and http aspects are up
@@ -105,8 +112,8 @@ func main() {
 		if pubErr != nil {
 			log.Printf("Failed to post previous error (%v) to mqtt: %v\n", err, pubErr)
 		}
-		port.Port.Close()
-		log.Fatalf("Failed to set up sensors with err: %v", err)
+		log.Printf("Failed to set up sensors with err: %v", err)
+		os.Exit(1)
 	}
 
 	// sleep to make sure web server comes on before polling starts
@@ -138,7 +145,7 @@ func main() {
 					// it should die here
 					log.Printf("cmd=================>%s\n", cmd)
 					if err != nil {
-						log.Fatal(err)
+						log.Printf("Error execing cmd: %v", err)
 					}
 					// if it reaches here at all that implies it didn't restart properly
 					os.Exit(1)

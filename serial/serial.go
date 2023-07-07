@@ -37,6 +37,9 @@ func Setup(portPath string, baud int) (Port, error) {
 // the CRC is calculated and added to that in Write
 func (p *Port) Write(input string) (int, error) {
 	message := crc.Encode(input)
+	if p.Port == nil {
+		return 0, errors.New("port is nil on write")
+	}
 	n, err := p.Port.Write([]byte(message))
 	if err != nil {
 		log.Fatal(err)
@@ -52,6 +55,9 @@ func (p *Port) Read(timeout time.Duration) (string, error) {
 	log.Printf("Starting read\n")
 	buff := make([]byte, 140)
 	dataChannel := make(chan string, 1)
+	if p.Port == nil {
+		return "", errors.New("port is nil on read")
+	}
 	var err error
 	go func() {
 		var response string
@@ -62,6 +68,7 @@ func (p *Port) Read(timeout time.Duration) (string, error) {
 				break
 			} else if n == 0 {
 				log.Println("\nEOF")
+				err = errors.New("read returned nothing")
 				break
 			} else if string(buff[:n]) == "\r" {
 				response = fmt.Sprintf("%v%v", response, string(buff[:n]))

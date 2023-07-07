@@ -39,20 +39,25 @@ func TerminateCmd(cmd *exec.Cmd) {
 
 func TestSerial(t *testing.T) {
 	cmd := StartCmd("socat", "PTY,link=./com1,raw,echo=1,crnl", "PTY,link=./com2,raw,echo=1,crnl")
+	defer TerminateCmd(cmd)
 	time.Sleep(200 * time.Millisecond)
 
 	port1, err := Setup("./com1", 2400)
-	assert.Equal(t, nil, err)
+	defer port1.Port.Close()
+
+	assert.NoError(t, err)
 	assert.NotEqual(t, nil, port1)
 
 	port2, err := Setup("./com2", 2400)
-	assert.Equal(t, nil, err)
+	defer port2.Port.Close()
+
+	assert.NoError(t, err)
 	assert.NotEqual(t, nil, port2)
 
 	t.Run("TestWrite", func(t *testing.T) {
 		written, err := port1.Write("test")
 		assert.Equal(t, 7, written)
-		assert.Equal(t, nil, err)
+		assert.NoError(t, err)
 	})
 
 	t.Run("TestReadTimeout", func(t *testing.T) {
@@ -75,17 +80,13 @@ func TestSerial(t *testing.T) {
 
 		// written, err := port1.Write("test")
 		// assert.Equal(t, 7, written)
-		// assert.Equal(t, nil, err)
+		// assert.NoError(t, err)
 
 		// select {
 		// case err := <-errChannel:
-		// 	assert.Equal(t, nil, err)
+		// 	assert.NoError(t, err)
 		// case read := <-readChannel:
 		// 	assert.Equal(t, "test", read)
 		// }
 	})
-
-	port1.Port.Close()
-	port2.Port.Close()
-	TerminateCmd(cmd)
 }

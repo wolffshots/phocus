@@ -13,6 +13,7 @@
 coverage.html
 coverage.xml
 coverage.txt
+coverage
 
 # Dependency directories (remove the comment below to include it)
 # vendor/

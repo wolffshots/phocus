@@ -1,15 +1,92 @@
+//go:build linux || darwin
+
 package phocus_messages
 
 import (
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	phocus_crc "github.com/wolffshots/phocus/v2/crc"
+	phocus_serial "github.com/wolffshots/phocus/v2/serial"
 )
 
 func TestSendQID(t *testing.T) {
-	assert.Equal(t, "QID\xd6\xea\r", phocus_crc.Encode("QID"))
+	// invalid write
+	written, err := SendQID(phocus_serial.Port{Port: nil, Path: ""}, nil)
+	assert.Equal(t, -1, written)
+	assert.Equal(t, errors.New("port is nil on write"), err)
+
+	// start virtual port
+	cmd := StartCmd("socat", "PTY,link=./com1,raw,echo=1,crnl", "PTY,link=./com2,raw,echo=1,crnl")
+	defer TerminateCmd(cmd)
+	time.Sleep(200 * time.Millisecond)
+
+	// setup virtual port
+	port1, err := phocus_serial.Setup("./com1", 2400)
+	defer port1.Port.Close()
+	assert.NoError(t, err)
+
+	// valid write to virtual port
+	written, err = SendQID(port1, nil)
+	assert.Equal(t, 6, written)
+	assert.NoError(t, err)
+}
+
+func TestReceiveQID(t *testing.T) {
+	// invalid read
+	response, err := ReceiveQID(phocus_serial.Port{Port: nil, Path: ""}, 10*time.Millisecond)
+	assert.Equal(t, "", response)
+	assert.Equal(t, errors.New("port is nil on read"), err)
+
+	// start virtual port
+	cmd := StartCmd("socat", "PTY,link=./com1,raw,echo=1,crnl", "PTY,link=./com2,raw,echo=1,crnl")
+	defer TerminateCmd(cmd)
+	time.Sleep(200 * time.Millisecond)
+
+	// setup virtual port
+	port1, err := phocus_serial.Setup("./com1", 2400)
+	defer port1.Port.Close()
+	assert.NoError(t, err)
+
+	// valid read from virtual port
+	// should time out
+	response, err = ReceiveQID(port1, 0*time.Millisecond)
+	assert.Equal(t, "", response)
+	assert.Equal(t, errors.New("read timed out"), err)
+}
+
+func TestVerifyQID(t *testing.T) {
+	// invalid length qid
+	response, err := VerifyQID("")
+	assert.Equal(t, "", response)
+	assert.Equal(t, errors.New("response not long enough: "), err)
+
+	// invalid length qid
+	response, err = VerifyQID("\r")
+	assert.Equal(t, "", response)
+	assert.Equal(t, errors.New("response not long enough: \r"), err)
+
+	// invalid length qid
+	response, err = VerifyQID("1\r")
+	assert.Equal(t, "", response)
+	assert.Equal(t, errors.New("response not long enough: 1\r"), err)
+
+	// invalid length qid
+	response, err = VerifyQID("QI\r")
+	assert.Equal(t, "", response)
+	assert.Equal(t, errors.New("invalid response from QID: CRC should have been 0 but was 5149"), err)
+
+	// invalid crc qid
+	response, err = VerifyQID("(92932004102453\x2d\x2b\r")
+	assert.Equal(t, "", response)
+	assert.Equal(t, errors.New("invalid response from QID: CRC should have been 1d1b but was 2d2b"), err)
+
+	// valid crc qid
+	response, err = VerifyQID("(92932004102453\x1d\x1b\r")
+	assert.Equal(t, "(92932004102453\x1d\x1b\r", response)
+	assert.NoError(t, err)
 }
 
 func TestInterpretQID(t *testing.T) {
@@ -17,7 +94,7 @@ func TestInterpretQID(t *testing.T) {
 	input := "(92932004102443\x2e\x2a\r"
 	want := &QIDResponse{"92932004102443"}
 	actual, err := InterpretQID(input)
-	assert.Equal(t, nil, err)
+	assert.NoError(t, err)
 	assert.Equal(t, want, actual)
 
 	assert.Equal(t, false, phocus_crc.Verify(input[1:]))
@@ -37,4 +114,15 @@ func TestInterpretQID(t *testing.T) {
 	actual, err = InterpretQID(input)
 	assert.Equal(t, errors.New("response is malformed or shorter than expected"), err)
 	assert.Equal(t, want, actual)
+}
+
+func TestEncodeQID(t *testing.T) {
+	jsonResponse := EncodeQID(nil)
+	assert.Equal(t, "null", jsonResponse)
+
+	actual, err := InterpretQID("(92932004102443\x2e\x2a\r")
+	assert.NoError(t, err)
+
+	jsonResponse = EncodeQID(actual)
+	assert.Equal(t, "{\"SerialNumber\":\"92932004102443\"}", jsonResponse)
 }
