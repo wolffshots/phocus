@@ -22,8 +22,9 @@ const version = "v2.5.0"
 
 type Configuration struct {
 	Serial struct {
-		Port string
-		Baud int
+		Port    string
+		Baud    int
+		Retries int
 	}
 	MQTT struct {
 		Host   string
@@ -31,6 +32,7 @@ type Configuration struct {
 		Client struct {
 			Name string
 		}
+		Retries int
 	}
 }
 
@@ -70,13 +72,23 @@ func main() {
 
 	// mqtt
 	// wrap in a for loop to retry Setup
-	err = mqtt.Setup(
-		configuration.MQTT.Host,
-		configuration.MQTT.Port,
-		configuration.MQTT.Client.Name,
-	)
+	for i := 0; i < configuration.MQTT.Retries; i++ {
+		_, err = mqtt.Setup(
+			configuration.MQTT.Host,
+			configuration.MQTT.Port,
+			configuration.MQTT.Retries,
+			configuration.MQTT.Client.Name,
+		)
+		if err != nil {
+			log.Printf("Failed to set up mqtt with err: %v", err)
+			time.Sleep(5 * time.Second)
+		} else {
+			log.Printf("Succeeded to set up mqtt in %d tries", i+1)
+			break
+		}
+	}
 	if err != nil {
-		log.Printf("Failed to set up mqtt with err: %v", err)
+		log.Printf("Failed to set up mqtt %d times with err: %v", configuration.MQTT.Retries, err)
 		os.Exit(1)
 	}
 	// reset error
@@ -90,6 +102,7 @@ func main() {
 	port, err := serial.Setup(
 		configuration.Serial.Port,
 		configuration.Serial.Baud,
+		configuration.Serial.Retries,
 	)
 	if err != nil {
 		pubErr := mqtt.Error(0, false, err, 10)

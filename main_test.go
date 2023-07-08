@@ -15,6 +15,8 @@ func TestParseConfig(t *testing.T) {
 	assert.Equal(t, "go_phocus_client", configuration.MQTT.Client.Name)
 	assert.Equal(t, 2400, configuration.Serial.Baud)
 	assert.Equal(t, "/dev/ttyUSB0", configuration.Serial.Port)
+	assert.Equal(t, 5, configuration.Serial.Retries)
+	assert.Equal(t, 5, configuration.MQTT.Retries)
 }
 
 func TestRouter(t *testing.T) {
