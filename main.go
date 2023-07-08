@@ -71,22 +71,13 @@ func main() {
 	}
 
 	// mqtt
-	// wrap in a for loop to retry Setup
-	for i := 0; i < configuration.MQTT.Retries; i++ {
-		_, err = mqtt.Setup(
-			configuration.MQTT.Host,
-			configuration.MQTT.Port,
-			configuration.MQTT.Retries,
-			configuration.MQTT.Client.Name,
-		)
-		if err != nil {
-			log.Printf("Failed to set up mqtt with err: %v", err)
-			time.Sleep(5 * time.Second)
-		} else {
-			log.Printf("Succeeded to set up mqtt in %d tries", i+1)
-			break
-		}
-	}
+	_, err = mqtt.Setup(
+		configuration.MQTT.Host,
+		configuration.MQTT.Port,
+		configuration.MQTT.Retries,
+		configuration.MQTT.Client.Name,
+	)
+
 	if err != nil {
 		log.Printf("Failed to set up mqtt %d times with err: %v", configuration.MQTT.Retries, err)
 		os.Exit(1)
@@ -98,7 +89,6 @@ func main() {
 	}
 
 	// serial
-	// wrap in a for loop to retry Setup
 	port, err := serial.Setup(
 		configuration.Serial.Port,
 		configuration.Serial.Baud,
