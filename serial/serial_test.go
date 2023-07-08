@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"go.bug.st/serial"
 )
 
 func Run(cmd *exec.Cmd) {
@@ -42,92 +43,94 @@ func TerminateCmd(cmd *exec.Cmd) {
 }
 
 func TestSerial(t *testing.T) {
-	var buf bytes.Buffer
-
-	log.SetOutput(&buf)
-	defer func() {
-		log.SetOutput(os.Stderr)
-	}()
-	badPort, err := Setup("./bad_port", 2400, 5)
-	assert.Equal(t, syscall.Errno(0x2), err)
-	assert.Equal(t, "./bad_port", badPort.Path)
-	for i, message := range strings.Split(buf.String(), "\n") {
-		if len(message) > 20 {
-			assert.Equal(t, fmt.Sprintf("Failed to set up serial %d times with err: no such file or directory", i+1), message[20:])
-		} else {
-			assert.Equal(t, "", message)
-		}
-	}
-
-	buf.Reset()
-
 	cmd := StartCmd("socat", "PTY,link=./com1,raw,echo=1,crnl", "PTY,link=./com2,raw,echo=1,crnl")
 	defer TerminateCmd(cmd)
-	time.Sleep(51 * time.Millisecond)
 
-	port1, err := Setup("./com1", 2400, 5)
-	defer port1.Port.Close()
+	t.Run("TestSetup", func(t *testing.T) {
+		var buf bytes.Buffer
 
-	assert.NoError(t, err)
-	assert.Equal(t, "./com1", port1.Path)
-
-	for i, message := range strings.Split(buf.String(), "\n") {
-		if len(message) > 20 {
-			assert.Equal(t, fmt.Sprintf("Succeeded to set up serial after %d times", i+1), message[20:])
-		} else {
-			assert.Equal(t, "", message)
+		log.SetOutput(&buf)
+		defer func() {
+			log.SetOutput(os.Stderr)
+		}()
+		badPort, err := Setup("./bad_port", 2400, 5)
+		assert.Equal(t, syscall.Errno(0x2), err)
+		assert.Equal(t, "./bad_port", badPort.Path)
+		for i, message := range strings.Split(buf.String(), "\n") {
+			if len(message) > 20 {
+				assert.Equal(t, fmt.Sprintf("Failed to set up serial %d times with err: no such file or directory", i+1), message[20:])
+			} else {
+				assert.Equal(t, "", message)
+			}
 		}
-	}
 
-	buf.Reset()
+		buf.Reset()
 
-	port2, err := Setup("./com2", 2400, 5)
-	defer port2.Port.Close()
+		time.Sleep(51 * time.Millisecond)
 
-	assert.NoError(t, err)
-	assert.Equal(t, "./com2", port2.Path)
+		port1, err := Setup("./com1", 2400, 5)
+		defer port1.Port.Close()
 
-	for i, message := range strings.Split(buf.String(), "\n") {
-		if len(message) > 20 {
-			assert.Equal(t, fmt.Sprintf("Succeeded to set up serial after %d times", i+1), message[20:])
-		} else {
-			assert.Equal(t, "", message)
+		assert.NoError(t, err)
+		assert.Equal(t, "./com1", port1.Path)
+
+		for i, message := range strings.Split(buf.String(), "\n") {
+			if len(message) > 20 {
+				assert.Equal(t, fmt.Sprintf("Succeeded to set up serial after %d times", i+1), message[20:])
+			} else {
+				assert.Equal(t, "", message)
+			}
 		}
-	}
+
+		buf.Reset()
+
+		port2, err := Setup("./com2", 2400, 5)
+		defer port2.Port.Close()
+
+		assert.NoError(t, err)
+		assert.Equal(t, "./com2", port2.Path)
+
+		for i, message := range strings.Split(buf.String(), "\n") {
+			if len(message) > 20 {
+				assert.Equal(t, fmt.Sprintf("Succeeded to set up serial after %d times", i+1), message[20:])
+			} else {
+				assert.Equal(t, "", message)
+			}
+		}
+	})
 
 	t.Run("TestWrite", func(t *testing.T) {
+		port1, err := Setup("./com1", 2400, 5)
 		written, err := port1.Write("test")
 		assert.Equal(t, 7, written)
 		assert.NoError(t, err)
-	})
 
-	t.Run("TestReadTimeout", func(t *testing.T) {
-		read, err := port1.Read(1 * time.Millisecond)
-		assert.Equal(t, "", read)
-		assert.Equal(t, errors.New("read timed out"), err)
+		port1.Port.Close()
+		written, err = port1.Write("test")
+		assert.Equal(t, -1, written)
+		assert.Equal(t, syscall.Errno(0x9), err)
+
+		port1 = Port{nil, "./com1"}
+		written, err = port1.Write("test")
+		assert.Equal(t, 0, written)
+		assert.Equal(t, errors.New("port is nil on write"), err)
 	})
 
 	t.Run("TestRead", func(t *testing.T) {
-		// Read operation 2 (asynchronous)
-		// readChannel := make(chan string)
-		// errChannel := make(chan error)
+		port1, err := Setup("./com1", 2400, 5)
+		read, err := port1.Read(1 * time.Millisecond)
+		assert.Equal(t, "", read)
+		assert.Equal(t, errors.New("read returned nothing"), err)
 
-		// go func() {
-		// 	read, _ := port2.Read(1000 * time.Millisecond)
-		// 	readChannel <- read
-		// }()
+		err = port1.Port.Close()
+		assert.NoError(t, err)
+		read, err = port1.Read(1 * time.Millisecond)
+		assert.Equal(t, "", read)
+		assert.Equal(t, serial.PortClosed, err.(*serial.PortError).Code())
 
-		// time.Sleep(51 * time.Millisecond)
-
-		// written, err := port1.Write("test")
-		// assert.Equal(t, 7, written)
-		// assert.NoError(t, err)
-
-		// select {
-		// case err := <-errChannel:
-		// 	assert.NoError(t, err)
-		// case read := <-readChannel:
-		// 	assert.Equal(t, "test", read)
-		// }
+		port1.Port = nil
+		read, err = port1.Read(1 * time.Millisecond)
+		assert.Equal(t, "", read)
+		assert.Equal(t, errors.New("port is nil on read"), err)
 	})
 }

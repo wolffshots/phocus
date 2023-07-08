@@ -66,7 +66,7 @@ func TestReceiveGeneric(t *testing.T) {
 	// should time out
 	response, err = ReceiveGeneric(port1, "GENERIC", 0*time.Millisecond)
 	assert.Equal(t, "", response)
-	assert.Equal(t, errors.New("read timed out"), err)
+	assert.Equal(t, errors.New("read returned nothing"), err)
 }
 
 func TestVerifyGeneric(t *testing.T) {

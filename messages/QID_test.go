@@ -54,7 +54,7 @@ func TestReceiveQID(t *testing.T) {
 	// should time out
 	response, err = ReceiveQID(port1, 0*time.Millisecond)
 	assert.Equal(t, "", response)
-	assert.Equal(t, errors.New("read timed out"), err)
+	assert.Equal(t, errors.New("read returned nothing"), err)
 }
 
 func TestVerifyQID(t *testing.T) {

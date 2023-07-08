@@ -75,7 +75,7 @@ func TestReceiveQPGSn(t *testing.T) {
 	// should time out
 	response, err = ReceiveQPGSn(port1, 0*time.Millisecond, 0)
 	assert.Equal(t, "", response)
-	assert.Equal(t, errors.New("read timed out"), err)
+	assert.Equal(t, errors.New("read returned nothing"), err)
 }
 
 func TestVerifyQPGSn(t *testing.T) {

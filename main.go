@@ -137,7 +137,7 @@ func main() {
 				if pubErr != nil {
 					log.Printf("Failed to post previous error (%v) to mqtt: %v\n", err, pubErr)
 				}
-				if fmt.Sprint(err) == "read timed out" { // immediately jailed when read timeout
+				if fmt.Sprint(err) == "read returned nothing" { // immediately jailed when read timeout
 					port.Port.Close()
 					pubErr := mqtt.Error(0, false, errors.New("read timed out, waiting 5 minutes then restarting"), 10)
 					if pubErr != nil {
