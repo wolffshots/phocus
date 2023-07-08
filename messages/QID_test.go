@@ -21,10 +21,10 @@ func TestSendQID(t *testing.T) {
 	// start virtual port
 	cmd := StartCmd("socat", "PTY,link=./com1,raw,echo=1,crnl", "PTY,link=./com2,raw,echo=1,crnl")
 	defer TerminateCmd(cmd)
-	time.Sleep(200 * time.Millisecond)
+	time.Sleep(51 * time.Millisecond)
 
 	// setup virtual port
-	port1, err := phocus_serial.Setup("./com1", 2400)
+	port1, err := phocus_serial.Setup("./com1", 2400, 1)
 	defer port1.Port.Close()
 	assert.NoError(t, err)
 
@@ -43,10 +43,10 @@ func TestReceiveQID(t *testing.T) {
 	// start virtual port
 	cmd := StartCmd("socat", "PTY,link=./com1,raw,echo=1,crnl", "PTY,link=./com2,raw,echo=1,crnl")
 	defer TerminateCmd(cmd)
-	time.Sleep(200 * time.Millisecond)
+	time.Sleep(51 * time.Millisecond)
 
 	// setup virtual port
-	port1, err := phocus_serial.Setup("./com1", 2400)
+	port1, err := phocus_serial.Setup("./com1", 2400, 1)
 	defer port1.Port.Close()
 	assert.NoError(t, err)
 
@@ -54,7 +54,7 @@ func TestReceiveQID(t *testing.T) {
 	// should time out
 	response, err = ReceiveQID(port1, 0*time.Millisecond)
 	assert.Equal(t, "", response)
-	assert.Equal(t, errors.New("read timed out"), err)
+	assert.Equal(t, errors.New("read returned nothing"), err)
 }
 
 func TestVerifyQID(t *testing.T) {

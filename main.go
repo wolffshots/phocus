@@ -22,14 +22,21 @@ const version = "v2.5.0"
 
 type Configuration struct {
 	Serial struct {
-		Port string
-		Baud int
+		Port    string
+		Baud    int
+		Retries int
 	}
 	MQTT struct {
 		Host   string
 		Port   int
 		Client struct {
 			Name string
+		}
+		Retries int
+	}
+	Messages struct {
+		Read struct {
+			TimeoutSeconds int
 		}
 	}
 }
@@ -69,14 +76,15 @@ func main() {
 	}
 
 	// mqtt
-	// wrap in a for loop to retry Setup
-	err = mqtt.Setup(
+	_, err = mqtt.Setup(
 		configuration.MQTT.Host,
 		configuration.MQTT.Port,
+		configuration.MQTT.Retries,
 		configuration.MQTT.Client.Name,
 	)
+
 	if err != nil {
-		log.Printf("Failed to set up mqtt with err: %v", err)
+		log.Printf("Failed to set up mqtt %d times with err: %v", configuration.MQTT.Retries, err)
 		os.Exit(1)
 	}
 	// reset error
@@ -86,10 +94,10 @@ func main() {
 	}
 
 	// serial
-	// wrap in a for loop to retry Setup
 	port, err := serial.Setup(
 		configuration.Serial.Port,
 		configuration.Serial.Baud,
+		configuration.Serial.Retries,
 	)
 	if err != nil {
 		pubErr := mqtt.Error(0, false, err, 10)
@@ -128,13 +136,13 @@ func main() {
 		log.Print(".")
 		// if there is an entry at [0] then run that command
 		if len(api.Queue) > 0 {
-			err := messages.Interpret(port, api.Queue[0])
+			err := messages.Interpret(port, api.Queue[0], time.Duration(configuration.Messages.Read.TimeoutSeconds)*time.Second)
 			if err != nil {
 				pubErr := mqtt.Error(0, false, err, 10)
 				if pubErr != nil {
 					log.Printf("Failed to post previous error (%v) to mqtt: %v\n", err, pubErr)
 				}
-				if fmt.Sprint(err) == "read timed out" { // immediately jailed when read timeout
+				if fmt.Sprint(err) == "read returned nothing" { // immediately jailed when read timeout
 					port.Port.Close()
 					pubErr := mqtt.Error(0, false, errors.New("read timed out, waiting 5 minutes then restarting"), 10)
 					if pubErr != nil {

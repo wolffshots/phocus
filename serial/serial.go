@@ -23,17 +23,27 @@ type Port struct {
 // Setup opens a connection to the inverter.
 //
 // Returns the port or an error if the port fails to open.
-func Setup(portPath string, baud int) (Port, error) {
-	// specify serial port
-	mode := &serial.Mode{
-		BaudRate: baud,
+func Setup(portPath string, baud int, retries int) (Port, error) {
+	var port serial.Port
+	var err error
+	for i := 0; i < retries; i++ {
+		mode := &serial.Mode{
+			BaudRate: baud,
+		}
+		port, err = serial.Open(portPath, mode)
+		if err != nil {
+			log.Printf("Failed to set up serial %d times with err: %v", i+1, err)
+			time.Sleep(50 * time.Millisecond)
+		} else {
+			log.Printf("Succeeded to set up serial after %d times", i+1)
+			break
+		}
 	}
-	port, err := serial.Open(portPath, mode)
 	return Port{port, portPath}, err
 }
 
 // Write a string to the open serial port
-// The input should be the "payload" string as
+// The input should just be the "payload" string as
 // the CRC is calculated and added to that in Write
 func (p *Port) Write(input string) (int, error) {
 	message := crc.Encode(input)
@@ -42,7 +52,7 @@ func (p *Port) Write(input string) (int, error) {
 	}
 	n, err := p.Port.Write([]byte(message))
 	if err != nil {
-		log.Fatal(err)
+		return -1, err
 	}
 	return n, err
 }
@@ -54,34 +64,27 @@ func (p *Port) Write(input string) (int, error) {
 func (p *Port) Read(timeout time.Duration) (string, error) {
 	log.Printf("Starting read\n")
 	buff := make([]byte, 140)
-	dataChannel := make(chan string, 1)
 	if p.Port == nil {
 		return "", errors.New("port is nil on read")
 	}
+	p.Port.SetReadTimeout(timeout)
 	var err error
-	go func() {
-		var response string
-		for {
-			n, err := p.Port.Read(buff)
-			if err != nil {
-				log.Printf("Err reading from port: %v", err)
-				break
-			} else if n == 0 {
-				log.Println("\nEOF")
-				err = errors.New("read returned nothing")
-				break
-			} else if string(buff[:n]) == "\r" {
-				response = fmt.Sprintf("%v%v", response, string(buff[:n]))
-				break
-			}
+	var response string
+	for {
+		n, readErr := p.Port.Read(buff)
+		if readErr != nil {
+			log.Printf("Err reading from port: %v", readErr)
+			err = readErr
+			break
+		} else if n == 0 {
+			log.Println("\nEOF")
+			err = errors.New("read returned nothing")
+			break
+		} else if string(buff[:n]) == "\r" {
 			response = fmt.Sprintf("%v%v", response, string(buff[:n]))
+			break
 		}
-		dataChannel <- response
-	}()
-	select {
-	case results := <-dataChannel:
-		return results, err
-	case <-time.After(timeout):
-		return "", errors.New("read timed out")
+		response = fmt.Sprintf("%v%v", response, string(buff[:n]))
 	}
+	return response, err
 }
