@@ -17,6 +17,8 @@ func TestParseConfig(t *testing.T) {
 	assert.Equal(t, "/dev/ttyUSB0", configuration.Serial.Port)
 	assert.Equal(t, 5, configuration.Serial.Retries)
 	assert.Equal(t, 5, configuration.MQTT.Retries)
+	assert.Equal(t, 2, configuration.Messages.Read.TimeoutSeconds)
+	assert.Equal(t, 2*time.Second, time.Duration(configuration.Messages.Read.TimeoutSeconds)*time.Second)
 }
 
 func TestRouter(t *testing.T) {

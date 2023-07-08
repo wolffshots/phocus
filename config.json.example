@@ -11,5 +11,10 @@
       "Name": "go_phocus_client"
     },
     "Retries": 5
+  },
+  "Messages": {
+    "Read": {
+      "TimeoutSeconds": 2
+    }
   }
 }

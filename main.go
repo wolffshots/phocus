@@ -34,6 +34,11 @@ type Configuration struct {
 		}
 		Retries int
 	}
+	Messages struct {
+		Read struct {
+			TimeoutSeconds int
+		}
+	}
 }
 
 func ParseConfig(fileName string) (Configuration, error) {
@@ -131,7 +136,7 @@ func main() {
 		log.Print(".")
 		// if there is an entry at [0] then run that command
 		if len(api.Queue) > 0 {
-			err := messages.Interpret(port, api.Queue[0])
+			err := messages.Interpret(port, api.Queue[0], time.Duration(configuration.Messages.Read.TimeoutSeconds)*time.Second)
 			if err != nil {
 				pubErr := mqtt.Error(0, false, err, 10)
 				if pubErr != nil {

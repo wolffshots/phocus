@@ -19,13 +19,13 @@ type Message struct {
 
 // Interpret converts the generic `phocus` message into a specific inverter message
 // TODO add even more generalisation and separated implementation details here
-func Interpret(port phocus_serial.Port, input Message) error {
+func Interpret(port phocus_serial.Port, input Message, readTimeout time.Duration) error {
 	switch input.Command {
 	case "QPGS1":
 		// send
 		SendQPGSn(port, 1)
 		// receive
-		response, err := ReceiveQPGSn(port, 2*time.Second, 1)
+		response, err := ReceiveQPGSn(port, readTimeout, 1)
 		if err != nil {
 			return err
 		} else {
@@ -42,7 +42,7 @@ func Interpret(port phocus_serial.Port, input Message) error {
 		// send
 		SendQPGSn(port, 2)
 		// receive
-		response, err := ReceiveQPGSn(port, 2*time.Second, 2)
+		response, err := ReceiveQPGSn(port, readTimeout, 2)
 		if err != nil {
 			return err
 		} else {
@@ -59,7 +59,7 @@ func Interpret(port phocus_serial.Port, input Message) error {
 		// send
 		SendQID(port, nil)
 		// receive
-		response, err := ReceiveQID(port, 2*time.Second)
+		response, err := ReceiveQID(port, readTimeout)
 		if err != nil {
 			return err
 		} else {
@@ -76,7 +76,7 @@ func Interpret(port phocus_serial.Port, input Message) error {
 		// send
 		SendGeneric(port, input.Command, input.Payload)
 		// receive
-		response, err := ReceiveGeneric(port, input.Command, 2*time.Second)
+		response, err := ReceiveGeneric(port, input.Command, readTimeout)
 		if err != nil {
 			return err
 		} else {
