@@ -28,7 +28,7 @@ func TestRouter(t *testing.T) {
 		startCh <- Router()
 	}()
 
-	time.Sleep(200 * time.Millisecond)
+	time.Sleep(51 * time.Millisecond)
 
 	select {
 	case err := <-startCh:

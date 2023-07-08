@@ -63,7 +63,7 @@ func TestSerial(t *testing.T) {
 
 	cmd := StartCmd("socat", "PTY,link=./com1,raw,echo=1,crnl", "PTY,link=./com2,raw,echo=1,crnl")
 	defer TerminateCmd(cmd)
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(51 * time.Millisecond)
 
 	port1, err := Setup("./com1", 2400, 5)
 	defer port1.Port.Close()
@@ -117,7 +117,7 @@ func TestSerial(t *testing.T) {
 		// 	readChannel <- read
 		// }()
 
-		// time.Sleep(100 * time.Millisecond)
+		// time.Sleep(51 * time.Millisecond)
 
 		// written, err := port1.Write("test")
 		// assert.Equal(t, 7, written)

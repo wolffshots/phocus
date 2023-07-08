@@ -379,7 +379,7 @@ func TestQueueQPGSn(t *testing.T) {
 	go QueueQPGSn()
 
 	// Wait for a specific duration to allow the server to start
-	time.Sleep(200 * time.Millisecond)
+	time.Sleep(51 * time.Millisecond)
 
 	assert.Equal(t, 1, len(Queue))
 }
