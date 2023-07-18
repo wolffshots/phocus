@@ -8,6 +8,8 @@ if test -e config.json; then
 else
     echo config.json not found! generating from config.json.example
     cp config.json.example config.json
+    read -n 1 -s -r -p "press any key to continue once you've checked that config.json is correct"
+    echo
 fi
 sudo cp config.json /usr/bin/phocus_app/
 echo done
