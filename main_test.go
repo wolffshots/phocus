@@ -19,6 +19,8 @@ func TestParseConfig(t *testing.T) {
 	assert.Equal(t, 5, configuration.MQTT.Retries)
 	assert.Equal(t, 2, configuration.Messages.Read.TimeoutSeconds)
 	assert.Equal(t, 2*time.Second, time.Duration(configuration.Messages.Read.TimeoutSeconds)*time.Second)
+	assert.Equal(t, 15, configuration.DelaySeconds)
+	assert.Equal(t, 5, configuration.RandDelaySeconds)
 }
 
 func TestRouter(t *testing.T) {

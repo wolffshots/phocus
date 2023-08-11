@@ -27,7 +27,7 @@ func TestAddQPGSnMessages(t *testing.T) {
 	assert.NoError(t, err)
 	err = AddQPGSnMessages(0) // shouldn't add to the queue since there is already over 2
 	assert.Equal(t, 3, len(Queue))
-	assert.Equal(t, errors.New("Queue too long"), err)
+	assert.Equal(t, errors.New("queue too long"), err)
 }
 
 func TestPostMessage(t *testing.T) {
@@ -376,7 +376,7 @@ func TestDeleteMessage(t *testing.T) {
 
 func TestQueueQPGSn(t *testing.T) {
 	// Start the adder in a goroutine
-	go QueueQPGSn()
+	go QueueQPGSn(15, 5)
 
 	// Wait for a specific duration to allow the server to start
 	time.Sleep(51 * time.Millisecond)

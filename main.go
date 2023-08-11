@@ -18,7 +18,7 @@ import (
 	serial "github.com/wolffshots/phocus/v2/serial"     // comms with inverter
 )
 
-const version = "v2.6.0"
+const version = "v2.7.0"
 
 type Configuration struct {
 	Serial struct {
@@ -39,6 +39,8 @@ type Configuration struct {
 			TimeoutSeconds int
 		}
 	}
+	DelaySeconds     int
+	RandDelaySeconds int
 }
 
 func ParseConfig(fileName string) (Configuration, error) {
@@ -128,7 +130,7 @@ func main() {
 	time.Sleep(5 * time.Second)
 
 	// spawn go-routine to repeatedly enQueue QPGSn commands
-	go api.QueueQPGSn()
+	go api.QueueQPGSn(configuration.DelaySeconds, configuration.RandDelaySeconds)
 
 	// loop to check Queue and deQueue index 0, run it process result and wait 30 seconds
 	for {
