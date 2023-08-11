@@ -16,5 +16,7 @@
     "Read": {
       "TimeoutSeconds": 2
     }
-  }
+  },
+  "DelaySeconds": 15,
+  "RandDelaySeconds": 5
 }

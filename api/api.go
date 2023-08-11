@@ -48,15 +48,15 @@ func AddQPGSnMessages(timeBetween time.Duration) error {
 		time.Sleep(timeBetween)
 	} else {
 		QueueMutex.Unlock()
-		return errors.New("Queue too long")
+		return errors.New("queue too long")
 	}
 	return nil
 }
 
 // QueueQPGSn is a simple loop to add QPGSn to the Queue as long as it isn't too long
-func QueueQPGSn() {
+func QueueQPGSn(delaySeconds int, randDelaySeconds int) {
 	for {
-		AddQPGSnMessages(time.Duration(15+rand.Intn(5)) * time.Second)
+		AddQPGSnMessages(time.Duration(delaySeconds+rand.Intn(randDelaySeconds)) * time.Second)
 	}
 }
 
