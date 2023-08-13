@@ -43,8 +43,9 @@ func TerminateCmd(cmd *exec.Cmd) {
 }
 
 func TestSerial(t *testing.T) {
-	cmd := StartCmd("socat", "PTY,link=./com1,raw,echo=1,crnl", "PTY,link=./com2,raw,echo=1,crnl")
+	cmd := StartCmd("socat", "PTY,link=./serial1,raw,echo=1,crnl", "PTY,link=./serial2,raw,echo=1,crnl")
 	defer TerminateCmd(cmd)
+	time.Sleep(10 * time.Millisecond)
 
 	t.Run("TestSetup", func(t *testing.T) {
 		var buf bytes.Buffer
@@ -68,10 +69,10 @@ func TestSerial(t *testing.T) {
 
 		time.Sleep(51 * time.Millisecond)
 
-		port1, err := Setup("./com1", 2400, 5)
+		port1, err := Setup("./serial1", 2400, 5)
 		assert.NoError(t, err)
 		defer port1.Port.Close()
-		assert.Equal(t, "./com1", port1.Path)
+		assert.Equal(t, "./serial1", port1.Path)
 
 		for i, message := range strings.Split(buf.String(), "\n") {
 			if len(message) > 20 {
@@ -83,10 +84,10 @@ func TestSerial(t *testing.T) {
 
 		buf.Reset()
 
-		port2, err := Setup("./com2", 2400, 5)
+		port2, err := Setup("./serial2", 2400, 5)
 		assert.NoError(t, err)
 		defer port2.Port.Close()
-		assert.Equal(t, "./com2", port2.Path)
+		assert.Equal(t, "./serial2", port2.Path)
 
 		for i, message := range strings.Split(buf.String(), "\n") {
 			if len(message) > 20 {
@@ -98,7 +99,7 @@ func TestSerial(t *testing.T) {
 	})
 
 	t.Run("TestWrite", func(t *testing.T) {
-		port1, err := Setup("./com1", 2400, 5)
+		port1, err := Setup("./serial1", 2400, 5)
 		assert.NoError(t, err)
 		written, err := port1.Write(port1.Port, "test")
 		assert.Equal(t, 7, written)
@@ -116,7 +117,7 @@ func TestSerial(t *testing.T) {
 	})
 
 	t.Run("TestRead", func(t *testing.T) {
-		port1, err := Setup("./com1", 2400, 5)
+		port1, err := Setup("./serial1", 2400, 5)
 		assert.NoError(t, err)
 		read, err := port1.Read(port1.Port, 1*time.Millisecond)
 		assert.Equal(t, "", read)

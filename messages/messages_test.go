@@ -37,10 +37,12 @@ func TerminateCmd(cmd *exec.Cmd) {
 	}
 }
 func TestMesages(t *testing.T) {
-	cmd := StartCmd("socat", "PTY,link=./com1,raw,echo=1,crnl", "PTY,link=./com2,raw,echo=1,crnl")
+	cmd := StartCmd("socat", "PTY,link=./messages1,raw,echo=1,crnl", "PTY,link=./messages2,raw,echo=1,crnl")
 	defer TerminateCmd(cmd)
+	time.Sleep(10 * time.Millisecond)
+
 	t.Run("TestInterpretWriteErrors", func(t *testing.T) {
-		port1, err := phocus_serial.Setup("./com1", 2400, 5)
+		port1, err := phocus_serial.Setup("./messages1", 2400, 5)
 		assert.NoError(t, err)
 		assert.NoError(t, port1.Port.Close())
 		port1.Port = nil
@@ -59,7 +61,7 @@ func TestMesages(t *testing.T) {
 	})
 
 	t.Run("TestInterpretReadErrors", func(t *testing.T) {
-		port2, err := phocus_serial.Setup("./com1", 2400, 5)
+		port2, err := phocus_serial.Setup("./messages1", 2400, 5)
 		assert.NoError(t, err)
 		defer port2.Port.Close()
 
@@ -77,7 +79,7 @@ func TestMesages(t *testing.T) {
 	})
 
 	t.Run("TestInterpret", func(t *testing.T) {
-		port1, err := phocus_serial.Setup("./com1", 2400, 5)
+		port1, err := phocus_serial.Setup("./messages1", 2400, 5)
 		assert.NoError(t, err)
 		defer port1.Port.Close()
 
