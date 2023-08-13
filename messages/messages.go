@@ -23,7 +23,10 @@ func Interpret(port phocus_serial.Port, input Message, readTimeout time.Duration
 	switch input.Command {
 	case "QPGS1":
 		// send
-		SendQPGSn(port, 1)
+		_, err := SendQPGSn(port, 1)
+		if err != nil {
+			return err
+		}
 		// receive
 		response, err := ReceiveQPGSn(port, readTimeout, 1)
 		if err != nil {
@@ -40,7 +43,10 @@ func Interpret(port phocus_serial.Port, input Message, readTimeout time.Duration
 		}
 	case "QPGS2":
 		// send
-		SendQPGSn(port, 2)
+		_, err := SendQPGSn(port, 2)
+		if err != nil {
+			return err
+		}
 		// receive
 		response, err := ReceiveQPGSn(port, readTimeout, 2)
 		if err != nil {
@@ -57,7 +63,10 @@ func Interpret(port phocus_serial.Port, input Message, readTimeout time.Duration
 		}
 	case "QID":
 		// send
-		SendQID(port, nil)
+		_, err := SendQID(port, nil)
+		if err != nil {
+			return err
+		}
 		// receive
 		response, err := ReceiveQID(port, readTimeout)
 		if err != nil {
@@ -74,7 +83,10 @@ func Interpret(port phocus_serial.Port, input Message, readTimeout time.Duration
 	default:
 		// generic handling (not suitable for complicated queries)
 		// send
-		SendGeneric(port, input.Command, input.Payload)
+		_, err := SendGeneric(port, input.Command, input.Payload)
+		if err != nil {
+			return err
+		}
 		// receive
 		response, err := ReceiveGeneric(port, input.Command, readTimeout)
 		if err != nil {

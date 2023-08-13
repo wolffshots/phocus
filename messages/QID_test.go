@@ -25,8 +25,8 @@ func TestSendQID(t *testing.T) {
 
 	// setup virtual port
 	port1, err := phocus_serial.Setup("./com1", 2400, 1)
-	defer port1.Port.Close()
 	assert.NoError(t, err)
+	defer port1.Port.Close()
 
 	// valid write to virtual port
 	written, err = SendQID(port1, nil)
@@ -47,8 +47,8 @@ func TestReceiveQID(t *testing.T) {
 
 	// setup virtual port
 	port1, err := phocus_serial.Setup("./com1", 2400, 1)
-	defer port1.Port.Close()
 	assert.NoError(t, err)
+	defer port1.Port.Close()
 
 	// valid read from virtual port
 	// should time out

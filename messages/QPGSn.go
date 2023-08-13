@@ -187,7 +187,7 @@ func VerifyQPGSn(response string, inverterNum int) (string, error) {
 		return response, nil
 	} else {
 		if len(response) < 3 {
-			return "", errors.New(fmt.Sprintf("response not long enough: %s", response))
+			return "", fmt.Errorf("response not long enough: %s", response)
 		}
 		actual := response[len(response)-3 : len(response)-1]
 		remainder := response[:len(response)-3]

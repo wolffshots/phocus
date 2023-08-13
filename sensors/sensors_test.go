@@ -9,7 +9,7 @@ import (
 	"github.com/wolffshots/ha_types/units"
 )
 
-func TestRegister(t *testing.T) {
+func TestFormat(t *testing.T) {
 	sensor := Sensor{
 		SensorTopic:   "homeassistant/sensor/phocus/qid_serial/config",
 		UniqueId:      "phocus_qid_serial",
