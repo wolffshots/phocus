@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	phocus_crc "github.com/wolffshots/phocus/v2/crc"
 	phocus_serial "github.com/wolffshots/phocus/v2/serial"
+	"go.bug.st/serial"
 )
 
 func TestSendGeneric(t *testing.T) {
@@ -72,6 +73,25 @@ func TestReceiveGeneric(t *testing.T) {
 	assert.Equal(t, "", response)
 	assert.Equal(t, errors.New("port is nil on read"), err)
 
+	port1.Read = func(port serial.Port, timeout time.Duration) (string, error) {
+		return "some response\xea\xac\r", nil
+	}
+
+	// valid read from virtual port
+	// should respond
+	response, err = ReceiveGeneric(port1, "some message", 10*time.Millisecond)
+	assert.Equal(t, "some response\xea\xac\r", response)
+	assert.NoError(t, err)
+
+	port1.Read = func(port serial.Port, timeout time.Duration) (string, error) {
+		return "", errors.New("some error")
+	}
+
+	// valid read from virtual port
+	// should respond with err
+	response, err = ReceiveGeneric(port1, "some message", 0*time.Millisecond)
+	assert.Equal(t, "", response)
+	assert.Equal(t, errors.New("some error"), err)
 }
 
 func TestVerifyGeneric(t *testing.T) {

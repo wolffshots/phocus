@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	phocus_crc "github.com/wolffshots/phocus/v2/crc"
 	phocus_serial "github.com/wolffshots/phocus/v2/serial"
+	"go.bug.st/serial"
 )
 
 func TestSendQID(t *testing.T) {
@@ -59,6 +60,26 @@ func TestReceiveQID(t *testing.T) {
 	response, err = ReceiveQID(port1, 10*time.Millisecond)
 	assert.Equal(t, "", response)
 	assert.Equal(t, errors.New("port is nil on read"), err)
+
+	port1.Read = func(port serial.Port, timeout time.Duration) (string, error) {
+		return "some response\xea\xac\r", nil
+	}
+
+	// valid read from virtual port
+	// should respond
+	response, err = ReceiveQID(port1, 10*time.Millisecond)
+	assert.Equal(t, "some response\xea\xac\r", response)
+	assert.NoError(t, err)
+
+	port1.Read = func(port serial.Port, timeout time.Duration) (string, error) {
+		return "", errors.New("some error")
+	}
+
+	// valid read from virtual port
+	// should respond with err
+	response, err = ReceiveQID(port1, 0*time.Millisecond)
+	assert.Equal(t, "", response)
+	assert.Equal(t, errors.New("some error"), err)
 }
 
 func TestVerifyQID(t *testing.T) {

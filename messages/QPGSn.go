@@ -267,8 +267,9 @@ func PublishQPGSn(response *QPGSnResponse, inverterNum int) error {
 	jsonResponse := EncodeQPGSn(response)
 	err := phocus_mqtt.Send(fmt.Sprintf("phocus/stats/qpgs%d", inverterNum), 0, false, string(jsonResponse), 10)
 	if err != nil {
-		log.Fatalf("MQTT send of QPGS%d failed with: %v\ntype of thing sent was: %T", inverterNum, err, jsonResponse)
+		log.Printf("MQTT send of QPGS%d failed with: %v\ntype of thing sent was: %T", inverterNum, err, jsonResponse)
+	} else {
+		log.Printf("Sent to MQTT:\n%s\n", jsonResponse)
 	}
-	log.Printf("Sent to MQTT:\n%s\n", jsonResponse)
 	return err
 }

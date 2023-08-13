@@ -78,8 +78,9 @@ func PublishQID(response *QIDResponse) error {
 	jsonResponse := EncodeQID(response)
 	err := phocus_mqtt.Send("phocus/stats/qid", 0, false, jsonResponse, 10)
 	if err != nil {
-		log.Fatalf("MQTT send of %s failed with: %v\ntype of thing sent was: %T", "QID", err, jsonResponse)
+		log.Printf("MQTT send of %s failed with: %v\ntype of thing sent was: %T", "QID", err, jsonResponse)
+	} else {
+		log.Printf("Sent to MQTT:\n%s\n", jsonResponse)
 	}
-	log.Printf("Sent to MQTT:\n%s\n", jsonResponse)
 	return err
 }
