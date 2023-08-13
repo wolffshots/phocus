@@ -36,7 +36,7 @@ func TerminateCmd(cmd *exec.Cmd) {
 	}
 }
 
-func TestInterpret(t *testing.T) {
+func TestInterpretWriteErrors(t *testing.T) {
 	port1 := phocus_serial.Port{Port: nil, Path: "/nil"}
 
 	err := Interpret(port1, Message{uuid.New(), "QPGS1", ""}, 0*time.Second)
@@ -50,7 +50,9 @@ func TestInterpret(t *testing.T) {
 
 	err = Interpret(port1, Message{uuid.New(), "SOMETHING_ELSE", ""}, 0*time.Second)
 	assert.EqualError(t, err, "port is nil on write")
+}
 
+func TestInterpretReadErrors(t *testing.T) {
 	cmd := StartCmd("socat", "PTY,link=./com1,raw,echo=1,crnl", "PTY,link=./com2,raw,echo=1,crnl")
 	defer TerminateCmd(cmd)
 
