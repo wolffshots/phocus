@@ -15,13 +15,13 @@ import (
 )
 
 func TestQPGSn(t *testing.T) {
-	cmd := StartCmd("socat", "PTY,link=./com1,raw,echo=1,crnl", "PTY,link=./com2,raw,echo=1,crnl")
+	cmd := StartCmd("socat", "PTY,link=./qpgsn1,raw,echo=1,crnl", "PTY,link=./qpgsn2,raw,echo=1,crnl")
 	defer TerminateCmd(cmd)
 	time.Sleep(10 * time.Millisecond)
 
 	t.Run("TestSendQPGSn", func(t *testing.T) {
 		// setup virtual port
-		port1, err := phocus_serial.Setup("./com1", 2400, 1)
+		port1, err := phocus_serial.Setup("./qpgsn1", 2400, 1)
 		assert.NoError(t, err)
 
 		// valid write to virtual port
@@ -60,7 +60,7 @@ func TestQPGSn(t *testing.T) {
 
 	t.Run("TestReceiveQPGSn", func(t *testing.T) {
 		// setup virtual port
-		port1, err := phocus_serial.Setup("./com1", 2400, 1)
+		port1, err := phocus_serial.Setup("./qpgsn1", 2400, 1)
 		assert.NoError(t, err)
 
 		// valid read from virtual port

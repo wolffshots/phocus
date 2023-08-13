@@ -14,7 +14,7 @@ import (
 )
 
 func TestGeneric(t *testing.T) {
-	cmd := StartCmd("socat", "PTY,link=./com1,raw,echo=1,crnl", "PTY,link=./com2,raw,echo=1,crnl")
+	cmd := StartCmd("socat", "PTY,link=./generic1,raw,echo=1,crnl", "PTY,link=./generic2,raw,echo=1,crnl")
 	defer TerminateCmd(cmd)
 	time.Sleep(10 * time.Millisecond)
 
@@ -23,7 +23,7 @@ func TestGeneric(t *testing.T) {
 		time.Sleep(51 * time.Millisecond)
 
 		// setup virtual port
-		port1, err := phocus_serial.Setup("./com1", 2400, 1)
+		port1, err := phocus_serial.Setup("./generic1", 2400, 1)
 		assert.NoError(t, err)
 
 		// valid write to virtual port
@@ -57,7 +57,7 @@ func TestGeneric(t *testing.T) {
 		time.Sleep(51 * time.Millisecond)
 
 		// setup virtual port
-		port1, err := phocus_serial.Setup("./com1", 2400, 1)
+		port1, err := phocus_serial.Setup("./generic1", 2400, 1)
 		assert.NoError(t, err)
 
 		// valid read from virtual port
