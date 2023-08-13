@@ -18,7 +18,7 @@ type QIDResponse struct {
 }
 
 func SendQID(port phocus_serial.Port, payload interface{}) (int, error) {
-	written, err := port.Write("QID")
+	written, err := port.Write(port.Port, "QID")
 	if err != nil {
 		return -1, err
 	} else {
@@ -28,7 +28,7 @@ func SendQID(port phocus_serial.Port, payload interface{}) (int, error) {
 }
 
 func ReceiveQID(port phocus_serial.Port, timeout time.Duration) (string, error) {
-	response, err := port.Read(timeout)
+	response, err := port.Read(port.Port, timeout)
 	log.Printf("%s\n", response)
 	if err != nil || response == "" {
 		log.Printf("Failed to read from serial with: %v\n", err)
@@ -78,8 +78,9 @@ func PublishQID(response *QIDResponse) error {
 	jsonResponse := EncodeQID(response)
 	err := phocus_mqtt.Send("phocus/stats/qid", 0, false, jsonResponse, 10)
 	if err != nil {
-		log.Fatalf("MQTT send of %s failed with: %v\ntype of thing sent was: %T", "QID", err, jsonResponse)
+		log.Printf("MQTT send of %s failed with: %v\ntype of thing sent was: %T", "QID", err, jsonResponse)
+	} else {
+		log.Printf("Sent to MQTT:\n%s\n", jsonResponse)
 	}
-	log.Printf("Sent to MQTT:\n%s\n", jsonResponse)
 	return err
 }

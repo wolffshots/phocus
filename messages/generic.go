@@ -20,7 +20,7 @@ type GenericResponse struct {
 func SendGeneric(port phocus_serial.Port, command string, payload interface{}) (int, error) {
 	switch payload.(type) {
 	case int:
-		written, err := port.Write(fmt.Sprintf("%s%d", command, payload))
+		written, err := port.Write(port.Port, fmt.Sprintf("%s%d", command, payload))
 		if err != nil {
 			return -1, err
 		} else {
@@ -28,7 +28,7 @@ func SendGeneric(port phocus_serial.Port, command string, payload interface{}) (
 			return written, nil
 		}
 	case string:
-		written, err := port.Write(fmt.Sprintf("%s%s", command, payload))
+		written, err := port.Write(port.Port, fmt.Sprintf("%s%s", command, payload))
 		if err != nil {
 			return -1, err
 		} else {
@@ -36,7 +36,7 @@ func SendGeneric(port phocus_serial.Port, command string, payload interface{}) (
 			return written, nil
 		}
 	default:
-		written, err := port.Write(command)
+		written, err := port.Write(port.Port, command)
 		if err != nil {
 			return -1, err
 		} else {
@@ -48,7 +48,7 @@ func SendGeneric(port phocus_serial.Port, command string, payload interface{}) (
 
 func ReceiveGeneric(port phocus_serial.Port, command string, timeout time.Duration) (string, error) {
 	// read from port
-	response, err := port.Read(timeout)
+	response, err := port.Read(port.Port, timeout)
 	log.Printf("%s\n", response)
 	// verify
 	if err != nil || response == "" {
@@ -94,8 +94,9 @@ func PublishGeneric(response *GenericResponse, command string) error {
 	jsonResponse := EncodeGeneric(response)
 	err := phocus_mqtt.Send("phocus/stats/generic", 0, false, jsonResponse, 10)
 	if err != nil {
-		log.Fatalf("MQTT send of %s failed with: %v\ntype of thing sent was: %T", command, err, jsonResponse)
+		log.Printf("MQTT send of %s failed with: %v\ntype of thing sent was: %T", command, err, jsonResponse)
+	} else {
+		log.Printf("Sent to MQTT:\n%s\n", jsonResponse)
 	}
-	log.Printf("Sent to MQTT:\n%s\n", jsonResponse)
 	return err
 }

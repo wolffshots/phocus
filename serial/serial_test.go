@@ -69,9 +69,8 @@ func TestSerial(t *testing.T) {
 		time.Sleep(51 * time.Millisecond)
 
 		port1, err := Setup("./com1", 2400, 5)
-		defer port1.Port.Close()
-
 		assert.NoError(t, err)
+		defer port1.Port.Close()
 		assert.Equal(t, "./com1", port1.Path)
 
 		for i, message := range strings.Split(buf.String(), "\n") {
@@ -85,9 +84,8 @@ func TestSerial(t *testing.T) {
 		buf.Reset()
 
 		port2, err := Setup("./com2", 2400, 5)
-		defer port2.Port.Close()
-
 		assert.NoError(t, err)
+		defer port2.Port.Close()
 		assert.Equal(t, "./com2", port2.Path)
 
 		for i, message := range strings.Split(buf.String(), "\n") {
@@ -101,35 +99,37 @@ func TestSerial(t *testing.T) {
 
 	t.Run("TestWrite", func(t *testing.T) {
 		port1, err := Setup("./com1", 2400, 5)
-		written, err := port1.Write("test")
+		assert.NoError(t, err)
+		written, err := port1.Write(port1.Port, "test")
 		assert.Equal(t, 7, written)
 		assert.NoError(t, err)
 
 		port1.Port.Close()
-		written, err = port1.Write("test")
+		written, err = port1.Write(port1.Port, "test")
 		assert.Equal(t, -1, written)
 		assert.Equal(t, syscall.Errno(0x9), err)
 
-		port1 = Port{nil, "./com1"}
-		written, err = port1.Write("test")
+		port1.Port = nil
+		written, err = port1.Write(port1.Port, "test")
 		assert.Equal(t, 0, written)
 		assert.Equal(t, errors.New("port is nil on write"), err)
 	})
 
 	t.Run("TestRead", func(t *testing.T) {
 		port1, err := Setup("./com1", 2400, 5)
-		read, err := port1.Read(1 * time.Millisecond)
+		assert.NoError(t, err)
+		read, err := port1.Read(port1.Port, 1*time.Millisecond)
 		assert.Equal(t, "", read)
 		assert.Equal(t, errors.New("read returned nothing"), err)
 
 		err = port1.Port.Close()
 		assert.NoError(t, err)
-		read, err = port1.Read(1 * time.Millisecond)
+		read, err = port1.Read(port1.Port, 1*time.Millisecond)
 		assert.Equal(t, "", read)
 		assert.Equal(t, serial.PortClosed, err.(*serial.PortError).Code())
 
 		port1.Port = nil
-		read, err = port1.Read(1 * time.Millisecond)
+		read, err = port1.Read(port1.Port, 1*time.Millisecond)
 		assert.Equal(t, "", read)
 		assert.Equal(t, errors.New("port is nil on read"), err)
 	})

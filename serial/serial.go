@@ -12,12 +12,17 @@ import (
 	"go.bug.st/serial"                        // rs232 serial
 )
 
+type Writer func(port serial.Port, input string) (int, error)
+type Reader func(port serial.Port, timeout time.Duration) (string, error)
+
 // port is the object representing the serial device/connection
 // var port serial.Port
 
 type Port struct {
-	Port serial.Port
-	Path string
+	Port  serial.Port
+	Path  string
+	Write Writer
+	Read  Reader
 }
 
 // Setup opens a connection to the inverter.
@@ -39,18 +44,23 @@ func Setup(portPath string, baud int, retries int) (Port, error) {
 			break
 		}
 	}
-	return Port{port, portPath}, err
+	return Port{
+		Port:  port,
+		Path:  portPath,
+		Write: Write,
+		Read:  Read,
+	}, err
 }
 
 // Write a string to the open serial port
 // The input should just be the "payload" string as
 // the CRC is calculated and added to that in Write
-func (p *Port) Write(input string) (int, error) {
+var Write = func(port serial.Port, input string) (int, error) {
 	message := crc.Encode(input)
-	if p.Port == nil {
+	if port == nil {
 		return 0, errors.New("port is nil on write")
 	}
-	n, err := p.Port.Write([]byte(message))
+	n, err := port.Write([]byte(message))
 	if err != nil {
 		return -1, err
 	}
@@ -61,17 +71,17 @@ func (p *Port) Write(input string) (int, error) {
 // Takes a duration as an input and times out the read after that long.
 //
 // Returns the read string and the error
-func (p *Port) Read(timeout time.Duration) (string, error) {
+var Read = func(port serial.Port, timeout time.Duration) (string, error) {
 	log.Printf("Starting read\n")
 	buff := make([]byte, 140)
-	if p.Port == nil {
+	if port == nil {
 		return "", errors.New("port is nil on read")
 	}
-	p.Port.SetReadTimeout(timeout)
+	port.SetReadTimeout(timeout)
 	var err error
 	var response string
 	for {
-		n, readErr := p.Port.Read(buff)
+		n, readErr := port.Read(buff)
 		if readErr != nil {
 			log.Printf("Err reading from port: %v", readErr)
 			err = readErr

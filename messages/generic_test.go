@@ -10,144 +10,171 @@ import (
 	"github.com/stretchr/testify/assert"
 	phocus_crc "github.com/wolffshots/phocus/v2/crc"
 	phocus_serial "github.com/wolffshots/phocus/v2/serial"
+	"go.bug.st/serial"
 )
 
-func TestSendGeneric(t *testing.T) {
-	// invalid write
-	written, err := SendGeneric(phocus_serial.Port{Port: nil, Path: ""}, "GENERIC", nil)
-	assert.Equal(t, -1, written)
-	assert.Equal(t, errors.New("port is nil on write"), err)
-	written, err = SendGeneric(phocus_serial.Port{Port: nil, Path: ""}, "GENERIC", 1)
-	assert.Equal(t, -1, written)
-	assert.Equal(t, errors.New("port is nil on write"), err)
-	written, err = SendGeneric(phocus_serial.Port{Port: nil, Path: ""}, "GENERIC", "1")
-	assert.Equal(t, -1, written)
-	assert.Equal(t, errors.New("port is nil on write"), err)
-
-	// start virtual port
+func TestGeneric(t *testing.T) {
 	cmd := StartCmd("socat", "PTY,link=./com1,raw,echo=1,crnl", "PTY,link=./com2,raw,echo=1,crnl")
 	defer TerminateCmd(cmd)
-	time.Sleep(51 * time.Millisecond)
+	time.Sleep(10 * time.Millisecond)
 
-	// setup virtual port
-	port1, err := phocus_serial.Setup("./com1", 2400, 1)
-	assert.NoError(t, err)
-	defer port1.Port.Close()
+	t.Run("TestSendGeneric", func(t *testing.T) {
+		// start virtual port
+		time.Sleep(51 * time.Millisecond)
 
-	// valid write to virtual port
-	written, err = SendGeneric(port1, "GENERIC", nil)
-	assert.Equal(t, 10, written)
-	assert.NoError(t, err)
-	written, err = SendGeneric(port1, "GENERIC", 1)
-	assert.Equal(t, 11, written)
-	assert.NoError(t, err)
-	written, err = SendGeneric(port1, "GENERIC", "1")
-	assert.Equal(t, 11, written)
-	assert.NoError(t, err)
-}
+		// setup virtual port
+		port1, err := phocus_serial.Setup("./com1", 2400, 1)
+		assert.NoError(t, err)
 
-func TestReceiveGeneric(t *testing.T) {
-	// invalid read
-	response, err := ReceiveGeneric(phocus_serial.Port{Port: nil, Path: ""}, "GENERIC", 10*time.Millisecond)
-	assert.Equal(t, "", response)
-	assert.Equal(t, errors.New("port is nil on read"), err)
+		// valid write to virtual port
+		written, err := SendGeneric(port1, "GENERIC", nil)
+		assert.Equal(t, 10, written)
+		assert.NoError(t, err)
+		written, err = SendGeneric(port1, "GENERIC", 1)
+		assert.Equal(t, 11, written)
+		assert.NoError(t, err)
+		written, err = SendGeneric(port1, "GENERIC", "1")
+		assert.Equal(t, 11, written)
+		assert.NoError(t, err)
 
-	// start virtual port
-	cmd := StartCmd("socat", "PTY,link=./com1,raw,echo=1,crnl", "PTY,link=./com2,raw,echo=1,crnl")
-	defer TerminateCmd(cmd)
-	time.Sleep(51 * time.Millisecond)
+		port1.Port.Close()
+		port1.Port = nil
 
-	// setup virtual port
-	port1, err := phocus_serial.Setup("./com1", 2400, 1)
-	assert.NoError(t, err)
-	defer port1.Port.Close()
+		// invalid write
+		written, err = SendGeneric(port1, "GENERIC", nil)
+		assert.Equal(t, -1, written)
+		assert.Equal(t, errors.New("port is nil on write"), err)
+		written, err = SendGeneric(port1, "GENERIC", 1)
+		assert.Equal(t, -1, written)
+		assert.Equal(t, errors.New("port is nil on write"), err)
+		written, err = SendGeneric(port1, "GENERIC", "1")
+		assert.Equal(t, -1, written)
+		assert.Equal(t, errors.New("port is nil on write"), err)
+	})
 
-	// valid read from virtual port
-	// should time out
-	response, err = ReceiveGeneric(port1, "GENERIC", 0*time.Millisecond)
-	assert.Equal(t, "", response)
-	assert.Equal(t, errors.New("read returned nothing"), err)
-}
+	t.Run("TestReceiveGeneric", func(t *testing.T) {
+		// start virtual port
+		time.Sleep(51 * time.Millisecond)
 
-func TestVerifyGeneric(t *testing.T) {
-	// invalid length generic
-	response, err := VerifyGeneric("", "GENERIC")
-	assert.Equal(t, "", response)
-	assert.Equal(t, errors.New("response not long enough: "), err)
+		// setup virtual port
+		port1, err := phocus_serial.Setup("./com1", 2400, 1)
+		assert.NoError(t, err)
 
-	// invalid length generic
-	response, err = VerifyGeneric("\r", "GENERIC")
-	assert.Equal(t, "", response)
-	assert.Equal(t, errors.New("response not long enough: \r"), err)
+		// valid read from virtual port
+		// should time out
+		response, err := ReceiveGeneric(port1, "GENERIC", 0*time.Millisecond)
+		assert.Equal(t, "", response)
+		assert.Equal(t, errors.New("read returned nothing"), err)
 
-	// invalid length generic
-	response, err = VerifyGeneric("1\r", "GENERIC")
-	assert.Equal(t, "", response)
-	assert.Equal(t, errors.New("response not long enough: 1\r"), err)
+		port1.Port.Close()
+		port1.Port = nil
 
-	// invalid length generic
-	response, err = VerifyGeneric("QI\r", "GENERIC")
-	assert.Equal(t, "", response)
-	assert.Equal(t, errors.New("invalid response from GENERIC: CRC should have been 0 but was 5149"), err)
+		// invalid read
+		response, err = ReceiveGeneric(port1, "GENERIC", 10*time.Millisecond)
+		assert.Equal(t, "", response)
+		assert.Equal(t, errors.New("port is nil on read"), err)
 
-	// invalid crc Generic
-	response, err = VerifyGeneric("(92932004102453\x2d\x2b\r", "GENERIC")
-	assert.Equal(t, "", response)
-	assert.Equal(t, errors.New("invalid response from GENERIC: CRC should have been 1d1b but was 2d2b"), err)
+		port1.Read = func(port serial.Port, timeout time.Duration) (string, error) {
+			return "some response\xea\xac\r", nil
+		}
 
-	// valid crc Generic
-	response, err = VerifyGeneric("(92932004102453\x1d\x1b\r", "GENERIC")
-	assert.Equal(t, "(92932004102453\x1d\x1b\r", response)
-	assert.NoError(t, err)
-}
+		// valid read from virtual port
+		// should respond
+		response, err = ReceiveGeneric(port1, "some message", 10*time.Millisecond)
+		assert.Equal(t, "some response\xea\xac\r", response)
+		assert.NoError(t, err)
 
-func TestInterpretGeneric(t *testing.T) {
-	// test grabbed input
-	input := "(92932004102443\x2e\x2a\r"
-	want := &GenericResponse{"92932004102443"}
-	actual, err := InterpretGeneric(input)
-	assert.NoError(t, err)
-	assert.Equal(t, want, actual)
+		port1.Read = func(port serial.Port, timeout time.Duration) (string, error) {
+			return "", errors.New("some error")
+		}
 
-	assert.Equal(t, false, phocus_crc.Verify(input[1:]))
-	assert.Equal(t, true, phocus_crc.Verify(input))
-	assert.Equal(t, uint16(0x2e2a), phocus_crc.Checksum(input[:len(input)-3]))
+		// valid read from virtual port
+		// should respond with err
+		response, err = ReceiveGeneric(port1, "some message", 0*time.Millisecond)
+		assert.Equal(t, "", response)
+		assert.Equal(t, errors.New("some error"), err)
+	})
 
-	// test grabbed input
-	input = "(ACK\x94\x7b\r"
-	want = &GenericResponse{"ACK"}
-	actual, err = InterpretGeneric(input)
-	assert.NoError(t, err)
-	assert.Equal(t, want, actual)
+	t.Run("TestVerifyGeneric", func(t *testing.T) {
+		// invalid length generic
+		response, err := VerifyGeneric("", "GENERIC")
+		assert.Equal(t, "", response)
+		assert.Equal(t, errors.New("response not long enough: "), err)
 
-	// test grabbed input
-	input = "(NAK\x94\x7b\r"
-	want = &GenericResponse{"NAK"}
-	actual, err = InterpretGeneric(input)
-	assert.NoError(t, err)
-	assert.Equal(t, want, actual)
+		// invalid length generic
+		response, err = VerifyGeneric("\r", "GENERIC")
+		assert.Equal(t, "", response)
+		assert.Equal(t, errors.New("response not long enough: \r"), err)
 
-	// test empty input
-	input = ""
-	want = (*GenericResponse)(nil)
-	actual, err = InterpretGeneric(input)
-	assert.Equal(t, errors.New("can't create a response from an empty string"), err)
-	assert.Equal(t, want, actual)
-}
+		// invalid length generic
+		response, err = VerifyGeneric("1\r", "GENERIC")
+		assert.Equal(t, "", response)
+		assert.Equal(t, errors.New("response not long enough: 1\r"), err)
 
-func TestEncodeGeneric(t *testing.T) {
-	jsonResponse := EncodeGeneric(nil)
-	assert.Equal(t, "null", jsonResponse)
+		// invalid length generic
+		response, err = VerifyGeneric("QI\r", "GENERIC")
+		assert.Equal(t, "", response)
+		assert.Equal(t, errors.New("invalid response from GENERIC: CRC should have been 0 but was 5149"), err)
 
-	actual, err := InterpretGeneric("(ACK\x2e\x2a\r")
-	assert.NoError(t, err)
+		// invalid crc Generic
+		response, err = VerifyGeneric("(92932004102453\x2d\x2b\r", "GENERIC")
+		assert.Equal(t, "", response)
+		assert.Equal(t, errors.New("invalid response from GENERIC: CRC should have been 1d1b but was 2d2b"), err)
 
-	jsonResponse = EncodeGeneric(actual)
-	assert.Equal(t, "{\"Result\":\"ACK\"}", jsonResponse)
+		// valid crc Generic
+		response, err = VerifyGeneric("(92932004102453\x1d\x1b\r", "GENERIC")
+		assert.Equal(t, "(92932004102453\x1d\x1b\r", response)
+		assert.NoError(t, err)
+	})
 
-	actual, err = InterpretGeneric("(NAK\x2e\x2a\r")
-	assert.NoError(t, err)
+	t.Run("TestInterpretGeneric", func(t *testing.T) {
+		// test grabbed input
+		input := "(92932004102443\x2e\x2a\r"
+		want := &GenericResponse{"92932004102443"}
+		actual, err := InterpretGeneric(input)
+		assert.NoError(t, err)
+		assert.Equal(t, want, actual)
 
-	jsonResponse = EncodeGeneric(actual)
-	assert.Equal(t, "{\"Result\":\"NAK\"}", jsonResponse)
+		assert.Equal(t, false, phocus_crc.Verify(input[1:]))
+		assert.Equal(t, true, phocus_crc.Verify(input))
+		assert.Equal(t, uint16(0x2e2a), phocus_crc.Checksum(input[:len(input)-3]))
+
+		// test grabbed input
+		input = "(ACK\x94\x7b\r"
+		want = &GenericResponse{"ACK"}
+		actual, err = InterpretGeneric(input)
+		assert.NoError(t, err)
+		assert.Equal(t, want, actual)
+
+		// test grabbed input
+		input = "(NAK\x94\x7b\r"
+		want = &GenericResponse{"NAK"}
+		actual, err = InterpretGeneric(input)
+		assert.NoError(t, err)
+		assert.Equal(t, want, actual)
+
+		// test empty input
+		input = ""
+		want = (*GenericResponse)(nil)
+		actual, err = InterpretGeneric(input)
+		assert.Equal(t, errors.New("can't create a response from an empty string"), err)
+		assert.Equal(t, want, actual)
+	})
+
+	t.Run("TestEncodeGeneric", func(t *testing.T) {
+		jsonResponse := EncodeGeneric(nil)
+		assert.Equal(t, "null", jsonResponse)
+
+		actual, err := InterpretGeneric("(ACK\x2e\x2a\r")
+		assert.NoError(t, err)
+
+		jsonResponse = EncodeGeneric(actual)
+		assert.Equal(t, "{\"Result\":\"ACK\"}", jsonResponse)
+
+		actual, err = InterpretGeneric("(NAK\x2e\x2a\r")
+		assert.NoError(t, err)
+
+		jsonResponse = EncodeGeneric(actual)
+		assert.Equal(t, "{\"Result\":\"NAK\"}", jsonResponse)
+	})
 }

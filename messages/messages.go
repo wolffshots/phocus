@@ -38,8 +38,7 @@ func Interpret(port phocus_serial.Port, input Message, readTimeout time.Duration
 				return err
 			}
 			// publish stuff here
-			PublishQPGSn(QPGSnResponse, 1)
-			return nil
+			return PublishQPGSn(QPGSnResponse, 1)
 		}
 	case "QPGS2":
 		// send
@@ -58,8 +57,7 @@ func Interpret(port phocus_serial.Port, input Message, readTimeout time.Duration
 				return err
 			}
 			// publish stuff here
-			PublishQPGSn(QPGSnResponse, 2)
-			return nil
+			return PublishQPGSn(QPGSnResponse, 2)
 		}
 	case "QID":
 		// send
@@ -78,7 +76,7 @@ func Interpret(port phocus_serial.Port, input Message, readTimeout time.Duration
 				return err
 			}
 			// publish stuff here
-			PublishQID(QIDResponse)
+			return PublishQID(QIDResponse)
 		}
 	default:
 		// generic handling (not suitable for complicated queries)
@@ -98,7 +96,7 @@ func Interpret(port phocus_serial.Port, input Message, readTimeout time.Duration
 				return err
 			}
 			// publish stuff here
-			PublishGeneric(GenericResponse, input.Command)
+			return PublishGeneric(GenericResponse, input.Command)
 		}
 	}
 	return nil
