@@ -148,7 +148,7 @@ func SendQPGSn(port phocus_serial.Port, payload interface{}) (int, error) {
 	switch payload.(type) {
 	case int:
 		query := fmt.Sprintf("QPGS%d", payload)
-		written, err := port.Write(query)
+		written, err := port.Write(port.Port, query)
 		if err != nil {
 			return -1, err
 		} else {
@@ -159,7 +159,7 @@ func SendQPGSn(port phocus_serial.Port, payload interface{}) (int, error) {
 		return -1, errors.New("qpgsn does not support string payloads")
 	default:
 		log.Println("Payload type for QPGSn was not handled, proceeding as QPGS0")
-		written, err := port.Write("QPGS0")
+		written, err := port.Write(port.Port, "QPGS0")
 		if err != nil {
 			return -1, err
 		} else {
@@ -171,7 +171,7 @@ func SendQPGSn(port phocus_serial.Port, payload interface{}) (int, error) {
 
 func ReceiveQPGSn(port phocus_serial.Port, timeout time.Duration, inverterNum int) (string, error) {
 	// read from port
-	response, err := port.Read(timeout)
+	response, err := port.Read(port.Port, timeout)
 	log.Printf("%s\n", response)
 	// verify
 	if err != nil || response == "" {

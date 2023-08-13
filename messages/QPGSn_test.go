@@ -14,21 +14,6 @@ import (
 )
 
 func TestSendQPGSn(t *testing.T) {
-	// invalid write
-	written, err := SendQPGSn(phocus_serial.Port{Port: nil, Path: ""}, nil)
-	assert.Equal(t, -1, written)
-	assert.Equal(t, errors.New("port is nil on write"), err)
-
-	// invalid write
-	written, err = SendQPGSn(phocus_serial.Port{Port: nil, Path: ""}, "1")
-	assert.Equal(t, -1, written)
-	assert.Equal(t, errors.New("qpgsn does not support string payloads"), err)
-
-	// invalid write
-	written, err = SendQPGSn(phocus_serial.Port{Port: nil, Path: ""}, 1)
-	assert.Equal(t, -1, written)
-	assert.Equal(t, errors.New("port is nil on write"), err)
-
 	// start virtual port
 	cmd := StartCmd("socat", "PTY,link=./com1,raw,echo=1,crnl", "PTY,link=./com2,raw,echo=1,crnl")
 	defer TerminateCmd(cmd)
@@ -37,10 +22,9 @@ func TestSendQPGSn(t *testing.T) {
 	// setup virtual port
 	port1, err := phocus_serial.Setup("./com1", 2400, 1)
 	assert.NoError(t, err)
-	defer port1.Port.Close()
 
 	// valid write to virtual port
-	written, err = SendQPGSn(port1, nil)
+	written, err := SendQPGSn(port1, nil)
 	assert.Equal(t, 8, written)
 	assert.NoError(t, err)
 
@@ -53,14 +37,27 @@ func TestSendQPGSn(t *testing.T) {
 	written, err = SendQPGSn(port1, "1")
 	assert.Equal(t, -1, written)
 	assert.Equal(t, errors.New("qpgsn does not support string payloads"), err)
+
+	port1.Port.Close()
+	port1.Port = nil
+
+	// invalid write
+	written, err = SendQPGSn(port1, nil)
+	assert.Equal(t, -1, written)
+	assert.Equal(t, errors.New("port is nil on write"), err)
+
+	// invalid write
+	written, err = SendQPGSn(port1, "1")
+	assert.Equal(t, -1, written)
+	assert.Equal(t, errors.New("qpgsn does not support string payloads"), err)
+
+	// invalid write
+	written, err = SendQPGSn(port1, 1)
+	assert.Equal(t, -1, written)
+	assert.Equal(t, errors.New("port is nil on write"), err)
 }
 
 func TestReceiveQPGSn(t *testing.T) {
-	// invalid read
-	response, err := ReceiveQPGSn(phocus_serial.Port{Port: nil, Path: ""}, 10*time.Millisecond, 1)
-	assert.Equal(t, "", response)
-	assert.Equal(t, errors.New("port is nil on read"), err)
-
 	// start virtual port
 	cmd := StartCmd("socat", "PTY,link=./com1,raw,echo=1,crnl", "PTY,link=./com2,raw,echo=1,crnl")
 	defer TerminateCmd(cmd)
@@ -69,13 +66,20 @@ func TestReceiveQPGSn(t *testing.T) {
 	// setup virtual port
 	port1, err := phocus_serial.Setup("./com1", 2400, 1)
 	assert.NoError(t, err)
-	defer port1.Port.Close()
 
 	// valid read from virtual port
 	// should time out
-	response, err = ReceiveQPGSn(port1, 0*time.Millisecond, 0)
+	response, err := ReceiveQPGSn(port1, 0*time.Millisecond, 0)
 	assert.Equal(t, "", response)
 	assert.Equal(t, errors.New("read returned nothing"), err)
+
+	port1.Port.Close()
+	port1.Port = nil
+
+	// invalid read
+	response, err = ReceiveQPGSn(port1, 10*time.Millisecond, 1)
+	assert.Equal(t, "", response)
+	assert.Equal(t, errors.New("port is nil on read"), err)
 }
 
 func TestVerifyQPGSn(t *testing.T) {

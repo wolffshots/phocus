@@ -13,17 +13,6 @@ import (
 )
 
 func TestSendGeneric(t *testing.T) {
-	// invalid write
-	written, err := SendGeneric(phocus_serial.Port{Port: nil, Path: ""}, "GENERIC", nil)
-	assert.Equal(t, -1, written)
-	assert.Equal(t, errors.New("port is nil on write"), err)
-	written, err = SendGeneric(phocus_serial.Port{Port: nil, Path: ""}, "GENERIC", 1)
-	assert.Equal(t, -1, written)
-	assert.Equal(t, errors.New("port is nil on write"), err)
-	written, err = SendGeneric(phocus_serial.Port{Port: nil, Path: ""}, "GENERIC", "1")
-	assert.Equal(t, -1, written)
-	assert.Equal(t, errors.New("port is nil on write"), err)
-
 	// start virtual port
 	cmd := StartCmd("socat", "PTY,link=./com1,raw,echo=1,crnl", "PTY,link=./com2,raw,echo=1,crnl")
 	defer TerminateCmd(cmd)
@@ -32,10 +21,9 @@ func TestSendGeneric(t *testing.T) {
 	// setup virtual port
 	port1, err := phocus_serial.Setup("./com1", 2400, 1)
 	assert.NoError(t, err)
-	defer port1.Port.Close()
 
 	// valid write to virtual port
-	written, err = SendGeneric(port1, "GENERIC", nil)
+	written, err := SendGeneric(port1, "GENERIC", nil)
 	assert.Equal(t, 10, written)
 	assert.NoError(t, err)
 	written, err = SendGeneric(port1, "GENERIC", 1)
@@ -44,14 +32,23 @@ func TestSendGeneric(t *testing.T) {
 	written, err = SendGeneric(port1, "GENERIC", "1")
 	assert.Equal(t, 11, written)
 	assert.NoError(t, err)
+
+	port1.Port.Close()
+	port1.Port = nil
+
+	// invalid write
+	written, err = SendGeneric(port1, "GENERIC", nil)
+	assert.Equal(t, -1, written)
+	assert.Equal(t, errors.New("port is nil on write"), err)
+	written, err = SendGeneric(port1, "GENERIC", 1)
+	assert.Equal(t, -1, written)
+	assert.Equal(t, errors.New("port is nil on write"), err)
+	written, err = SendGeneric(port1, "GENERIC", "1")
+	assert.Equal(t, -1, written)
+	assert.Equal(t, errors.New("port is nil on write"), err)
 }
 
 func TestReceiveGeneric(t *testing.T) {
-	// invalid read
-	response, err := ReceiveGeneric(phocus_serial.Port{Port: nil, Path: ""}, "GENERIC", 10*time.Millisecond)
-	assert.Equal(t, "", response)
-	assert.Equal(t, errors.New("port is nil on read"), err)
-
 	// start virtual port
 	cmd := StartCmd("socat", "PTY,link=./com1,raw,echo=1,crnl", "PTY,link=./com2,raw,echo=1,crnl")
 	defer TerminateCmd(cmd)
@@ -60,13 +57,21 @@ func TestReceiveGeneric(t *testing.T) {
 	// setup virtual port
 	port1, err := phocus_serial.Setup("./com1", 2400, 1)
 	assert.NoError(t, err)
-	defer port1.Port.Close()
 
 	// valid read from virtual port
 	// should time out
-	response, err = ReceiveGeneric(port1, "GENERIC", 0*time.Millisecond)
+	response, err := ReceiveGeneric(port1, "GENERIC", 0*time.Millisecond)
 	assert.Equal(t, "", response)
 	assert.Equal(t, errors.New("read returned nothing"), err)
+
+	port1.Port.Close()
+	port1.Port = nil
+
+	// invalid read
+	response, err = ReceiveGeneric(port1, "GENERIC", 10*time.Millisecond)
+	assert.Equal(t, "", response)
+	assert.Equal(t, errors.New("port is nil on read"), err)
+
 }
 
 func TestVerifyGeneric(t *testing.T) {
