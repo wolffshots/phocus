@@ -376,7 +376,7 @@ func TestDeleteMessage(t *testing.T) {
 
 func TestQueueQPGSn(t *testing.T) {
 	// Start the adder in a goroutine
-	go QueueQPGSn(15, 5)
+	go QueueQPGSn(100, 5)
 
 	// Wait for a specific duration to allow the server to start
 	time.Sleep(51 * time.Millisecond)

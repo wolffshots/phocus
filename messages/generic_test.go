@@ -31,8 +31,8 @@ func TestSendGeneric(t *testing.T) {
 
 	// setup virtual port
 	port1, err := phocus_serial.Setup("./com1", 2400, 1)
-	defer port1.Port.Close()
 	assert.NoError(t, err)
+	defer port1.Port.Close()
 
 	// valid write to virtual port
 	written, err = SendGeneric(port1, "GENERIC", nil)
@@ -59,8 +59,8 @@ func TestReceiveGeneric(t *testing.T) {
 
 	// setup virtual port
 	port1, err := phocus_serial.Setup("./com1", 2400, 1)
-	defer port1.Port.Close()
 	assert.NoError(t, err)
+	defer port1.Port.Close()
 
 	// valid read from virtual port
 	// should time out
