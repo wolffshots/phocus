@@ -464,13 +464,13 @@ func Format(sensor Sensor, version string) string {
 
 // Register adds some sensors to Home Assistant MQTT
 // version is the current version of the system, added in 1.1.1
-func Register(version string) error {
+func Register(client mqtt.Client, version string) error {
 	log.Println("Registering sensors")
 	for _, sensor := range sensors {
 
 		sensorDefinition := Format(sensor, version)
 
-		err := mqtt.Send(sensor.SensorTopic, 0, true, sensorDefinition, 10)
+		err := mqtt.Send(client, sensor.SensorTopic, 0, true, sensorDefinition, 10)
 		if err != nil {
 			log.Printf("Failed to send initial setup stats to MQTT with err: %v", err)
 			return err
