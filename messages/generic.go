@@ -90,9 +90,9 @@ func EncodeGeneric(response *GenericResponse) string {
 	return string(jsonGenericResponse)
 }
 
-func PublishGeneric(response *GenericResponse, command string) error {
+func PublishGeneric(client phocus_mqtt.Client, response *GenericResponse, command string) error {
 	jsonResponse := EncodeGeneric(response)
-	err := phocus_mqtt.Send("phocus/stats/generic", 0, false, jsonResponse, 10)
+	err := phocus_mqtt.Send(client, "phocus/stats/generic", 0, false, jsonResponse, 10)
 	if err != nil {
 		log.Printf("MQTT send of %s failed with: %v\ntype of thing sent was: %T", command, err, jsonResponse)
 	} else {

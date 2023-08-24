@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -26,10 +27,11 @@ func TestParseConfig(t *testing.T) {
 func TestRouter(t *testing.T) {
 	// Create a channel to communicate the server's start or error status
 	startCh := make(chan error)
+	var client mqtt.Client
 
 	// Start the server in a goroutine
 	go func() {
-		startCh <- Router()
+		startCh <- Router(client)
 	}()
 
 	time.Sleep(51 * time.Millisecond)

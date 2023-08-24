@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	phocus_mqtt "github.com/wolffshots/phocus/v2/mqtt"
 	phocus_serial "github.com/wolffshots/phocus/v2/serial" // comms with inverter
 )
 
@@ -19,7 +20,7 @@ type Message struct {
 
 // Interpret converts the generic `phocus` message into a specific inverter message
 // TODO add even more generalisation and separated implementation details here
-func Interpret(port phocus_serial.Port, input Message, readTimeout time.Duration) error {
+func Interpret(client phocus_mqtt.Client, port phocus_serial.Port, input Message, readTimeout time.Duration) error {
 	switch input.Command {
 	case "QPGS1":
 		// send
@@ -38,7 +39,7 @@ func Interpret(port phocus_serial.Port, input Message, readTimeout time.Duration
 				return err
 			}
 			// publish stuff here
-			return PublishQPGSn(QPGSnResponse, 1)
+			return PublishQPGSn(client, QPGSnResponse, 1)
 		}
 	case "QPGS2":
 		// send
@@ -57,7 +58,7 @@ func Interpret(port phocus_serial.Port, input Message, readTimeout time.Duration
 				return err
 			}
 			// publish stuff here
-			return PublishQPGSn(QPGSnResponse, 2)
+			return PublishQPGSn(client, QPGSnResponse, 2)
 		}
 	case "QID":
 		// send
@@ -76,7 +77,7 @@ func Interpret(port phocus_serial.Port, input Message, readTimeout time.Duration
 				return err
 			}
 			// publish stuff here
-			return PublishQID(QIDResponse)
+			return PublishQID(client, QIDResponse)
 		}
 	default:
 		// generic handling (not suitable for complicated queries)
@@ -96,7 +97,7 @@ func Interpret(port phocus_serial.Port, input Message, readTimeout time.Duration
 				return err
 			}
 			// publish stuff here
-			return PublishGeneric(GenericResponse, input.Command)
+			return PublishGeneric(client, GenericResponse, input.Command)
 		}
 	}
 	return nil

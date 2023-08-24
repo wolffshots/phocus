@@ -56,27 +56,49 @@ func TestSetup(t *testing.T) {
 			assert.Equal(t, "", message)
 		}
 	}
+
+	buf.Reset()
+
+	CreateClient = func(hostname string, port, retries int, clientId string) (mqtt.Client, error) {
+		return nil, nil
+	}
+
+	client, err = Setup(
+		"127.0.0.1",
+		1883,
+		5,
+		"test_client_name",
+	)
+	assert.Equal(t, errors.New("client not defined in send"), err)
+	assert.Equal(t, nil, client)
+
+	message := buf.String()
+	if len(message) > 20 {
+		assert.Equal(t, "Failed to send initial setup stats to mqtt with err: client not defined in send", strings.Trim(message[20:], "\n"))
+	} else {
+		assert.Equal(t, "", message)
+	}
 }
 
 func TestSend(t *testing.T) {
-	client = nil
-	err := Send("test/topic", 0, false, "payload", 10*time.Millisecond)
+	var client mqtt.Client
+	err := Send(client, "test/topic", 0, false, "payload", 10*time.Millisecond)
 	assert.Equal(t, errors.New("client not defined in send"), err)
 
 	opts := mqtt.NewClientOptions()
 	client = mqtt.NewClient(opts)
-	err = Send("test/topic", 0, false, "payload", 10*time.Millisecond)
+	err = Send(client, "test/topic", 0, false, "payload", 10*time.Millisecond)
 	assert.Equal(t, errors.New("client not connected in send"), err)
 }
 
 func TestError(t *testing.T) {
-	client = nil
-	err := Error(0, false, errors.New("example error"), 10*time.Millisecond)
+	var client mqtt.Client
+	err := Error(client, 0, false, errors.New("example error"), 10*time.Millisecond)
 	assert.Equal(t, errors.New("client not defined in send"), err)
 
 	opts := mqtt.NewClientOptions()
 	client = mqtt.NewClient(opts)
-	err = Error(0, false, errors.New("example error"), 10*time.Millisecond)
+	err = Error(client, 0, false, errors.New("example error"), 10*time.Millisecond)
 	assert.Equal(t, errors.New("client not connected in send"), err)
 }
 
@@ -128,7 +150,7 @@ func TestMessagePublishedHandler(t *testing.T) {
 	defer func() {
 		log.SetOutput(os.Stderr)
 	}()
-	client = nil
+	var client mqtt.Client
 	messagePublishedHandler(client, nil)
 	assert.True(t, len(buf.String()) > 20)
 	assert.Equal(t, "Client is nil in messagePublishedHandler\n", buf.String()[20:])
@@ -154,7 +176,7 @@ func TestConnectionHandler(t *testing.T) {
 	defer func() {
 		log.SetOutput(os.Stderr)
 	}()
-	client = nil
+	var client mqtt.Client
 	connectionHandler(client)
 	assert.True(t, len(buf.String()) > 20)
 	assert.Equal(t, "Client is nil in connectionHandler\n", buf.String()[20:])
@@ -175,7 +197,7 @@ func TestConnectionLostHandler(t *testing.T) {
 	defer func() {
 		log.SetOutput(os.Stderr)
 	}()
-	client = nil
+	var client mqtt.Client
 	connectionLostHandler(client, nil)
 	assert.True(t, len(buf.String()) > 20)
 	assert.Equal(t, "Client is nil in connectionLostHandler\n", buf.String()[20:])

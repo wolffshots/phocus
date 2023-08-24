@@ -52,10 +52,10 @@ func ParseConfig(fileName string) (Configuration, error) {
 	return configuration, err
 }
 
-func Router() error {
+func Router(client mqtt.Client) error {
 	err := api.SetupRouter().Run("0.0.0.0:8080")
 	if err != nil {
-		pubErr := mqtt.Error(0, false, err, 10)
+		pubErr := mqtt.Error(client, 0, false, err, 10)
 		if pubErr != nil {
 			log.Printf("Failed to post previous error (%v) to mqtt: %v\n", err, pubErr)
 		}
@@ -78,7 +78,7 @@ func main() {
 	}
 
 	// mqtt
-	_, err = mqtt.Setup(
+	client, err := mqtt.Setup(
 		configuration.MQTT.Host,
 		configuration.MQTT.Port,
 		configuration.MQTT.Retries,
@@ -90,7 +90,7 @@ func main() {
 		os.Exit(1)
 	}
 	// reset error
-	pubErr := mqtt.Send("phocus/stats/error", 0, false, "", 10)
+	pubErr := mqtt.Send(client, "phocus/stats/error", 0, false, "", 10)
 	if pubErr != nil {
 		log.Printf("Failed to clear previous error: %v\n", pubErr)
 	}
@@ -102,7 +102,7 @@ func main() {
 		configuration.Serial.Retries,
 	)
 	if err != nil {
-		pubErr := mqtt.Error(0, false, err, 10)
+		pubErr := mqtt.Error(client, 0, false, err, 10)
 		if pubErr != nil {
 			log.Printf("Failed to post previous error (%v) to mqtt: %v\n", err, pubErr)
 		}
@@ -112,13 +112,13 @@ func main() {
 	defer port.Port.Close()
 
 	// spawns a go-routine which handles web requests
-	go Router()
+	go Router(client)
 
 	// sensors
 	// we only add them once we know the mqtt, serial and http aspects are up
-	err = sensors.Register(version)
+	err = sensors.Register(client, version)
 	if err != nil {
-		pubErr := mqtt.Error(0, false, err, 10)
+		pubErr := mqtt.Error(client, 0, false, err, 10)
 		if pubErr != nil {
 			log.Printf("Failed to post previous error (%v) to mqtt: %v\n", err, pubErr)
 		}
@@ -138,15 +138,15 @@ func main() {
 		log.Print(".")
 		// if there is an entry at [0] then run that command
 		if len(api.Queue) > 0 {
-			err := messages.Interpret(port, api.Queue[0], time.Duration(configuration.Messages.Read.TimeoutSeconds)*time.Second)
+			err := messages.Interpret(client, port, api.Queue[0], time.Duration(configuration.Messages.Read.TimeoutSeconds)*time.Second)
 			if err != nil {
-				pubErr := mqtt.Error(0, false, err, 10)
+				pubErr := mqtt.Error(client, 0, false, err, 10)
 				if pubErr != nil {
 					log.Printf("Failed to post previous error (%v) to mqtt: %v\n", err, pubErr)
 				}
 				if fmt.Sprint(err) == "read returned nothing" { // immediately jailed when read timeout
 					port.Port.Close()
-					pubErr := mqtt.Error(0, false, errors.New("read timed out, waiting 5 minutes then restarting"), 10)
+					pubErr := mqtt.Error(client, 0, false, errors.New("read timed out, waiting 5 minutes then restarting"), 10)
 					if pubErr != nil {
 						log.Printf("Failed to post previous error (%v) to mqtt: %v\n", err, pubErr)
 					}

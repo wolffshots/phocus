@@ -12,10 +12,10 @@ import (
 	mqtt "github.com/eclipse/paho.mqtt.golang" // mqtt client
 )
 
-var client mqtt.Client
+type Client mqtt.Client
 
-// Setup sets the logging and opens a connection to the broker
-func Setup(hostname string, port int, retries int, clientId string) (mqtt.Client, error) {
+var CreateClient = func(hostname string, port int, retries int, clientId string) (mqtt.Client, error) {
+	var client mqtt.Client
 	// start mqtt setup
 	mqtt.ERROR = log.New(os.Stdout, "[ERROR] ", 0)
 	mqtt.CRITICAL = log.New(os.Stdout, "[CRIT] ", 0)
@@ -45,13 +45,19 @@ func Setup(hostname string, port int, retries int, clientId string) (mqtt.Client
 			break
 		}
 	}
+	return client, err
+}
+
+// Setup sets the logging and opens a connection to the broker
+func Setup(hostname string, port int, retries int, clientId string) (mqtt.Client, error) {
+	client, err := CreateClient(hostname, port, retries, clientId)
 
 	if err != nil {
 		return nil, err // i explicitly make client nil
 	}
 
 	// time needs to be formatted as iso8601 and rfc3339 is the closest to that
-	err = Send("phocus/stats/start_time", 0, false, time.Now().Format(time.RFC3339), 10)
+	err = Send(client, "phocus/stats/start_time", 0, false, time.Now().Format(time.RFC3339), 10)
 	if err != nil {
 		log.Printf("Failed to send initial setup stats to mqtt with err: %v", err)
 	}
@@ -60,7 +66,7 @@ func Setup(hostname string, port int, retries int, clientId string) (mqtt.Client
 }
 
 // Send uses the mqtt client to publish some data to a topic with a timeout
-func Send(topic string, qos byte, retained bool, payload interface{}, timeout time.Duration) error {
+func Send(client mqtt.Client, topic string, qos byte, retained bool, payload interface{}, timeout time.Duration) error {
 	if client == nil {
 		return errors.New("client not defined in send")
 	} else if !client.IsConnected() {
@@ -76,8 +82,8 @@ func Send(topic string, qos byte, retained bool, payload interface{}, timeout ti
 }
 
 // Error publishes a caught error to the error stat
-func Error(qos byte, retained bool, payload error, timeout time.Duration) error {
-	err := Send("phocus/stats/error", qos, retained, fmt.Sprint(payload), timeout)
+func Error(client mqtt.Client, qos byte, retained bool, payload error, timeout time.Duration) error {
+	err := Send(client, "phocus/stats/error", qos, retained, fmt.Sprint(payload), timeout)
 	return err
 }
 
