@@ -263,7 +263,7 @@ func EncodeQPGSn(response *QPGSnResponse) string {
 	return string(jsonQPGSnResponse)
 }
 
-func PublishQPGSn(client phocus_mqtt.Client, response *QPGSnResponse, inverterNum int) error {
+func PublishQPGSn(client phocus_mqtt.Client, response *QPGSnResponse, inverterNum int) (*QPGSnResponse, error) {
 	jsonResponse := EncodeQPGSn(response)
 	err := phocus_mqtt.Send(client, fmt.Sprintf("phocus/stats/qpgs%d", inverterNum), 0, false, string(jsonResponse), 10)
 	if err != nil {
@@ -271,5 +271,5 @@ func PublishQPGSn(client phocus_mqtt.Client, response *QPGSnResponse, inverterNu
 	} else {
 		log.Printf("Sent to MQTT:\n%s\n", jsonResponse)
 	}
-	return err
+	return response, err
 }
