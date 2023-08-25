@@ -2,7 +2,6 @@ package phocus_api
 
 import (
 	"bytes"
-	"encoding/gob"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -429,29 +428,18 @@ func TestLastAndLastWS(t *testing.T) {
 	actual, err := messages.InterpretQPGSn(input, 4)
 	assert.Equal(t, err, nil)
 	SetLast(actual)
-	var receivedData messages.QPGSnResponse
 	// Listen to and verify the WebSocket message
 	_, _, err = conn.ReadMessage() // read first message and ignore it
 	if err != nil {
 		t.Fatalf("conn.ReadMessage error: %v", err)
 	}
 	messageCount := 0
+	var receivedMessage []byte
 	for err == nil && messageCount < 10 {
-		_, message2, err := conn.ReadMessage()
-		if err == nil {
-			decoder := gob.NewDecoder(bytes.NewReader(message2))
-			err = decoder.Decode(&receivedData)
-			if err != nil {
-				t.Fatalf("gob.Decode error: %v", err)
-			}
-		}
+		_, receivedMessage, err = conn.ReadMessage()
 		messageCount++
 	}
 
-	assert.Equal(
-		t,
-		actual,
-		&receivedData,
-	)
+	assert.Equal(t, []byte(messages.EncodeQPGSn(actual)), receivedMessage)
 	assert.Equal(t, nil, err)
 }

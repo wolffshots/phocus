@@ -2,14 +2,13 @@
 package phocus_api
 
 import (
-	"bytes"
-	"encoding/gob"
 	"errors"
 	"log" // formatted logging
 	"math/rand"
 	"net/http"
 	"sync"
 	"time" // for sleeping
+	"unicode/utf8"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -32,7 +31,16 @@ var ValueMutex sync.Mutex
 
 var LastQPGSResponse *messages.QPGSnResponse
 
-var upgrader = websocket.Upgrader{} // use default option
+var upgrader = websocket.Upgrader{
+	// ReadBufferSize:  4096,
+	// WriteBufferSize: 4096,
+	CheckOrigin: func(r *http.Request) bool {
+		origin := r.Header.Get("Origin")
+		return (origin == "http://127.0.0.1:8080" ||
+			origin == "http://localhost:8080" ||
+			true)
+	},
+}
 
 // AddQPGSnMessages is the meat of the QueueQPGSn functionality
 func AddQPGSnMessages(timeBetween time.Duration) error {
@@ -119,19 +127,22 @@ func GetLastWS(ctx *gin.Context) {
 	}
 	defer c.Close()
 	for {
-		var buffer bytes.Buffer
-		encoder := gob.NewEncoder(&buffer)
 		ValueMutex.Lock()
-		err := encoder.Encode(LastQPGSResponse)
+		bytesResponse := []byte(messages.EncodeQPGSn(LastQPGSResponse))
 		ValueMutex.Unlock()
 		if err != nil {
-			log.Println("encodeer :", err)
+			log.Println("encoderr :", err)
 			break
 		}
-		err = c.WriteMessage(websocket.TextMessage, buffer.Bytes())
-		if err != nil {
-			log.Println("writeerr :", err)
-			break
+		if utf8.Valid(bytesResponse) {
+			err = c.WriteMessage(websocket.TextMessage, bytesResponse)
+			if err != nil {
+				log.Println("writeerr :", err)
+				break
+			}
+		} else {
+			log.Println("invalid :", LastQPGSResponse)
+			time.Sleep(5 * time.Second)
 		}
 	}
 }
