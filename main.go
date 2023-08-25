@@ -41,6 +41,7 @@ type Configuration struct {
 	}
 	DelaySeconds     int
 	RandDelaySeconds int
+	MinDelaySeconds  int
 }
 
 func ParseConfig(fileName string) (Configuration, error) {
@@ -165,7 +166,7 @@ func main() {
 			api.Queue = api.Queue[1:]
 		} else {
 			// min sleep between actual comms with inverter
-			time.Sleep(5 * time.Second)
+			time.Sleep(time.Duration(configuration.MinDelaySeconds) * time.Second)
 		}
 		api.QueueMutex.Unlock()
 		// min sleep between Queue checks

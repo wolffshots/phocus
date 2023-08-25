@@ -2,6 +2,8 @@
 package phocus_api
 
 import (
+	"bytes"
+	"encoding/gob"
 	"errors"
 	"log" // formatted logging
 	"math/rand"
@@ -11,6 +13,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/gorilla/websocket"
 	messages "github.com/wolffshots/phocus/v2/messages"
 )
 
@@ -28,6 +31,8 @@ var QueueMutex sync.Mutex
 var ValueMutex sync.Mutex
 
 var LastQPGSResponse *messages.QPGSnResponse
+
+var upgrader = websocket.Upgrader{} // use default option
 
 // AddQPGSnMessages is the meat of the QueueQPGSn functionality
 func AddQPGSnMessages(timeBetween time.Duration) error {
@@ -102,6 +107,33 @@ func GetLast(c *gin.Context) {
 	ValueMutex.Lock()
 	c.JSON(http.StatusOK, LastQPGSResponse)
 	ValueMutex.Unlock()
+}
+
+// GetLast is called to view the current Last Response as JSON on a websocket
+func GetLastWS(ctx *gin.Context) {
+	w, r := ctx.Writer, ctx.Request
+	c, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Println("upgrade err:", err)
+		return
+	}
+	defer c.Close()
+	for {
+		var buffer bytes.Buffer
+		encoder := gob.NewEncoder(&buffer)
+		ValueMutex.Lock()
+		err := encoder.Encode(LastQPGSResponse)
+		ValueMutex.Unlock()
+		if err != nil {
+			log.Println("encodeer :", err)
+			break
+		}
+		err = c.WriteMessage(websocket.TextMessage, buffer.Bytes())
+		if err != nil {
+			log.Println("writeerr :", err)
+			break
+		}
+	}
 }
 
 type LastStateOfCharge struct {
@@ -190,6 +222,7 @@ func SetupRouter() *gin.Engine {
 	router.GET("/queue", GetQueue)
 	router.GET("/queue/:id", GetMessage)
 	router.GET("/last", GetLast)
+	router.GET("/last-ws", GetLastWS)
 	router.GET("/last/soc", GetLastStateOfCharge)
 	router.POST("/queue", PostMessage)
 	router.DELETE("/queue", DeleteQueue)
