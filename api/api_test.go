@@ -435,7 +435,7 @@ func TestLastAndLastWS(t *testing.T) {
 	}
 	messageCount := 0
 	var receivedMessage []byte
-	for err == nil && messageCount < 10 {
+	for err == nil && messageCount < 100 {
 		_, receivedMessage, err = conn.ReadMessage()
 		messageCount++
 	}
