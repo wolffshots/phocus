@@ -433,12 +433,9 @@ func TestLastAndLastWS(t *testing.T) {
 	if err != nil {
 		t.Fatalf("conn.ReadMessage error: %v", err)
 	}
-	messageCount := 0
 	var receivedMessage []byte
-	for err == nil && messageCount < 100 {
+	for messageCount := 0; messageCount < 1000; messageCount++ {
 		_, receivedMessage, err = conn.ReadMessage()
-		time.Sleep(1 * time.Millisecond)
-		messageCount++
 	}
 
 	assert.Equal(t, []byte(messages.EncodeQPGSn(actual)), receivedMessage)
