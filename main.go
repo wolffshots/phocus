@@ -41,6 +41,7 @@ type Configuration struct {
 	}
 	DelaySeconds     int
 	RandDelaySeconds int
+	MinDelaySeconds  int
 }
 
 func ParseConfig(fileName string) (Configuration, error) {
@@ -138,8 +139,9 @@ func main() {
 		log.Print(".")
 		// if there is an entry at [0] then run that command
 		if len(api.Queue) > 0 {
-			err := messages.Interpret(client, port, api.Queue[0], time.Duration(configuration.Messages.Read.TimeoutSeconds)*time.Second)
+			QPGSnResponse, err := messages.Interpret(client, port, api.Queue[0], time.Duration(configuration.Messages.Read.TimeoutSeconds)*time.Second)
 			if err != nil {
+				api.SetLast(QPGSnResponse)
 				pubErr := mqtt.Error(client, 0, false, err, 10)
 				if pubErr != nil {
 					log.Printf("Failed to post previous error (%v) to mqtt: %v\n", err, pubErr)
@@ -164,7 +166,7 @@ func main() {
 			api.Queue = api.Queue[1:]
 		} else {
 			// min sleep between actual comms with inverter
-			time.Sleep(5 * time.Second)
+			time.Sleep(time.Duration(configuration.MinDelaySeconds) * time.Second)
 		}
 		api.QueueMutex.Unlock()
 		// min sleep between Queue checks

@@ -8,9 +8,11 @@ import (
 	"net/http"
 	"sync"
 	"time" // for sleeping
+	"unicode/utf8"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/gorilla/websocket"
 	messages "github.com/wolffshots/phocus/v2/messages"
 )
 
@@ -28,6 +30,17 @@ var QueueMutex sync.Mutex
 var ValueMutex sync.Mutex
 
 var LastQPGSResponse *messages.QPGSnResponse
+
+var upgrader = websocket.Upgrader{
+	// ReadBufferSize:  4096,
+	// WriteBufferSize: 4096,
+	CheckOrigin: func(r *http.Request) bool {
+		origin := r.Header.Get("Origin")
+		return (origin == "http://127.0.0.1:8080" ||
+			origin == "http://localhost:8080" ||
+			true)
+	},
+}
 
 // AddQPGSnMessages is the meat of the QueueQPGSn functionality
 func AddQPGSnMessages(timeBetween time.Duration) error {
@@ -102,6 +115,29 @@ func GetLast(c *gin.Context) {
 	ValueMutex.Lock()
 	c.JSON(http.StatusOK, LastQPGSResponse)
 	ValueMutex.Unlock()
+}
+
+// GetLast is called to view the current Last Response as JSON on a websocket
+func GetLastWS(ctx *gin.Context) {
+	w, r := ctx.Writer, ctx.Request
+	c, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Println("upgrade err:", err)
+		return
+	}
+	defer c.Close()
+	for {
+		ValueMutex.Lock()
+		bytesResponse := []byte(messages.EncodeQPGSn(LastQPGSResponse))
+		ValueMutex.Unlock()
+		if utf8.Valid(bytesResponse) {
+			err = c.WriteMessage(websocket.TextMessage, bytesResponse)
+			if err != nil {
+				log.Println("writeerr :", err)
+				break
+			}
+		}
+	}
 }
 
 type LastStateOfCharge struct {
@@ -190,6 +226,7 @@ func SetupRouter() *gin.Engine {
 	router.GET("/queue", GetQueue)
 	router.GET("/queue/:id", GetMessage)
 	router.GET("/last", GetLast)
+	router.GET("/last-ws", GetLastWS)
 	router.GET("/last/soc", GetLastStateOfCharge)
 	router.POST("/queue", PostMessage)
 	router.DELETE("/queue", DeleteQueue)

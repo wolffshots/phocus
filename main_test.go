@@ -22,6 +22,7 @@ func TestParseConfig(t *testing.T) {
 	assert.Equal(t, 2*time.Second, time.Duration(configuration.Messages.Read.TimeoutSeconds)*time.Second)
 	assert.Equal(t, 15, configuration.DelaySeconds)
 	assert.Equal(t, 5, configuration.RandDelaySeconds)
+	assert.Equal(t, 5, configuration.MinDelaySeconds)
 }
 
 func TestRouter(t *testing.T) {

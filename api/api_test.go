@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/google/uuid" // for generating UUIDs for commands
+	"github.com/gorilla/websocket"
 	messages "github.com/wolffshots/phocus/v2/messages"
 
 	"github.com/stretchr/testify/assert"
@@ -185,15 +186,27 @@ func TestSetAndGetLast(t *testing.T) {
 	req, err = http.NewRequest(http.MethodGet, "/last", nil)
 	assert.Equal(t, err, nil)
 	router.ServeHTTP(w, req)
-
 	assert.Equal(t, "{\"InverterNumber\":1,\"OtherUnits\":true,\"SerialNumber\":\"92932004102443\",\"OperationMode\":\"Off-grid\",\"FaultCode\":\"\",\"ACInputVoltage\":\"237.0\",\"ACInputFrequency\":\"50.01\",\"ACOutputVoltage\":\"000.0\",\"ACOutputFrequency\":\"00.00\",\"ACOutputApparentPower\":\"0483\",\"ACOutputActivePower\":\"0387\",\"PercentageOfNominalOutputPower\":\"009\",\"BatteryVoltage\":\"51.1\",\"BatteryChargingCurrent\":\"000\",\"BatteryStateOfCharge\":\"069\",\"PVInputVoltage\":\"020.4\",\"TotalChargingCurrent\":\"000\",\"TotalACOutputApparentPower\":\"00942\",\"TotalACOutputActivePower\":\"00792\",\"TotalPercentageOfNominalOutputPower\":\"007\",\"InverterStatus\":{\"MPPT\":\"off\",\"ACCharging\":\"off\",\"SolarCharging\":\"off\",\"BatteryStatus\":\"Battery voltage normal\",\"ACInput\":\"connected\",\"ACOutput\":\"on\",\"Reserved\":\"0\"},\"ACOutputMode\":\"Parallel output\",\"BatteryChargerSourcePriority\":\"Solar first\",\"MaxChargingCurrentSet\":\"060\",\"MaxChargingCurrentPossible\":\"080\",\"MaxACChargingCurrentSet\":\"10\",\"PVInputCurrent\":\"00.0\",\"BatteryDischargeCurrent\":\"006\",\"Checksum\":\"0xf22d\"}", w.Body.String())
+
+	// test with realistic response
+	input = "(1 92932004102543 B 00 237.0 50.01 000.0 00.00 0483 0387 009 51.1 000 069 020.4 000 00942 00792 007 00000010 1 1 060 080 10 00.0 006\xf2\x2d\r"
+	actual, err = messages.InterpretQPGSn(input, 2)
+	assert.Equal(t, err, nil)
+	SetLast(actual)
+
+	w = httptest.NewRecorder()
+	req, err = http.NewRequest(http.MethodGet, "/last", nil)
+	assert.Equal(t, err, nil)
+	router.ServeHTTP(w, req)
+	assert.Equal(t, "{\"InverterNumber\":2,\"OtherUnits\":true,\"SerialNumber\":\"92932004102543\",\"OperationMode\":\"Off-grid\",\"FaultCode\":\"\",\"ACInputVoltage\":\"237.0\",\"ACInputFrequency\":\"50.01\",\"ACOutputVoltage\":\"000.0\",\"ACOutputFrequency\":\"00.00\",\"ACOutputApparentPower\":\"0483\",\"ACOutputActivePower\":\"0387\",\"PercentageOfNominalOutputPower\":\"009\",\"BatteryVoltage\":\"51.1\",\"BatteryChargingCurrent\":\"000\",\"BatteryStateOfCharge\":\"069\",\"PVInputVoltage\":\"020.4\",\"TotalChargingCurrent\":\"000\",\"TotalACOutputApparentPower\":\"00942\",\"TotalACOutputActivePower\":\"00792\",\"TotalPercentageOfNominalOutputPower\":\"007\",\"InverterStatus\":{\"MPPT\":\"off\",\"ACCharging\":\"off\",\"SolarCharging\":\"off\",\"BatteryStatus\":\"Battery voltage normal\",\"ACInput\":\"connected\",\"ACOutput\":\"on\",\"Reserved\":\"0\"},\"ACOutputMode\":\"Parallel output\",\"BatteryChargerSourcePriority\":\"Solar first\",\"MaxChargingCurrentSet\":\"060\",\"MaxChargingCurrentPossible\":\"080\",\"MaxACChargingCurrentSet\":\"10\",\"PVInputCurrent\":\"00.0\",\"BatteryDischargeCurrent\":\"006\",\"Checksum\":\"0xf22d\"}", w.Body.String())
+
 }
 
 func TestGetLastStateOfCharge(t *testing.T) {
 	router := SetupRouter()
 
 	// test with empty LastQPGSResponse (like pre first request)
-	LastQPGSResponse = (*messages.QPGSnResponse)(nil)
+	SetLast(nil)
 
 	w := httptest.NewRecorder()
 	req, err := http.NewRequest(http.MethodGet, "/last/soc", nil)
@@ -204,10 +217,10 @@ func TestGetLastStateOfCharge(t *testing.T) {
 	assert.Equal(t, "{\"BatteryStateOfCharge\":\"null\"}", w.Body.String())
 
 	// test with relistic response
-	input := "(1 92932004102443 B 00 237.0 50.01 000.0 00.00 0483 0387 009 51.1 000 069 020.4 000 00942 00792 007 00000010 1 1 060 080 10 00.0 006\xf2\x2d\r"
-	actual, err := messages.InterpretQPGSn(input, 1)
+	input := "(1 92932004102443 B 00 237.0 50.01 000.0 00.00 0483 0387 009 51.1 000 069 020.4 000 00942 00792 007 00000010 1 1 060 080 10 00.0 006\xf2\xaa\r"
+	actual, err := messages.InterpretQPGSn(input, 3)
 	assert.Equal(t, err, nil)
-	LastQPGSResponse = actual
+	SetLast(actual)
 
 	w = httptest.NewRecorder()
 	req, err = http.NewRequest(http.MethodGet, "/last/soc", nil)
@@ -382,4 +395,80 @@ func TestQueueQPGSn(t *testing.T) {
 	time.Sleep(51 * time.Millisecond)
 
 	assert.Equal(t, 1, len(Queue))
+}
+
+func TestLastAndLastWS(t *testing.T) {
+	// Create a test router
+	router := SetupRouter()
+
+	// Create a test HTTP server
+	ts := httptest.NewServer(router)
+	defer ts.Close()
+
+	// Test regular GET request to "/last"
+	resp, err := http.Get(ts.URL + "/last")
+	if err != nil {
+		t.Fatalf("http.Get error: %v", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("Expected status %d but got %d", http.StatusOK, resp.StatusCode)
+	}
+
+	// Test WebSocket functionality
+	dialer := websocket.DefaultDialer
+	conn, _, err := dialer.Dial("ws"+ts.URL[4:]+"/last-ws", nil)
+	if err != nil {
+		t.Fatalf("websocket.Dial error: %v", err)
+	}
+	defer conn.Close()
+
+	input := "(1 92932004102443 B 00 237.0 50.01 000.0 00.00 0483 0387 009 51.1 000 069 020.4 000 00942 00792 007 00000010 1 1 060 080 10 00.0 006\xf3\xab\r"
+	actual, err := messages.InterpretQPGSn(input, 4)
+	assert.Equal(t, err, nil)
+	SetLast(actual)
+	// Listen to and verify the WebSocket message
+	_, _, err = conn.ReadMessage() // read first message and ignore it
+	if err != nil {
+		t.Fatalf("conn.ReadMessage error: %v", err)
+	}
+	var receivedMessage []byte
+	for messageCount := 0; messageCount < 1000; messageCount++ {
+		_, receivedMessage, err = conn.ReadMessage()
+	}
+
+	assert.Equal(t, []byte(messages.EncodeQPGSn(actual)), receivedMessage)
+	assert.Equal(t, nil, err)
+}
+
+func TestUpgraderError(t *testing.T) {
+	// Create a test router
+	upgrader = websocket.Upgrader{
+		CheckOrigin: func(r *http.Request) bool {
+			return false
+		},
+	}
+	router := SetupRouter()
+	ts := httptest.NewServer(router)
+	defer ts.Close()
+	dialer := websocket.DefaultDialer
+	_, _, err := dialer.Dial("ws"+ts.URL[4:]+"/last-ws", nil)
+	assert.Error(t, errors.New("bad handshake"), err) // because it couldn't be opened
+}
+
+func TestWriteError(t *testing.T) {
+	// Create a test router
+	upgrader = websocket.Upgrader{
+		CheckOrigin: func(r *http.Request) bool {
+			return true
+		},
+		WriteBufferSize: 1,
+	}
+	router := SetupRouter()
+	ts := httptest.NewServer(router)
+	defer ts.Close()
+	dialer := websocket.DefaultDialer
+	_, _, err := dialer.Dial("ws"+ts.URL[4:]+"/last-ws", nil)
+	assert.Error(t, errors.New("bad handshake"), err) // because it couldn't be written
 }
