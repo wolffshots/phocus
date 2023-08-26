@@ -132,7 +132,6 @@ func GetLastWS(ctx *gin.Context) {
 		bytesResponse := []byte(messages.EncodeQPGSn(LastQPGSResponse))
 		ValueMutex.Unlock()
 		if utf8.Valid(bytesResponse) {
-			log.Println("writing last to websocket")
 			_ = c.WriteMessage(websocket.TextMessage, bytesResponse)
 		}
 		time.Sleep(5 * time.Millisecond)
