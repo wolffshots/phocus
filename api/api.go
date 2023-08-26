@@ -133,11 +133,7 @@ func GetLastWS(ctx *gin.Context) {
 		ValueMutex.Unlock()
 		if utf8.Valid(bytesResponse) {
 			log.Println("writing last to websocket")
-			err = c.WriteMessage(websocket.TextMessage, bytesResponse)
-			if err != nil {
-				log.Println("writeerr :", err)
-				break
-			}
+			_ = c.WriteMessage(websocket.TextMessage, bytesResponse)
 		}
 		time.Sleep(5 * time.Millisecond)
 	}
@@ -235,15 +231,8 @@ func SetupRouter() *gin.Engine {
 	router.DELETE("/queue", DeleteQueue)
 	router.DELETE("/queue/:id", DeleteMessage)
 	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost", "http://localhost:5173", "http://127.0.0.1", "http://192.168.88.0", "https://echosoup.com"},
-		AllowMethods:     []string{"GET", "DELETE", "PUT", "PATCH"},
-		AllowHeaders:     []string{"Origin"},
-		ExposeHeaders:    []string{"Content-Length"},
-		AllowCredentials: true,
-		AllowOriginFunc: func(origin string) bool {
-			return origin == "https://github.com"
-		},
-		MaxAge: 12 * time.Hour,
+		AllowOrigins: []string{"*"},
+		MaxAge:       12 * time.Hour,
 	}))
 	return router
 }
