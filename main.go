@@ -18,7 +18,7 @@ import (
 	serial "github.com/wolffshots/phocus/v2/serial"     // comms with inverter
 )
 
-const version = "v2.9.1"
+const version = "v2.9.2"
 
 type Configuration struct {
 	Serial struct {
@@ -136,12 +136,10 @@ func main() {
 	// loop to check Queue and deQueue index 0, run it process result and wait 30 seconds
 	for {
 		api.QueueMutex.Lock()
-		log.Print(".")
 		// if there is an entry at [0] then run that command
 		if len(api.Queue) > 0 {
 			QPGSnResponse, err := messages.Interpret(client, port, api.Queue[0], time.Duration(configuration.Messages.Read.TimeoutSeconds)*time.Second)
 			if err != nil {
-				api.SetLast(QPGSnResponse)
 				pubErr := mqtt.Error(client, 0, false, err, 10)
 				if pubErr != nil {
 					log.Printf("Failed to post previous error (%v) to mqtt: %v\n", err, pubErr)
@@ -162,6 +160,9 @@ func main() {
 					// if it reaches here at all that implies it didn't restart properly
 					os.Exit(1)
 				}
+			}
+			if QPGSnResponse != nil {
+				api.SetLast(QPGSnResponse)
 			}
 			api.Queue = api.Queue[1:]
 		} else {

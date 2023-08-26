@@ -10,6 +10,7 @@ import (
 	"time" // for sleeping
 	"unicode/utf8"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
@@ -132,11 +133,7 @@ func GetLastWS(ctx *gin.Context) {
 		ValueMutex.Unlock()
 		if utf8.Valid(bytesResponse) {
 			log.Println("writing last to websocket")
-			err = c.WriteMessage(websocket.TextMessage, bytesResponse)
-			if err != nil {
-				log.Println("writeerr :", err)
-				break
-			}
+			_ = c.WriteMessage(websocket.TextMessage, bytesResponse)
 		}
 		time.Sleep(5 * time.Millisecond)
 	}
@@ -233,5 +230,9 @@ func SetupRouter() *gin.Engine {
 	router.POST("/queue", PostMessage)
 	router.DELETE("/queue", DeleteQueue)
 	router.DELETE("/queue/:id", DeleteMessage)
+	router.Use(cors.New(cors.Config{
+		AllowOrigins: []string{"*"},
+		MaxAge:       12 * time.Hour,
+	}))
 	return router
 }

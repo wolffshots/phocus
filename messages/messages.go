@@ -44,7 +44,7 @@ func Interpret(
 				return nil, err
 			}
 			// publish stuff here
-			return PublishQPGSn(client, QPGSnResponse, 1)
+			return QPGSnResponse, PublishQPGSn(client, QPGSnResponse, 1)
 		}
 	case "QPGS2":
 		// send
@@ -63,7 +63,7 @@ func Interpret(
 				return nil, err
 			}
 			// publish stuff here
-			return PublishQPGSn(client, QPGSnResponse, 2)
+			return QPGSnResponse, PublishQPGSn(client, QPGSnResponse, 2)
 		}
 	case "QID":
 		// send
