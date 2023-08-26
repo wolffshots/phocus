@@ -130,19 +130,12 @@ func GetLastWS(ctx *gin.Context) {
 		ValueMutex.Lock()
 		bytesResponse := []byte(messages.EncodeQPGSn(LastQPGSResponse))
 		ValueMutex.Unlock()
-		if err != nil {
-			log.Println("encoderr :", err)
-			break
-		}
 		if utf8.Valid(bytesResponse) {
 			err = c.WriteMessage(websocket.TextMessage, bytesResponse)
 			if err != nil {
 				log.Println("writeerr :", err)
 				break
 			}
-		} else {
-			log.Println("invalid :", LastQPGSResponse)
-			time.Sleep(5 * time.Second)
 		}
 	}
 }

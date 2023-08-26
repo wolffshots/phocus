@@ -441,3 +441,34 @@ func TestLastAndLastWS(t *testing.T) {
 	assert.Equal(t, []byte(messages.EncodeQPGSn(actual)), receivedMessage)
 	assert.Equal(t, nil, err)
 }
+
+func TestUpgraderError(t *testing.T) {
+	// Create a test router
+	upgrader = websocket.Upgrader{
+		CheckOrigin: func(r *http.Request) bool {
+			return false
+		},
+	}
+	router := SetupRouter()
+	ts := httptest.NewServer(router)
+	defer ts.Close()
+	dialer := websocket.DefaultDialer
+	_, _, err := dialer.Dial("ws"+ts.URL[4:]+"/last-ws", nil)
+	assert.Error(t, errors.New("bad handshake"), err) // because it couldn't be opened
+}
+
+func TestWriteError(t *testing.T) {
+	// Create a test router
+	upgrader = websocket.Upgrader{
+		CheckOrigin: func(r *http.Request) bool {
+			return true
+		},
+		WriteBufferSize: 1,
+	}
+	router := SetupRouter()
+	ts := httptest.NewServer(router)
+	defer ts.Close()
+	dialer := websocket.DefaultDialer
+	_, _, err := dialer.Dial("ws"+ts.URL[4:]+"/last-ws", nil)
+	assert.Error(t, errors.New("bad handshake"), err) // because it couldn't be written
+}
