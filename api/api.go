@@ -217,7 +217,8 @@ func DeleteMessage(c *gin.Context) {
 // SetupRouter adds the endpoints on the router for Queue management
 //
 // returns router object
-func SetupRouter() *gin.Engine {
+func SetupRouter(mode string) *gin.Engine {
+	gin.SetMode(mode)
 	// router setup for async rest api for Queueing
 	router := gin.Default()
 	router.Use(cors.New(cors.Config{

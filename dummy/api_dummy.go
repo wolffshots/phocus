@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	phocus_api "github.com/wolffshots/phocus/v2/api"
 	phocus_messages "github.com/wolffshots/phocus/v2/messages"
 )
@@ -23,7 +24,7 @@ func randomLast() {
 
 func main() {
 	go randomLast()
-	err := phocus_api.SetupRouter().Run("0.0.0.0:8080")
+	err := phocus_api.SetupRouter(gin.DebugMode).Run("0.0.0.0:8080")
 	if err != nil {
 		log.Fatalf("fatal err in router: %v", err)
 	}
