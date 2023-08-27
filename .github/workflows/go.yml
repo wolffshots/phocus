@@ -78,9 +78,6 @@ jobs:
 
     - name: Set Go private repos
       run: go env -w GOPRIVATE="github.com/wolffshots/*"
-
-    - name: Build
-      run: go build -o ./phocus -v main.go
     
     - name: Upload a Build Artifact
       uses: actions/upload-artifact@v3.1.1
