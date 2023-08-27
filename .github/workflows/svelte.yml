@@ -1,4 +1,4 @@
-name: Node.js CI
+name: svelte
 
 on:
   push:
@@ -16,6 +16,11 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Use Node.js 20.x
+        uses: actions/setup-node@v3
+        with:
+            node-version: 20.x
+
       - name: Cache npm modules
         uses: actions/cache@v3
         with:
@@ -23,11 +28,6 @@ jobs:
                 ./node_modules
                 ./.svelte-kit
             key: npm-${{ hashFiles('**/package-lock.json') }}
-
-      - name: Use Node.js 20.x
-        uses: actions/setup-node@v3
-        with:
-          node-version: 20.x
 
       - run: npm ci
 
@@ -40,6 +40,11 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Use Node.js 20.x
+        uses: actions/setup-node@v3
+        with:
+            node-version: 20.x
+
       - name: Cache npm modules
         uses: actions/cache@v3
         with:
@@ -47,11 +52,6 @@ jobs:
                 ./node_modules
                 ./.svelte-kit
             key: npm-${{ hashFiles('**/package-lock.json') }}
-
-      - name: Use Node.js 20.x
-        uses: actions/setup-node@v3
-        with:
-            node-version: 20.x
 
       - run: npx playwright install
 
