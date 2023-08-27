@@ -220,6 +220,10 @@ func DeleteMessage(c *gin.Context) {
 func SetupRouter() *gin.Engine {
 	// router setup for async rest api for Queueing
 	router := gin.Default()
+	router.Use(cors.New(cors.Config{
+		AllowOrigins: []string{"http://localhost:5173", "http://127.0.0.1:5173", "http://192.168.88.*:5173"},
+		MaxAge:       12 * time.Hour,
+	}))
 	router.GET("/health", GetHealth)
 	router.GET("/queue", GetQueue)
 	router.GET("/queue/:id", GetMessage)
@@ -229,9 +233,5 @@ func SetupRouter() *gin.Engine {
 	router.POST("/queue", PostMessage)
 	router.DELETE("/queue", DeleteQueue)
 	router.DELETE("/queue/:id", DeleteMessage)
-	router.Use(cors.New(cors.Config{
-		AllowOrigins: []string{"*"},
-		MaxAge:       12 * time.Hour,
-	}))
 	return router
 }
