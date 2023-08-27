@@ -26,12 +26,14 @@ jobs:
         with:
             path: |
                 ./node_modules
+                ./web/node_modules
                 ./.svelte-kit
+                ./web/.svelte-kit
             key: npm-${{ hashFiles('**/package-lock.json') }}
 
       - run: npm ci
 
-      - run: npm run build --if-present
+      - run: npm run build
 
   test:
     runs-on: ubuntu-latest
@@ -50,7 +52,9 @@ jobs:
         with:
             path: |
                 ./node_modules
+                ./web/node_modules
                 ./.svelte-kit
+                ./web/.svelte-kit
             key: npm-${{ hashFiles('**/package-lock.json') }}
 
       - run: npx playwright install
