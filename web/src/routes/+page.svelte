@@ -1,17 +1,26 @@
 <script lang="ts">
-    import { onMount } from 'svelte';
     import { writable } from 'svelte/store';
     import type InverterData from '../../types/InverterData';
     import { camelCaseToWords } from '$lib/stringUtils';
+    import Config from '$lib/components/Config.svelte';
+    import { apiUrl } from '$lib/stores/configStore';
+    import { webSocketStore } from '$lib/stores/webSocketStore';
 
     const data = writable<InverterData | null>(null);
-	onMount(() => {
-        const ws = new WebSocket("ws://localhost:8080/last-ws");
-        ws.addEventListener("message", (message: MessageEvent) => {
-            const messageData: InverterData = JSON.parse(message.data);
-            data.set(messageData);
-        });
-    })
+    $: {
+        if ($apiUrl && typeof window !== 'undefined') {
+            const existingWebSocket = $webSocketStore;
+            if (existingWebSocket) {
+                existingWebSocket.close(); // Close the previous WebSocket instance
+            }
+            const newWebSocket = new WebSocket($apiUrl);
+            newWebSocket.addEventListener("message", (message: MessageEvent) => {
+                const messageData: InverterData = JSON.parse(message.data);
+                data.set(messageData);
+            });
+            webSocketStore.set(newWebSocket);
+        }
+    }
 </script>
 
 <style>
@@ -30,6 +39,8 @@
         background-color: #f2f2f2;
     }
 </style>
+
+<Config/>
 
 <table>
     <tr>
