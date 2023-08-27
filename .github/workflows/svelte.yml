@@ -20,7 +20,8 @@ jobs:
         uses: actions/cache@v3
         with:
             path: |
-                ./web/node_modules
+                ./node_modules
+                ./.svelte-kit
             key: npm-${{ hashFiles('**/package-lock.json') }}
 
       - name: Use Node.js 20.x
@@ -43,7 +44,8 @@ jobs:
         uses: actions/cache@v3
         with:
             path: |
-                ./web/node_modules
+                ./node_modules
+                ./.svelte-kit
             key: npm-${{ hashFiles('**/package-lock.json') }}
 
       - name: Use Node.js 20.x
