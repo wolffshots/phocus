@@ -37,6 +37,7 @@ interface InverterData {
     PVInputCurrent: string;
     BatteryDischargeCurrent: string;
     Checksum: string;
+    [key: string]: any;
 };
 
 export default InverterData;
