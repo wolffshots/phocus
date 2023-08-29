@@ -22,12 +22,24 @@
 
     let fields = writable<string[]>();
 
+    function formatNestedObject(obj: object, depth = 1) {
+        let result = '<td><table>';
+
+        for (const [key, value] of Object.entries(obj)) {
+            result += `<tr><td>${camelCaseToWords(key)}</td><td>${value}</td></tr>`;
+        }
+
+        result += '</table></td>';
+
+        return result;
+    }
+
     function getValue(data: InverterData | null, field: string) {
         let value = data ? data[field] : null;
         if (typeof value === 'object' && value !== null) {
-            return "?"; // Placeholder for nested object
+            return formatNestedObject(value);
         }
-        return value !== undefined ? value : "?"; // Placeholder for missing data
+        return value !== undefined ? `<td>${value}</td>` : `<td>?</td>`; // Placeholder for missing data
     }
 
     $: {
@@ -132,8 +144,8 @@
             {#each $fields as field}
                 <tr>
                     <td>{camelCaseToWords(field)}</td>
-                    <td>{getValue($data1, field)}</td>
-                    <td>{getValue($data2, field)}</td>
+                    {@html getValue($data1, field)}
+                    {@html getValue($data2, field)}
                 </tr>
             {/each}
         {:else}
@@ -163,5 +175,9 @@
     .time-elapsed {
         font-size: 14px;
         color: #999;
+    }
+
+    th, td, tr{
+        border: 1px solid #ddd;
     }
 </style>
