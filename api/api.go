@@ -134,7 +134,7 @@ func GetLastWS(ctx *gin.Context) {
 		if utf8.Valid(bytesResponse) {
 			_ = c.WriteMessage(websocket.TextMessage, bytesResponse)
 		}
-		time.Sleep(5 * time.Millisecond)
+		time.Sleep(50 * time.Millisecond)
 	}
 }
 

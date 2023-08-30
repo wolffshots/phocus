@@ -435,7 +435,7 @@ func TestLastAndLastWS(t *testing.T) {
 		t.Fatalf("conn.ReadMessage error: %v", err)
 	}
 	var receivedMessage []byte
-	for messageCount := 0; messageCount < 20; messageCount++ {
+	for messageCount := 0; messageCount < 10; messageCount++ {
 		_, receivedMessage, err = conn.ReadMessage()
 	}
 
