@@ -134,7 +134,7 @@ func GetLastWS(ctx *gin.Context) {
 		if utf8.Valid(bytesResponse) {
 			_ = c.WriteMessage(websocket.TextMessage, bytesResponse)
 		}
-		time.Sleep(5 * time.Millisecond)
+		time.Sleep(50 * time.Millisecond)
 	}
 }
 
@@ -217,9 +217,14 @@ func DeleteMessage(c *gin.Context) {
 // SetupRouter adds the endpoints on the router for Queue management
 //
 // returns router object
-func SetupRouter() *gin.Engine {
+func SetupRouter(mode string) *gin.Engine {
+	gin.SetMode(mode)
 	// router setup for async rest api for Queueing
 	router := gin.Default()
+	router.Use(cors.New(cors.Config{
+		AllowOrigins: []string{"http://localhost:5173", "http://127.0.0.1:5173", "http://192.168.88.*:5173", "http://192.168.88.*"},
+		MaxAge:       12 * time.Hour,
+	}))
 	router.GET("/health", GetHealth)
 	router.GET("/queue", GetQueue)
 	router.GET("/queue/:id", GetMessage)
@@ -229,9 +234,5 @@ func SetupRouter() *gin.Engine {
 	router.POST("/queue", PostMessage)
 	router.DELETE("/queue", DeleteQueue)
 	router.DELETE("/queue/:id", DeleteMessage)
-	router.Use(cors.New(cors.Config{
-		AllowOrigins: []string{"*"},
-		MaxAge:       12 * time.Hour,
-	}))
 	return router
 }

@@ -11,6 +11,7 @@ import (
 
 	"encoding/json" // for config reading
 
+	"github.com/gin-gonic/gin"
 	api "github.com/wolffshots/phocus/v2/api"           // api setup
 	messages "github.com/wolffshots/phocus/v2/messages" // message structures
 	mqtt "github.com/wolffshots/phocus/v2/mqtt"         // comms with mqtt broker
@@ -54,7 +55,7 @@ func ParseConfig(fileName string) (Configuration, error) {
 }
 
 func Router(client mqtt.Client) error {
-	err := api.SetupRouter().Run("0.0.0.0:8080")
+	err := api.SetupRouter(gin.ReleaseMode).Run("0.0.0.0:8080")
 	if err != nil {
 		pubErr := mqtt.Error(client, 0, false, err, 10)
 		if pubErr != nil {

@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid" // for generating UUIDs for commands
 	"github.com/gorilla/websocket"
 	messages "github.com/wolffshots/phocus/v2/messages"
@@ -32,7 +33,7 @@ func TestAddQPGSnMessages(t *testing.T) {
 }
 
 func TestPostMessage(t *testing.T) {
-	router := SetupRouter()
+	router := SetupRouter(gin.TestMode)
 
 	qidUUID1 := uuid.New()
 	qidUUID2 := uuid.New()
@@ -125,7 +126,7 @@ func TestPostMessage(t *testing.T) {
 }
 
 func TestGetQueue(t *testing.T) {
-	router := SetupRouter()
+	router := SetupRouter(gin.TestMode)
 
 	qidUUID2 := uuid.New()
 	qidUUID3 := uuid.New()
@@ -153,7 +154,7 @@ func TestGetQueue(t *testing.T) {
 }
 
 func TestGetHealth(t *testing.T) {
-	router := SetupRouter()
+	router := SetupRouter(gin.TestMode)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest(http.MethodGet, "/health", nil)
@@ -164,7 +165,7 @@ func TestGetHealth(t *testing.T) {
 }
 
 func TestSetAndGetLast(t *testing.T) {
-	router := SetupRouter()
+	router := SetupRouter(gin.TestMode)
 
 	SetLast((*messages.QPGSnResponse)(nil))
 
@@ -203,7 +204,7 @@ func TestSetAndGetLast(t *testing.T) {
 }
 
 func TestGetLastStateOfCharge(t *testing.T) {
-	router := SetupRouter()
+	router := SetupRouter(gin.TestMode)
 
 	// test with empty LastQPGSResponse (like pre first request)
 	SetLast(nil)
@@ -231,7 +232,7 @@ func TestGetLastStateOfCharge(t *testing.T) {
 }
 
 func TestGetMessage(t *testing.T) {
-	router := SetupRouter()
+	router := SetupRouter(gin.TestMode)
 
 	qidUUID1 := uuid.New()
 	qidUUID2 := uuid.New()
@@ -299,7 +300,7 @@ func TestGetMessage(t *testing.T) {
 }
 
 func TestDeleteQueue(t *testing.T) {
-	router := SetupRouter()
+	router := SetupRouter(gin.TestMode)
 
 	qidUUID1 := uuid.New()
 	qidUUID2 := uuid.New()
@@ -326,7 +327,7 @@ func TestDeleteQueue(t *testing.T) {
 }
 
 func TestDeleteMessage(t *testing.T) {
-	router := SetupRouter()
+	router := SetupRouter(gin.TestMode)
 
 	qidUUID1 := uuid.New()
 	qidUUID2 := uuid.New()
@@ -399,7 +400,7 @@ func TestQueueQPGSn(t *testing.T) {
 
 func TestLastAndLastWS(t *testing.T) {
 	// Create a test router
-	router := SetupRouter()
+	router := SetupRouter(gin.TestMode)
 
 	// Create a test HTTP server
 	ts := httptest.NewServer(router)
@@ -434,7 +435,7 @@ func TestLastAndLastWS(t *testing.T) {
 		t.Fatalf("conn.ReadMessage error: %v", err)
 	}
 	var receivedMessage []byte
-	for messageCount := 0; messageCount < 20; messageCount++ {
+	for messageCount := 0; messageCount < 10; messageCount++ {
 		_, receivedMessage, err = conn.ReadMessage()
 	}
 
@@ -449,7 +450,7 @@ func TestUpgraderError(t *testing.T) {
 			return false
 		},
 	}
-	router := SetupRouter()
+	router := SetupRouter(gin.TestMode)
 	ts := httptest.NewServer(router)
 	defer ts.Close()
 	dialer := websocket.DefaultDialer
@@ -465,7 +466,7 @@ func TestWriteError(t *testing.T) {
 		},
 		WriteBufferSize: 1,
 	}
-	router := SetupRouter()
+	router := SetupRouter(gin.TestMode)
 	ts := httptest.NewServer(router)
 	defer ts.Close()
 	dialer := websocket.DefaultDialer
