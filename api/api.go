@@ -222,7 +222,7 @@ func SetupRouter(mode string) *gin.Engine {
 	// router setup for async rest api for Queueing
 	router := gin.Default()
 	router.Use(cors.New(cors.Config{
-		AllowOrigins: []string{"http://localhost:5173", "http://127.0.0.1:5173", "http://192.168.88.*:5173"},
+		AllowOrigins: []string{"http://localhost:5173", "http://127.0.0.1:5173", "http://192.168.88.*:5173", "http://192.168.88.*"},
 		MaxAge:       12 * time.Hour,
 	}))
 	router.GET("/health", GetHealth)
