@@ -50,10 +50,15 @@ jobs:
       uses: codecov/codecov-action@v3
 
     - name: Run codacy-coverage-reporter
-      uses: codacy/codacy-coverage-reporter-action@v1
+      uses: codacy/codacy-coverage-reporter-action@v1.3.0
       with:
+        # API project token to retrieve your remote Codacy configuration for the project being analyzed
         project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
+        # Optional comma separated list of coverage reports to send to Codacy
         coverage-reports: coverage.txt
+        # Optionally force associating a language with your coverage report
+        language: go
+        # Optionally force using a specific coverage report parser
         force-coverage-parser: go
 
   upload:
