@@ -135,24 +135,28 @@
 
 <div>
     <table>
-        <tr>
-            <th>Field</th>
-            <th>Inverter 1</th>
-            <th>Inverter 2</th>
-        </tr>
-        {#if $data1 || $data2}
-            {#each $fields as field}
-                <tr>
-                    <td>{camelCaseToWords(field)}</td>
-                    {@html getValue($data1, field)}
-                    {@html getValue($data2, field)}
-                </tr>
-            {/each}
-        {:else}
+        <thead>
             <tr>
-                <td colspan="3">Loading...</td>
+                <th>Field</th>
+                <th>Inverter 1</th>
+                <th>Inverter 2</th>
             </tr>
-        {/if}
+        </thead>
+        <tbody>
+            {#if $data1 || $data2}
+                {#each $fields as field}
+                    <tr>
+                        <td>{camelCaseToWords(field)}</td>
+                        {@html getValue($data1, field)}
+                        {@html getValue($data2, field)}
+                    </tr>
+                {/each}
+            {:else}
+                <tr>
+                    <td colspan="3">Loading...</td>
+                </tr>
+            {/if}
+        </tbody>
     </table>
 </div>
 
