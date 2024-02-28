@@ -4,10 +4,12 @@ on:
   push:
     paths:
         - 'web/**/*'
+        - '.github/svelte.yml'
   pull_request:
     branches: [ main ]
     paths:
         - 'web/**/*'
+        - '.github/svelte.yml'
 
 defaults:
     run:
