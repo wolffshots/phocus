@@ -82,7 +82,7 @@ jobs:
         path: |
           ~/go/pkg/mod
           ./phocus
-        key: go-${{ hashFiles('**/go.sum') }}
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}-${{ hashFiles('**/*.sh') }}-${{ hashFiles('./.github/workflows/*.yml') }}
     
     - name: Upload a Build Artifact for main
       uses: actions/upload-artifact@v4
