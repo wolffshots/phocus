@@ -19,7 +19,7 @@ import (
 	serial "github.com/wolffshots/phocus/v2/serial"     // comms with inverter
 )
 
-const version = "v2.9.8"
+const version = "v2.9.9"
 
 type Configuration struct {
 	Serial struct {
