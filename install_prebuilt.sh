@@ -23,8 +23,9 @@ echo
 echo move executable and service to dir
 sudo mv ./phocus.service /usr/bin/phocus_app
 sudo mv ./phocus /usr/bin/phocus_app
+sudo chmod +x /usr/bin/phocus_app/phocus
 echo done
 echo 
 echo "link service (in app dir) to systemd dir"
-sudo ln -f ./usr/bin/phocus_app/phocus.service /usr/lib/systemd/system/phocus.service
+sudo ln -f /usr/bin/phocus_app/phocus.service /usr/lib/systemd/system/phocus.service
 echo done
