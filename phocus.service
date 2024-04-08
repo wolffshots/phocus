@@ -5,6 +5,10 @@ After = network.target
 [Service]
 ExecStart = /usr/bin/phocus_app/phocus
 WorkingDirectory = /usr/bin/phocus_app
+Type = simple
+Restart = always
+KillMode = process
+TimeoutSec = 300
 
 [Install]
 WantedBy = multi-user.target
