@@ -8,8 +8,6 @@ on:
       - 'LICENSE.md'
       - '*.md'
       - '*.example'
-      - '*.sh'
-      - 'phocus.service'
       - '.vscode'
   pull_request:
     branches: [ main ]
@@ -18,9 +16,7 @@ on:
       - '.github/workflows/svelte.yml'
       - 'LICENSE.md'
       - '*.md'
-      - '*.sh'
       - '*.example'
-      - 'phocus.service'
       - '.vscode'
 
 jobs:

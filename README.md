@@ -15,13 +15,28 @@ Primarily built to communicate with Phocos branded inverters but the only thing 
 
 If you don't need to differ from the default setup then it should be as simple as:
 
+##### Minimal dependencies
+
+1. Install the latest executable directly and customise the config (the script should create the `config.json` for you to customise if you don't do it beforehand)
+    ```sh
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/wolffshots/phocus/HEAD/install_prebuilt.sh)"
+    ```
+
+2. (Re)start the service
+
+    ```sh
+    sudo systemctl daemon-reload && sudo systemctl restart phocus
+    ```
+
+##### Build from source
+
 1.  Clone the repo
 
     ```sh
     git clone https://github.com/wolffshots/phocus.git
     ```
 
-2.  Create a `config.json` file from `config.json.example` and customise your settings
+2.  Create a `config.json` file from `config.json.example` and customise your settings (`install.sh` will just prompt you to do this in the next step if you don't)
 
 3.  Run the install script (which builds the app then will ask for your password to put it in the correct place and makes a service file for it linked to `phocus.service` )
 
@@ -32,7 +47,7 @@ If you don't need to differ from the default setup then it should be as simple a
 4.  (Re)start the service
 
     ```sh
-    sudo service phocus restart
+    sudo systemctl daemon-reload && sudo systemctl restart phocus
     ```
 
 ### Updating
