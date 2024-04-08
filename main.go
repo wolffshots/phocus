@@ -19,7 +19,7 @@ import (
 	serial "github.com/wolffshots/phocus/v2/serial"     // comms with inverter
 )
 
-const version = "v2.9.4"
+const version = "v2.9.5"
 
 type Configuration struct {
 	Serial struct {
@@ -147,11 +147,11 @@ func main() {
 				}
 				if fmt.Sprint(err) == "read returned nothing" { // immediately jailed when read timeout
 					port.Port.Close()
-					pubErr := mqtt.Error(client, 0, false, errors.New("read timed out, waiting 5 minutes then restarting"), 10)
+					pubErr := mqtt.Error(client, 0, false, errors.New("read timed out, waiting 2 minutes then restarting"), 10)
 					if pubErr != nil {
 						log.Printf("Failed to post previous error (%v) to mqtt: %v\n", err, pubErr)
 					}
-					time.Sleep(3 * time.Minute)
+					time.Sleep(2 * time.Minute)
 					cmd, err := exec.Command("bash", "-c", "sudo service phocus restart").Output()
 					// it should die here
 					log.Printf("cmd=================>%s\n", cmd)
