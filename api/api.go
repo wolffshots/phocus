@@ -45,6 +45,7 @@ var upgrader = websocket.Upgrader{
 }
 
 // AddQPGSnMessages is the meat of the QueueQPGSn functionality
+// TODO refactor to take a number in for how many inverters
 func AddQPGSnMessages(timeBetween time.Duration) error {
 	QueueMutex.Lock()
 	if len(Queue) < 2 {

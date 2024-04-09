@@ -19,7 +19,7 @@ import (
 	serial "github.com/wolffshots/phocus/v2/serial"     // comms with inverter
 )
 
-const version = "v2.11.1"
+var version = "development"
 
 type Configuration struct {
 	Serial struct {
@@ -72,8 +72,11 @@ func Router(client mqtt.Client, profiling bool) error {
 func main() {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds | log.Llongfile)
 	log.Println("Starting up phocus")
+	log.Printf("Phocus Version: %s\n\n", version)
 
 	configuration, err := ParseConfig("config.json")
+
+	// TODO log some other useful info here
 
 	// just give a chance to see the http server coming up
 	time.Sleep(3 * time.Second)

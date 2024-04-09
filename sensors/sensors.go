@@ -26,6 +26,7 @@ type Sensor struct {
 	Icon          string                     // "icon": "mdi:battery",
 }
 
+// TODO refactor to take a number in for how many inverters
 var sensors = []Sensor{
 	{
 		SensorTopic:   "homeassistant/sensor/phocus/version/config",
