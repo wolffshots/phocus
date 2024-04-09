@@ -11,6 +11,9 @@ import (
 
 	"encoding/json" // for config reading
 
+	"net/http"         // base network package
+	_ "net/http/pprof" // expose profiling over the network
+
 	"github.com/gin-gonic/gin"
 	api "github.com/wolffshots/phocus/v2/api"           // api setup
 	messages "github.com/wolffshots/phocus/v2/messages" // message structures
@@ -19,7 +22,7 @@ import (
 	serial "github.com/wolffshots/phocus/v2/serial"     // comms with inverter
 )
 
-const version = "v2.9.11"
+const version = "v2.10.0"
 
 type Configuration struct {
 	Serial struct {
@@ -43,6 +46,7 @@ type Configuration struct {
 	DelaySeconds     int
 	RandDelaySeconds int
 	MinDelaySeconds  int
+	Profiling        bool
 }
 
 func ParseConfig(fileName string) (Configuration, error) {
@@ -73,6 +77,12 @@ func main() {
 	log.Println("Starting up phocus")
 
 	configuration, err := ParseConfig("config.json")
+
+	if err == nil && configuration.Profiling {
+		go func() { // start profiling endpoint in goroutine
+			log.Println(http.ListenAndServe("0.0.0.0:6060", nil))
+		}()
+	}
 
 	if err != nil {
 		log.Printf("Error parsing config: %v", err)
