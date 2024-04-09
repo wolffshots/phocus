@@ -1,11 +1,12 @@
 name: phocus
 
 on: 
+  workflow_dispatch:
   push:
     paths-ignore:
       - 'web/**'
       - '.github/workflows/svelte.yml'
-      - 'LICENSE.md'
+      - 'LICENSE'
       - '*.md'
       - '*.example'
       - '.vscode'
@@ -14,6 +15,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+    - name: Print event JSON
+      run: cat $GITHUB_EVENT_PATH
+
     - uses: actions/checkout@v4
 
     - name: Cache Go modules
@@ -22,7 +26,7 @@ jobs:
         path: |
           ~/go/pkg/mod
           ./phocus
-        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}-${{ hashFiles('**/*.sh') }}-${{ hashFiles('./.github/workflows/*.yml') }}
+        key: ${{ runner.os }}-go--${{ hashFiles('**/go.sum') }}--${{ hashFiles('**/*.sh') }}--${{ hashFiles('./.github/workflows/*.yml') }}
 
     - name: Set up Go
       uses: actions/setup-go@v5
@@ -43,7 +47,7 @@ jobs:
         path: |
           ~/go/pkg/mod
           ./phocus
-        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}-${{ hashFiles('**/*.sh') }}-${{ hashFiles('./.github/workflows/*.yml') }}
+        key: ${{ runner.os }}-go--${{ hashFiles('**/go.sum') }}--${{ hashFiles('**/*.sh') }}--${{ hashFiles('./.github/workflows/*.yml') }}
 
     - name: Install socat
       run: sudo apt-get install -y socat
@@ -82,7 +86,7 @@ jobs:
         path: |
           ~/go/pkg/mod
           ./phocus
-        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}-${{ hashFiles('**/*.sh') }}-${{ hashFiles('./.github/workflows/*.yml') }}
+        key: ${{ runner.os }}-go--${{ hashFiles('**/go.sum') }}--${{ hashFiles('**/*.sh') }}--${{ hashFiles('./.github/workflows/*.yml') }}
     
     - name: Upload a Build Artifact for main
       uses: actions/upload-artifact@v4
