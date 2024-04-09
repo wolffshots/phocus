@@ -19,7 +19,7 @@ import (
 	serial "github.com/wolffshots/phocus/v2/serial"     // comms with inverter
 )
 
-const version = "v2.11.0"
+const version = "v2.11.1"
 
 type Configuration struct {
 	Serial struct {
@@ -99,6 +99,12 @@ func main() {
 	pubErr := mqtt.Send(client, "phocus/stats/error", 0, false, "", 10)
 	if pubErr != nil {
 		log.Printf("Failed to clear previous error: %v\n", pubErr)
+	}
+
+	// send new version
+	pubErr = mqtt.Send(client, "phocus/stats/version", 0, false, version, 10)
+	if pubErr != nil {
+		log.Printf("Failed to set phocus version: %v\n", pubErr)
 	}
 
 	// serial

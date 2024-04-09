@@ -28,6 +28,17 @@ type Sensor struct {
 
 var sensors = []Sensor{
 	{
+		SensorTopic:   "homeassistant/sensor/phocus/version/config",
+		UniqueId:      "phocus_version",
+		Unit:          units.None,
+		StateClass:    state_classes.None,
+		DeviceClass:   device_classes.None,
+		Name:          "Phocus Version",
+		ValueTemplate: "",
+		StateTopic:    "phocus/stats/version",
+		Icon:          "mdi:source-branch",
+	},
+	{
 		SensorTopic:   "homeassistant/sensor/phocus/start_time/config",
 		UniqueId:      "phocus_start_time",
 		Unit:          units.None,
@@ -212,7 +223,7 @@ var sensors = []Sensor{
 		Name:          "QPGS1 PV Input Current",
 		ValueTemplate: "{{ value_json.PVInputCurrent }}",
 		StateTopic:    "phocus/stats/qpgs1",
-		Icon:          "mdi:current",
+		Icon:          "mdi:current-dc",
 	},
 	{
 		SensorTopic:   "homeassistant/sensor/phocus/qpgs2_pv_input_current/config",
@@ -223,7 +234,7 @@ var sensors = []Sensor{
 		Name:          "QPGS2 PV Input Current",
 		ValueTemplate: "{{ value_json.PVInputCurrent }}",
 		StateTopic:    "phocus/stats/qpgs2",
-		Icon:          "mdi:current",
+		Icon:          "mdi:current-dc",
 	},
 	{
 		SensorTopic:   "homeassistant/sensor/phocus/qpgs1_battery_discharge_current/config",
@@ -234,7 +245,7 @@ var sensors = []Sensor{
 		Name:          "QPGS1 Battery Discharge Current",
 		ValueTemplate: "{{ value_json.BatteryDischargeCurrent }}",
 		StateTopic:    "phocus/stats/qpgs1",
-		Icon:          "mdi:current",
+		Icon:          "mdi:current-dc",
 	},
 	{
 		SensorTopic:   "homeassistant/sensor/phocus/qpgs2_battery_discharge_current/config",
@@ -245,7 +256,7 @@ var sensors = []Sensor{
 		Name:          "QPGS2 Battery Discharge Current",
 		ValueTemplate: "{{ value_json.BatteryDischargeCurrent }}",
 		StateTopic:    "phocus/stats/qpgs2",
-		Icon:          "mdi:current",
+		Icon:          "mdi:current-dc",
 	},
 	{
 		SensorTopic:   "homeassistant/sensor/phocus/qpgs1_battery_charge_current/config",
@@ -256,7 +267,7 @@ var sensors = []Sensor{
 		Name:          "QPGS1 Battery Charge Current",
 		ValueTemplate: "{{ value_json.BatteryChargingCurrent }}",
 		StateTopic:    "phocus/stats/qpgs1",
-		Icon:          "mdi:current",
+		Icon:          "mdi:current-dc",
 	},
 	{
 		SensorTopic:   "homeassistant/sensor/phocus/qpgs2_battery_charge_current/config",
@@ -267,7 +278,7 @@ var sensors = []Sensor{
 		Name:          "QPGS2 Battery Charge Current",
 		ValueTemplate: "{{ value_json.BatteryChargingCurrent }}",
 		StateTopic:    "phocus/stats/qpgs2",
-		Icon:          "mdi:current",
+		Icon:          "mdi:current-dc",
 	},
 	{
 		SensorTopic:   "homeassistant/sensor/phocus/qpgs1_ac_input_mode/config",
