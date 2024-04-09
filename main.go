@@ -99,13 +99,13 @@ func main() {
 		os.Exit(1)
 	}
 	// reset error
-	pubErr := mqtt.Send(client, "phocus/stats/error", 0, false, "", 10)
+	pubErr := mqtt.Send(client, "phocus/stats/error", 0, true, "", 10)
 	if pubErr != nil {
 		log.Printf("Failed to clear previous error: %v\n", pubErr)
 	}
 
 	// send new version
-	pubErr = mqtt.Send(client, "phocus/stats/version", 0, false, version, 10)
+	pubErr = mqtt.Send(client, "phocus/stats/version", 0, true, version, 10)
 	if pubErr != nil {
 		log.Printf("Failed to set phocus version: %v\n", pubErr)
 	}
