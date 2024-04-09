@@ -23,10 +23,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - uses: actions/checkout@v4
+
       - name: Print event JSON
         run: cat $GITHUB_EVENT_PATH
-
-      - uses: actions/checkout@v4
 
       - name: Use Node.js 20.x
         uses: actions/setup-node@v4
