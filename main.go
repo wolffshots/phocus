@@ -22,7 +22,7 @@ import (
 	serial "github.com/wolffshots/phocus/v2/serial"     // comms with inverter
 )
 
-const version = "v2.10.0"
+const version = "v2.10.1"
 
 type Configuration struct {
 	Serial struct {
@@ -79,10 +79,16 @@ func main() {
 	configuration, err := ParseConfig("config.json")
 
 	if err == nil && configuration.Profiling {
+		log.Println("Starting profiling")
 		go func() { // start profiling endpoint in goroutine
 			log.Println(http.ListenAndServe("0.0.0.0:6060", nil))
 		}()
+	} else {
+		log.Println("Running without profiling")
 	}
+
+	// just give a chance to see the http server coming up
+	time.Sleep(3 * time.Second)
 
 	if err != nil {
 		log.Printf("Error parsing config: %v", err)
@@ -139,7 +145,7 @@ func main() {
 	}
 
 	// sleep to make sure web server comes on before polling starts
-	time.Sleep(5 * time.Second)
+	time.Sleep(2 * time.Second)
 
 	// spawn go-routine to repeatedly enQueue QPGSn commands
 	go api.QueueQPGSn(configuration.DelaySeconds, configuration.RandDelaySeconds)

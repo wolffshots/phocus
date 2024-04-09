@@ -1,11 +1,14 @@
 #!/bin/bash
 
+echo TODO add param to specify a version
+
 echo create dir and config
 sudo mkdir -p /usr/bin/phocus_app
 echo 
 if test -e config.json; then
     echo config.json found, will be moved to app dir
 else
+    echo TODO check if /usr/bin/phocus_app/config.json already exists as well
     echo config.json not found! generating from latest config.json.example on github
     wget https://github.com/wolffshots/phocus/releases/latest/download/config.json.example
     mv config.json.example config.json
