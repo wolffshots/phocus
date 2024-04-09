@@ -22,7 +22,7 @@ jobs:
       with:
         path: |
           ./phocus
-          key: phocus--${{ github.ref }}
+        key: phocus--${{ github.ref }}
 
     - name: Set up Go
       uses: actions/setup-go@v5
@@ -54,7 +54,7 @@ jobs:
       with:
         path: |
           ./phocus
-          key: phocus--${{ github.ref }}
+        key: phocus--${{ github.ref }}
 
     - name: Install socat
       run: sudo apt-get install -y socat
