@@ -30,7 +30,7 @@ jobs:
         go-version: 1.21.9
 
     - name: Build for linux/arm
-      run: env GOOS=linux GOARCH=arm GOARM=6 go build -o ./phocus -v main.go
+      run: env GOOS=linux GOARCH=arm GOARM=6 go build -ldflags="-s -w" -o ./phocus -v main.go
   test:
     runs-on: ubuntu-latest
     needs: [build]
