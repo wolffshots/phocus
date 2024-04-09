@@ -34,10 +34,10 @@ jobs:
         if [[ $GITHUB_REF == refs/tags/* ]]; then
           TAG_NAME="${GITHUB_REF#refs/tags/}"
           echo "Current tag is $TAG_NAME"
-          env GOOS=linux GOARCH=arm GOARM=6 go build -ldflags="-X 'main.version=$TAG_NAME' -s -w" -o ./phocus -v main.go
+          env GOOS=linux GOARCH=arm GOARM=6 go build -pgo=./profiles/default.pgo -ldflags="-X 'main.version=$TAG_NAME' -s -w" -o ./phocus -v main.go
         else
           echo "Not on a tag. The commit SHA is $GITHUB_SHA"
-          env GOOS=linux GOARCH=arm GOARM=6 go build -ldflags="-X 'main.version=$GITHUB_SHA' -s -w" -o ./phocus -v main.go
+          env GOOS=linux GOARCH=arm GOARM=6 go build -pgo=./profiles/default.pgo -ldflags="-X 'main.version=$GITHUB_SHA' -s -w" -o ./phocus -v main.go
         fi
       env:
         GITHUB_REF: ${{ github.ref }}
