@@ -58,7 +58,7 @@ func ParseConfig(fileName string) (Configuration, error) {
 func Router(client mqtt.Client, profiling bool) error {
 	err := api.SetupRouter(gin.ReleaseMode, profiling).Run("0.0.0.0:8080")
 	if err != nil {
-		pubErr := mqtt.Error(client, 0, false, err, 10)
+		pubErr := mqtt.Error(client, 0, true, err, 10)
 		if pubErr != nil {
 			log.Printf("Failed to post previous error (%v) to mqtt: %v\n", err, pubErr)
 		}
@@ -117,7 +117,7 @@ func main() {
 		configuration.Serial.Retries,
 	)
 	if err != nil {
-		pubErr := mqtt.Error(client, 0, false, err, 10)
+		pubErr := mqtt.Error(client, 0, true, err, 10)
 		if pubErr != nil {
 			log.Printf("Failed to post previous error (%v) to mqtt: %v\n", err, pubErr)
 		}
@@ -133,7 +133,7 @@ func main() {
 	// we only add them once we know the mqtt, serial and http aspects are up
 	err = sensors.Register(client, version)
 	if err != nil {
-		pubErr := mqtt.Error(client, 0, false, err, 10)
+		pubErr := mqtt.Error(client, 0, true, err, 10)
 		if pubErr != nil {
 			log.Printf("Failed to post previous error (%v) to mqtt: %v\n", err, pubErr)
 		}
@@ -154,13 +154,13 @@ func main() {
 		if len(api.Queue) > 0 {
 			QPGSnResponse, err := messages.Interpret(client, port, api.Queue[0], time.Duration(configuration.Messages.Read.TimeoutSeconds)*time.Second)
 			if err != nil {
-				pubErr := mqtt.Error(client, 0, false, err, 10)
+				pubErr := mqtt.Error(client, 0, true, err, 10)
 				if pubErr != nil {
 					log.Printf("Failed to post previous error (%v) to mqtt: %v\n", err, pubErr)
 				}
 				if fmt.Sprint(err) == "read returned nothing" { // immediately jailed when read timeout
 					port.Port.Close()
-					pubErr := mqtt.Error(client, 0, false, errors.New("read timed out, waiting 2 minutes then restarting"), 10)
+					pubErr := mqtt.Error(client, 0, true, errors.New("read timed out, waiting 2 minutes then restarting"), 10)
 					if pubErr != nil {
 						log.Printf("Failed to post previous error (%v) to mqtt: %v\n", err, pubErr)
 					}
