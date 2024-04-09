@@ -33,7 +33,7 @@ func TestAddQPGSnMessages(t *testing.T) {
 }
 
 func TestPostMessage(t *testing.T) {
-	router := SetupRouter(gin.TestMode)
+	router := SetupRouter(gin.TestMode, false)
 
 	qidUUID1 := uuid.New()
 	qidUUID2 := uuid.New()
@@ -126,7 +126,7 @@ func TestPostMessage(t *testing.T) {
 }
 
 func TestGetQueue(t *testing.T) {
-	router := SetupRouter(gin.TestMode)
+	router := SetupRouter(gin.TestMode, false)
 
 	qidUUID2 := uuid.New()
 	qidUUID3 := uuid.New()
@@ -154,7 +154,7 @@ func TestGetQueue(t *testing.T) {
 }
 
 func TestGetHealth(t *testing.T) {
-	router := SetupRouter(gin.TestMode)
+	router := SetupRouter(gin.TestMode, false)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest(http.MethodGet, "/health", nil)
@@ -165,7 +165,7 @@ func TestGetHealth(t *testing.T) {
 }
 
 func TestSetAndGetLast(t *testing.T) {
-	router := SetupRouter(gin.TestMode)
+	router := SetupRouter(gin.TestMode, false)
 
 	SetLast((*messages.QPGSnResponse)(nil))
 
@@ -204,7 +204,7 @@ func TestSetAndGetLast(t *testing.T) {
 }
 
 func TestGetLastStateOfCharge(t *testing.T) {
-	router := SetupRouter(gin.TestMode)
+	router := SetupRouter(gin.TestMode, false)
 
 	// test with empty LastQPGSResponse (like pre first request)
 	SetLast(nil)
@@ -232,7 +232,7 @@ func TestGetLastStateOfCharge(t *testing.T) {
 }
 
 func TestGetMessage(t *testing.T) {
-	router := SetupRouter(gin.TestMode)
+	router := SetupRouter(gin.TestMode, false)
 
 	qidUUID1 := uuid.New()
 	qidUUID2 := uuid.New()
@@ -300,7 +300,7 @@ func TestGetMessage(t *testing.T) {
 }
 
 func TestDeleteQueue(t *testing.T) {
-	router := SetupRouter(gin.TestMode)
+	router := SetupRouter(gin.TestMode, false)
 
 	qidUUID1 := uuid.New()
 	qidUUID2 := uuid.New()
@@ -327,7 +327,7 @@ func TestDeleteQueue(t *testing.T) {
 }
 
 func TestDeleteMessage(t *testing.T) {
-	router := SetupRouter(gin.TestMode)
+	router := SetupRouter(gin.TestMode, false)
 
 	qidUUID1 := uuid.New()
 	qidUUID2 := uuid.New()
@@ -400,7 +400,7 @@ func TestQueueQPGSn(t *testing.T) {
 
 func TestLastAndLastWS(t *testing.T) {
 	// Create a test router
-	router := SetupRouter(gin.TestMode)
+	router := SetupRouter(gin.TestMode, false)
 
 	// Create a test HTTP server
 	ts := httptest.NewServer(router)
@@ -450,7 +450,7 @@ func TestUpgraderError(t *testing.T) {
 			return false
 		},
 	}
-	router := SetupRouter(gin.TestMode)
+	router := SetupRouter(gin.TestMode, false)
 	ts := httptest.NewServer(router)
 	defer ts.Close()
 	dialer := websocket.DefaultDialer
@@ -466,7 +466,7 @@ func TestWriteError(t *testing.T) {
 		},
 		WriteBufferSize: 1,
 	}
-	router := SetupRouter(gin.TestMode)
+	router := SetupRouter(gin.TestMode, false)
 	ts := httptest.NewServer(router)
 	defer ts.Close()
 	dialer := websocket.DefaultDialer

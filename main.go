@@ -11,9 +11,6 @@ import (
 
 	"encoding/json" // for config reading
 
-	"net/http"         // base network package
-	_ "net/http/pprof" // expose profiling over the network
-
 	"github.com/gin-gonic/gin"
 	api "github.com/wolffshots/phocus/v2/api"           // api setup
 	messages "github.com/wolffshots/phocus/v2/messages" // message structures
@@ -58,8 +55,8 @@ func ParseConfig(fileName string) (Configuration, error) {
 	return configuration, err
 }
 
-func Router(client mqtt.Client) error {
-	err := api.SetupRouter(gin.ReleaseMode).Run("0.0.0.0:8080")
+func Router(client mqtt.Client, profiling bool) error {
+	err := api.SetupRouter(gin.ReleaseMode, profiling).Run("0.0.0.0:8080")
 	if err != nil {
 		pubErr := mqtt.Error(client, 0, false, err, 10)
 		if pubErr != nil {
@@ -77,15 +74,6 @@ func main() {
 	log.Println("Starting up phocus")
 
 	configuration, err := ParseConfig("config.json")
-
-	if err == nil && configuration.Profiling {
-		log.Println("Starting profiling")
-		go func() { // start profiling endpoint in goroutine
-			log.Println(http.ListenAndServe("0.0.0.0:6060", nil))
-		}()
-	} else {
-		log.Println("Running without profiling")
-	}
 
 	// just give a chance to see the http server coming up
 	time.Sleep(3 * time.Second)
@@ -130,7 +118,7 @@ func main() {
 	defer port.Port.Close()
 
 	// spawns a go-routine which handles web requests
-	go Router(client)
+	go Router(client, configuration.Profiling)
 
 	// sensors
 	// we only add them once we know the mqtt, serial and http aspects are up

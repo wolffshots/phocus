@@ -49,6 +49,7 @@ main
 .fleet
 phocus
 build
+profiles/*.pgo
 
 .tmp
 ._*

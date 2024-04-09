@@ -11,6 +11,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/gin-contrib/cors"
+	"github.com/gin-contrib/pprof"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
@@ -217,10 +218,16 @@ func DeleteMessage(c *gin.Context) {
 // SetupRouter adds the endpoints on the router for Queue management
 //
 // returns router object
-func SetupRouter(mode string) *gin.Engine {
+func SetupRouter(mode string, profiling bool) *gin.Engine {
 	gin.SetMode(mode)
 	// router setup for async rest api for Queueing
 	router := gin.Default()
+	if profiling {
+		log.Println("Starting profiling")
+		pprof.Register(router)
+	} else {
+		log.Println("Running without profiling")
+	}
 	router.Use(cors.New(cors.Config{
 		AllowOrigins: []string{"http://localhost:5173", "http://127.0.0.1:5173", "http://192.168.88.*:5173", "http://192.168.88.*"},
 		MaxAge:       12 * time.Hour,

@@ -32,7 +32,7 @@ func TestRouter(t *testing.T) {
 
 	// Start the server in a goroutine
 	go func() {
-		startCh <- Router(client)
+		startCh <- Router(client, true)
 	}()
 
 	time.Sleep(51 * time.Millisecond)

@@ -25,7 +25,7 @@ func randomLast() {
 
 func main() {
 	go randomLast()
-	err := phocus_api.SetupRouter(gin.DebugMode).Run("0.0.0.0:8080")
+	err := phocus_api.SetupRouter(gin.DebugMode, false).Run("0.0.0.0:8080")
 	if err != nil {
 		log.Fatalf("fatal err in router: %v", err)
 	}
