@@ -1,6 +1,4 @@
 ---
-engines:
-  eslint:
-    enabled: true
-ignore:
-  - "dummy/**/*"
+exclude_paths:
+  - "dummy/**/*.go"
+  - "**/*_test.go"
