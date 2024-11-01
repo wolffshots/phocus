@@ -10,71 +10,84 @@ import (
 	"github.com/stretchr/testify/assert"
 	phocus_crc "github.com/wolffshots/phocus/v2/crc"
 	phocus_serial "github.com/wolffshots/phocus/v2/serial"
-	"go.bug.st/serial"
 )
 
 func TestQID(t *testing.T) {
-	cmd := StartCmd("socat", "PTY,link=./qid1,raw,echo=1,crnl", "PTY,link=./qid2,raw,echo=1,crnl")
+	cmd := StartCmd("socat", "-d", "-d", "PTY,link=./qid1,raw,echo=0,crnl", "PTY,link=./qid2,raw,echo=0,crnl")
 	defer TerminateCmd(cmd)
-	time.Sleep(10 * time.Millisecond)
+	time.Sleep(51 * time.Millisecond)
 
 	t.Run("TestSendQID", func(t *testing.T) {
 		// setup virtual port
-		port1, err := phocus_serial.Setup("./qid1", 2400, 1)
+		serialPort := phocus_serial.Port{
+			Path:    "./qid1",
+			Baud:    9600,
+			Retries: 1,
+		}
+		commonPort1, err := serialPort.Open()
 		assert.NoError(t, err)
 
 		// valid write to virtual port
-		written, err := SendQID(port1, nil)
+		written, err := SendQID(commonPort1, nil)
 		assert.Equal(t, 6, written)
 		assert.NoError(t, err)
 
-		port1.Port.Close()
-		port1.Port = nil
+		commonPort1.Close()
 
 		// invalid write
-		written, err = SendQID(port1, nil)
+		written, err = SendQID(commonPort1, nil)
 		assert.Equal(t, -1, written)
 		assert.Equal(t, errors.New("port is nil on write"), err)
 	})
 
 	t.Run("TestReceiveQID", func(t *testing.T) {
 		// setup virtual port
-		port1, err := phocus_serial.Setup("./qid1", 2400, 1)
+		serialPort1 := phocus_serial.Port{
+			Path:    "./qid1",
+			Baud:    9600,
+			Retries: 1,
+		}
+		commonPort1, err := serialPort1.Open()
 		assert.NoError(t, err)
+		defer commonPort1.Close()
+
+		serialPort2 := phocus_serial.Port{
+			Path:    "./qid2",
+			Baud:    9600,
+			Retries: 1,
+		}
+		commonPort2, err := serialPort2.Open()
+		assert.NoError(t, err)
+
+		_, _ = commonPort2.Read(10 * time.Millisecond) // make sure it is empty when writing
 
 		// valid read from virtual port
 		// should time out
-		response, err := ReceiveQID(port1, 0*time.Millisecond)
+		response, err := ReceiveQID(commonPort2, 0*time.Millisecond)
 		assert.Equal(t, "", response)
 		assert.Equal(t, errors.New("read returned nothing"), err)
 
-		port1.Port.Close()
-		port1.Port = nil
+		err = commonPort2.Close()
+		assert.NoError(t, err)
 
 		// invalid read
-		response, err = ReceiveQID(port1, 10*time.Millisecond)
+		response, err = ReceiveQID(commonPort2, 10*time.Millisecond)
 		assert.Equal(t, "", response)
 		assert.Equal(t, errors.New("port is nil on read"), err)
 
-		port1.Read = func(port serial.Port, timeout time.Duration) (string, error) {
-			return "some response\xea\xac\r", nil
-		}
+		// reopen port
+		commonPort2, err = serialPort2.Open()
+		assert.NoError(t, err)
+		defer commonPort2.Close()
 
 		// valid read from virtual port
 		// should respond
-		response, err = ReceiveQID(port1, 10*time.Millisecond)
-		assert.Equal(t, "some response\xea\xac\r", response)
+		written, err := SendQID(commonPort1, nil) // 3
+		assert.Equal(t, 6, written)               // 3 + 2 (crc) + 1 (cr)
 		assert.NoError(t, err)
-
-		port1.Read = func(port serial.Port, timeout time.Duration) (string, error) {
-			return "", errors.New("some error")
-		}
-
-		// valid read from virtual port
-		// should respond with err
-		response, err = ReceiveQID(port1, 0*time.Millisecond)
-		assert.Equal(t, "", response)
-		assert.Equal(t, errors.New("some error"), err)
+		response, err = ReceiveQID(commonPort2, 10*time.Millisecond)
+		assert.Equal(t, "QID\xd6\xea\r", response)
+		assert.NoError(t, err)
 	})
 
 	t.Run("TestVerifyQID", func(t *testing.T) {

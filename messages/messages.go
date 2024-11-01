@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	phocus_mqtt "github.com/wolffshots/phocus/v2/mqtt"
-	phocus_serial "github.com/wolffshots/phocus/v2/serial" // comms with inverter
+	comms "github.com/wolffshots/phocus/v2/comms"
+	mqtt "github.com/wolffshots/phocus/v2/mqtt"
 )
 
 // Message is the shape of a message for phocus to interpret and handle queuing of
@@ -21,8 +21,8 @@ type Message struct {
 // Interpret converts the generic `phocus` message into a specific inverter message
 // TODO add even more generalisation and separated implementation details here
 func Interpret(
-	client phocus_mqtt.Client,
-	port phocus_serial.Port,
+	client mqtt.Client,
+	port comms.Port,
 	input Message,
 	readTimeout time.Duration,
 ) (*QPGSnResponse, error) {
