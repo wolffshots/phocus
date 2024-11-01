@@ -44,13 +44,13 @@ func TestGeneric(t *testing.T) {
 		// invalid write
 		written, err = SendGeneric(commonPort1, "GENERIC", nil)
 		assert.Equal(t, -1, written)
-		assert.Equal(t, errors.New("port is nil on write"), err)
+		assert.Equal(t, errors.New("serial port is nil on write"), err)
 		written, err = SendGeneric(commonPort1, "GENERIC", 1)
 		assert.Equal(t, -1, written)
-		assert.Equal(t, errors.New("port is nil on write"), err)
+		assert.Equal(t, errors.New("serial port is nil on write"), err)
 		written, err = SendGeneric(commonPort1, "GENERIC", "1")
 		assert.Equal(t, -1, written)
-		assert.Equal(t, errors.New("port is nil on write"), err)
+		assert.Equal(t, errors.New("serial port is nil on write"), err)
 	})
 
 	t.Run("TestReceiveGeneric", func(t *testing.T) {
@@ -89,7 +89,7 @@ func TestGeneric(t *testing.T) {
 		// invalid read
 		response, err = ReceiveGeneric(commonPort2, "GENERIC", 10*time.Millisecond)
 		assert.Equal(t, "", response)
-		assert.Equal(t, errors.New("port is nil on read"), err)
+		assert.Equal(t, errors.New("serial port is nil on read"), err)
 
 		commonPort2, err = serialPort2.Open()
 		assert.NoError(t, err)

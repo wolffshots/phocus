@@ -51,7 +51,7 @@ func (ip *Port) Read(timeout time.Duration) (string, error) {
 func (ip *Port) Write(input string) (int, error) {
 	_ = crc.Encode(input) // TODO use message
 	// if ip == nil {
-	return 0, errors.New("port is nil on write")
+	return 0, errors.New("ip port is nil on write")
 	// }
 	// TODO
 	// return 0, nil

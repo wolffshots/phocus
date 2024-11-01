@@ -137,7 +137,7 @@ func TestSerial(t *testing.T) {
 		commonPort1.Close()
 		written, err = commonPort1.Write("test")
 		assert.Equal(t, -1, written)
-		assert.Equal(t, errors.New("port is nil on write"), err)
+		assert.Equal(t, errors.New("serial port is nil on write"), err)
 	})
 
 	t.Run("TestRead", func(t *testing.T) {
@@ -158,7 +158,7 @@ func TestSerial(t *testing.T) {
 		assert.NoError(t, err)
 		read, err = commonPort1.Read(1 * time.Millisecond)
 		assert.Equal(t, "", read)
-		assert.Equal(t, errors.New("port is nil on read"), err)
+		assert.Equal(t, errors.New("serial port is nil on read"), err)
 	})
 
 	t.Run("TestReadWrite", func(t *testing.T) {
@@ -194,5 +194,22 @@ func TestSerial(t *testing.T) {
 		read, err := commonPort2.Read(50 * time.Millisecond)
 		assert.Equal(t, "test\x9b\x06\r", read)
 		assert.NoError(t, err)
+	})
+
+	t.Run("TestMultiClose", func(t *testing.T) {
+		serialPort1 := Port{
+			Path:    "./serial1",
+			Baud:    2400,
+			Retries: 5,
+		}
+		commonPort1, err := serialPort1.Open()
+		assert.NoError(t, err)
+		assert.Equal(t, "./serial1", serialPort1.Path)
+
+		err = commonPort1.Close()
+		assert.NoError(t, err)
+
+		err = commonPort1.Close()
+		assert.Equal(t, errors.New("serial port is nil on close"), err)
 	})
 }

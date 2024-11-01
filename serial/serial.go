@@ -56,7 +56,7 @@ func (sp *Port) Open() (comms.Port, error) {
 func (sp *Port) Close() error {
 	fmt.Printf("Closing serial port: %s\n", sp.Path)
 	if sp.Port == nil || sp == nil {
-		return errors.New("serial port was nil on close call")
+		return errors.New("serial port is nil on close")
 	}
 	err := (*sp.Port).Close()
 	if err == nil {
@@ -73,7 +73,7 @@ func (sp *Port) Read(timeout time.Duration) (string, error) {
 	log.Printf("Starting read\n")
 	if sp.Port == nil || sp == nil {
 		log.Printf("Port nil on read\n")
-		return "", errors.New("port is nil on read")
+		return "", errors.New("serial port is nil on read")
 	}
 	buff := make([]byte, 140)
 	err := (*sp.Port).SetReadTimeout(timeout)
@@ -110,7 +110,7 @@ func (sp *Port) Read(timeout time.Duration) (string, error) {
 func (sp *Port) Write(input string) (int, error) {
 	log.Printf("Starting write\n")
 	if sp.Port == nil || sp == nil {
-		return -1, errors.New("port is nil on write")
+		return -1, errors.New("serial port is nil on write")
 	}
 	message := crc.Encode(input)
 	n, err := (*sp.Port).Write([]byte(message))

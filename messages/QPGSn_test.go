@@ -49,7 +49,7 @@ func TestQPGSn(t *testing.T) {
 		// invalid write
 		written, err = SendQPGSn(commonPort1, nil)
 		assert.Equal(t, -1, written)
-		assert.Equal(t, errors.New("port is nil on write"), err)
+		assert.Equal(t, errors.New("serial port is nil on write"), err)
 
 		// invalid write
 		written, err = SendQPGSn(commonPort1, "1")
@@ -59,7 +59,7 @@ func TestQPGSn(t *testing.T) {
 		// invalid write
 		written, err = SendQPGSn(commonPort1, 1)
 		assert.Equal(t, -1, written)
-		assert.Equal(t, errors.New("port is nil on write"), err)
+		assert.Equal(t, errors.New("serial port is nil on write"), err)
 	})
 
 	t.Run("TestReceiveQPGSn", func(t *testing.T) {
@@ -95,7 +95,7 @@ func TestQPGSn(t *testing.T) {
 		// invalid read
 		response, err = ReceiveQPGSn(commonPort2, 10*time.Millisecond, 1)
 		assert.Equal(t, "", response)
-		assert.Equal(t, errors.New("port is nil on read"), err)
+		assert.Equal(t, errors.New("serial port is nil on read"), err)
 
 		commonPort2, err = serialPort2.Open()
 		assert.NoError(t, err)

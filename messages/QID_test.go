@@ -37,7 +37,7 @@ func TestQID(t *testing.T) {
 		// invalid write
 		written, err = SendQID(commonPort1, nil)
 		assert.Equal(t, -1, written)
-		assert.Equal(t, errors.New("port is nil on write"), err)
+		assert.Equal(t, errors.New("serial port is nil on write"), err)
 	})
 
 	t.Run("TestReceiveQID", func(t *testing.T) {
@@ -73,7 +73,7 @@ func TestQID(t *testing.T) {
 		// invalid read
 		response, err = ReceiveQID(commonPort2, 10*time.Millisecond)
 		assert.Equal(t, "", response)
-		assert.Equal(t, errors.New("port is nil on read"), err)
+		assert.Equal(t, errors.New("serial port is nil on read"), err)
 
 		// reopen port
 		commonPort2, err = serialPort2.Open()

@@ -58,19 +58,19 @@ func TestMesages(t *testing.T) {
 		assert.NoError(t, err)
 
 		qpgsnresponse, err := Interpret(client, commonPort2, Message{uuid.New(), "QPGS1", ""}, 0*time.Second)
-		assert.EqualError(t, err, "port is nil on write")
+		assert.EqualError(t, err, "serial port is nil on write")
 		assert.Nil(t, qpgsnresponse)
 
 		qpgsnresponse, err = Interpret(client, commonPort2, Message{uuid.New(), "QPGS2", ""}, 0*time.Second)
-		assert.EqualError(t, err, "port is nil on write")
+		assert.EqualError(t, err, "serial port is nil on write")
 		assert.Nil(t, qpgsnresponse)
 
 		qpgsnresponse, err = Interpret(client, commonPort2, Message{uuid.New(), "QID", ""}, 0*time.Second)
-		assert.EqualError(t, err, "port is nil on write")
+		assert.EqualError(t, err, "serial port is nil on write")
 		assert.Nil(t, qpgsnresponse)
 
 		qpgsnresponse, err = Interpret(client, commonPort2, Message{uuid.New(), "SOMETHING_ELSE", ""}, 0*time.Second)
-		assert.EqualError(t, err, "port is nil on write")
+		assert.EqualError(t, err, "serial port is nil on write")
 		assert.Nil(t, qpgsnresponse)
 	})
 
