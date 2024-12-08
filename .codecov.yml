@@ -1,0 +1,3 @@
+ignore:
+    - "dummy/**/*.go"
+    - "**/*_test.go"

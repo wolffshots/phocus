@@ -43,9 +43,9 @@ func TerminateCmd(cmd *exec.Cmd) {
 }
 
 func TestSerial(t *testing.T) {
-	cmd := StartCmd("socat", "PTY,link=./serial1,raw,echo=1,crnl", "PTY,link=./serial2,raw,echo=1,crnl")
+	cmd := StartCmd("socat", "-d", "-d", "PTY,link=./serial1,raw,echo=0,crnl", "PTY,link=./serial2,raw,echo=0,crnl")
 	defer TerminateCmd(cmd)
-	time.Sleep(10 * time.Millisecond)
+	time.Sleep(51 * time.Millisecond)
 
 	t.Run("TestSetup", func(t *testing.T) {
 		var buf bytes.Buffer
@@ -54,9 +54,19 @@ func TestSerial(t *testing.T) {
 		defer func() {
 			log.SetOutput(os.Stderr)
 		}()
-		badPort, err := Setup("./bad_port", 2400, 5)
+
+		// sanity check with bug serial
+		_, err := serial.Open("./bad_port", &serial.Mode{BaudRate: 2400})
 		assert.Equal(t, syscall.Errno(0x2), err)
-		assert.Equal(t, "./bad_port", badPort.Path)
+
+		badSerialPort := Port{
+			Path:    "./bad_port",
+			Baud:    2400,
+			Retries: 5,
+		}
+		_, err = badSerialPort.Open()
+		assert.Equal(t, "./bad_port", badSerialPort.Path)
+		assert.NoFileExists(t, "./bad_port")
 		for i, message := range strings.Split(buf.String(), "\n") {
 			if len(message) > 20 {
 				assert.Equal(t, fmt.Sprintf("Failed to set up serial %d times with err: no such file or directory", i+1), message[20:])
@@ -64,15 +74,22 @@ func TestSerial(t *testing.T) {
 				assert.Equal(t, "", message)
 			}
 		}
+		assert.Equal(t, syscall.Errno(0x2), err)
 
 		buf.Reset()
 
 		time.Sleep(51 * time.Millisecond)
 
-		port1, err := Setup("./serial1", 2400, 5)
+		// setup virtual ports
+		serialPort1 := Port{
+			Path:    "./serial1",
+			Baud:    2400,
+			Retries: 5,
+		}
+		commonPort1, err := serialPort1.Open()
 		assert.NoError(t, err)
-		defer port1.Port.Close()
-		assert.Equal(t, "./serial1", port1.Path)
+		defer commonPort1.Close()
+		assert.Equal(t, "./serial1", serialPort1.Path)
 
 		for i, message := range strings.Split(buf.String(), "\n") {
 			if len(message) > 20 {
@@ -84,10 +101,15 @@ func TestSerial(t *testing.T) {
 
 		buf.Reset()
 
-		port2, err := Setup("./serial2", 2400, 5)
+		serialPort2 := Port{
+			Path:    "./serial2",
+			Baud:    2400,
+			Retries: 5,
+		}
+		commonPort2, err := serialPort2.Open()
 		assert.NoError(t, err)
-		defer port2.Port.Close()
-		assert.Equal(t, "./serial2", port2.Path)
+		defer commonPort2.Close()
+		assert.Equal(t, "./serial2", serialPort2.Path)
 
 		for i, message := range strings.Split(buf.String(), "\n") {
 			if len(message) > 20 {
@@ -99,39 +121,95 @@ func TestSerial(t *testing.T) {
 	})
 
 	t.Run("TestWrite", func(t *testing.T) {
-		port1, err := Setup("./serial1", 2400, 5)
+		serialPort1 := Port{
+			Path:    "./serial1",
+			Baud:    2400,
+			Retries: 5,
+		}
+		commonPort1, err := serialPort1.Open()
 		assert.NoError(t, err)
-		written, err := port1.Write(port1.Port, "test")
+		assert.Equal(t, "./serial1", serialPort1.Path)
+
+		written, err := commonPort1.Write("test")
 		assert.Equal(t, 7, written)
 		assert.NoError(t, err)
 
-		port1.Port.Close()
-		written, err = port1.Write(port1.Port, "test")
+		commonPort1.Close()
+		written, err = commonPort1.Write("test")
 		assert.Equal(t, -1, written)
-		assert.Equal(t, syscall.Errno(0x9), err)
-
-		port1.Port = nil
-		written, err = port1.Write(port1.Port, "test")
-		assert.Equal(t, 0, written)
-		assert.Equal(t, errors.New("port is nil on write"), err)
+		assert.Equal(t, errors.New("serial port is nil on write"), err)
 	})
 
 	t.Run("TestRead", func(t *testing.T) {
-		port1, err := Setup("./serial1", 2400, 5)
+		serialPort1 := Port{
+			Path:    "./serial1",
+			Baud:    2400,
+			Retries: 5,
+		}
+		commonPort1, err := serialPort1.Open()
 		assert.NoError(t, err)
-		read, err := port1.Read(port1.Port, 1*time.Millisecond)
+		assert.Equal(t, "./serial1", serialPort1.Path)
+
+		read, err := commonPort1.Read(1 * time.Millisecond)
 		assert.Equal(t, "", read)
 		assert.Equal(t, errors.New("read returned nothing"), err)
 
-		err = port1.Port.Close()
+		err = commonPort1.Close()
 		assert.NoError(t, err)
-		read, err = port1.Read(port1.Port, 1*time.Millisecond)
+		read, err = commonPort1.Read(1 * time.Millisecond)
 		assert.Equal(t, "", read)
-		assert.Equal(t, serial.PortClosed, err.(*serial.PortError).Code())
+		assert.Equal(t, errors.New("serial port is nil on read"), err)
+	})
 
-		port1.Port = nil
-		read, err = port1.Read(port1.Port, 1*time.Millisecond)
-		assert.Equal(t, "", read)
-		assert.Equal(t, errors.New("port is nil on read"), err)
+	t.Run("TestReadWrite", func(t *testing.T) {
+		serialPort1 := Port{
+			Path:    "./serial1",
+			Baud:    2400,
+			Retries: 5,
+		}
+		commonPort1, err := serialPort1.Open()
+		assert.NoError(t, err)
+		defer commonPort1.Close()
+		assert.Equal(t, "./serial1", serialPort1.Path)
+
+		serialPort2 := Port{
+			Path:    "./serial2",
+			Baud:    2400,
+			Retries: 5,
+		}
+		commonPort2, err := serialPort2.Open()
+		assert.NoError(t, err)
+		defer commonPort2.Close()
+		assert.Equal(t, "./serial2", serialPort2.Path)
+
+		// clear past read
+		_, _ = commonPort2.Read(50 * time.Millisecond)
+
+		written, err := commonPort1.Write("test")
+		assert.Equal(t, 7, written)
+		assert.NoError(t, err)
+
+		time.Sleep(51 * time.Millisecond)
+
+		read, err := commonPort2.Read(50 * time.Millisecond)
+		assert.Equal(t, "test\x9b\x06\r", read)
+		assert.NoError(t, err)
+	})
+
+	t.Run("TestMultiClose", func(t *testing.T) {
+		serialPort1 := Port{
+			Path:    "./serial1",
+			Baud:    2400,
+			Retries: 5,
+		}
+		commonPort1, err := serialPort1.Open()
+		assert.NoError(t, err)
+		assert.Equal(t, "./serial1", serialPort1.Path)
+
+		err = commonPort1.Close()
+		assert.NoError(t, err)
+
+		err = commonPort1.Close()
+		assert.Equal(t, errors.New("serial port is nil on close"), err)
 	})
 }

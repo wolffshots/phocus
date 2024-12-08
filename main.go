@@ -2,8 +2,9 @@
 package main
 
 import (
-	"errors"  // creating custom errors
-	"fmt"     // string formatting
+	"errors" // creating custom errors
+	"fmt"    // string formatting
+	"io"
 	"log"     // formatted logging
 	"os"      // exiting
 	"os/exec" // auto restart
@@ -12,22 +13,20 @@ import (
 	"encoding/json" // for config reading
 
 	"github.com/gin-gonic/gin"
-	api "github.com/wolffshots/phocus/v2/api"           // api setup
+	api "github.com/wolffshots/phocus/v2/api"     // api setup
+	comms "github.com/wolffshots/phocus/v2/comms" // comms with inverter
+	ip "github.com/wolffshots/phocus/v2/ip"
 	messages "github.com/wolffshots/phocus/v2/messages" // message structures
 	mqtt "github.com/wolffshots/phocus/v2/mqtt"         // comms with mqtt broker
 	sensors "github.com/wolffshots/phocus/v2/sensors"   // registering common sensors
-	serial "github.com/wolffshots/phocus/v2/serial"     // comms with inverter
+	serial "github.com/wolffshots/phocus/v2/serial"
 )
 
 var version = "development"
 
 type Configuration struct {
-	Serial struct {
-		Port    string
-		Baud    int
-		Retries int
-	}
-	MQTT struct {
+	Connection comms.Connection
+	MQTT       struct {
 		Host   string
 		Port   int
 		Client struct {
@@ -46,13 +45,20 @@ type Configuration struct {
 	Profiling        bool
 }
 
-func ParseConfig(fileName string) (Configuration, error) {
-	file, _ := os.Open(fileName)
-	defer file.Close()
-	decoder := json.NewDecoder(file)
+func ParseConfig(r io.Reader) (Configuration, error) {
+	decoder := json.NewDecoder(r)
 	configuration := Configuration{}
 	err := decoder.Decode(&configuration)
 	return configuration, err
+}
+
+func ParseConfigFromFile(fileName string) (Configuration, error) {
+	file, err := os.Open(fileName)
+	if err != nil {
+		return Configuration{}, err
+	}
+	defer file.Close()
+	return ParseConfig(file)
 }
 
 func Router(client mqtt.Client, profiling bool) error {
@@ -74,7 +80,7 @@ func main() {
 	log.Println("Starting up phocus")
 	log.Printf("Phocus Version: %s\n\n", version)
 
-	configuration, err := ParseConfig("config.json")
+	configuration, err := ParseConfigFromFile("config.json")
 
 	// TODO log some other useful info here
 
@@ -109,13 +115,27 @@ func main() {
 	if pubErr != nil {
 		log.Printf("Failed to set phocus version: %v\n", pubErr)
 	}
-
-	// serial
-	port, err := serial.Setup(
-		configuration.Serial.Port,
-		configuration.Serial.Baud,
-		configuration.Serial.Retries,
-	)
+	var commonPort comms.Port
+	switch configuration.Connection.Type {
+	case comms.ConnectionTypeSerial:
+		serialPort := serial.Port{
+			Path:    configuration.Connection.Serial.Port,
+			Baud:    configuration.Connection.Serial.Baud,
+			Retries: configuration.Connection.Serial.Retries,
+		}
+		commonPort, err = serialPort.Open()
+		defer commonPort.Close()
+	case comms.ConnectionTypeIP:
+		ipPort := ip.Port{
+			Host: configuration.Connection.IP.Host,
+			Port: configuration.Connection.IP.Port,
+		}
+		commonPort, err = ipPort.Open()
+		defer commonPort.Close()
+	default:
+		log.Printf("unhandled connection type: %v", configuration.Connection.Type)
+		os.Exit(1)
+	}
 	if err != nil {
 		pubErr := mqtt.Error(client, 0, true, err, 10)
 		if pubErr != nil {
@@ -124,7 +144,6 @@ func main() {
 		log.Printf("Failed to set up serial with err: %v", err)
 		os.Exit(1)
 	}
-	defer port.Port.Close()
 
 	// spawns a go-routine which handles web requests
 	go Router(client, configuration.Profiling)
@@ -152,17 +171,20 @@ func main() {
 		api.QueueMutex.Lock()
 		// if there is an entry at [0] then run that command
 		if len(api.Queue) > 0 {
-			QPGSnResponse, err := messages.Interpret(client, port, api.Queue[0], time.Duration(configuration.Messages.Read.TimeoutSeconds)*time.Second)
+			QPGSnResponse, err := messages.Interpret(client, commonPort, api.Queue[0], time.Duration(configuration.Messages.Read.TimeoutSeconds)*time.Second)
 			if err != nil {
 				pubErr := mqtt.Error(client, 0, true, err, 10)
 				if pubErr != nil {
 					log.Printf("Failed to post previous error (%v) to mqtt: %v\n", err, pubErr)
 				}
 				if fmt.Sprint(err) == "read returned nothing" { // immediately jailed when read timeout
-					port.Port.Close()
 					pubErr := mqtt.Error(client, 0, true, errors.New("read timed out, waiting 2 minutes then restarting"), 10)
 					if pubErr != nil {
 						log.Printf("Failed to post previous error (%v) to mqtt: %v\n", err, pubErr)
+					}
+					err = commonPort.Close()
+					if err != nil {
+						log.Printf("couldn't close port with: %v", err)
 					}
 					time.Sleep(2 * time.Minute)
 					cmd, err := exec.Command("bash", "-c", "sudo service phocus restart").Output()

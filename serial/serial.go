@@ -4,97 +4,118 @@ package phocus_serial
 
 import (
 	"errors" // creating custom err messages
-	"fmt"    // formatting
+	"fmt"    // string formatting
 	"log"    // logging
 	"time"   // timeouts
 
-	crc "github.com/wolffshots/phocus/v2/crc" // checksum generation
-	"go.bug.st/serial"                        // rs232 serial
+	comms "github.com/wolffshots/phocus/v2/comms" // common types for comms
+	crc "github.com/wolffshots/phocus/v2/crc"     // checksum generation
+	serial "go.bug.st/serial"                     // rs232 serial
 )
 
-type Writer func(port serial.Port, input string) (int, error)
-type Reader func(port serial.Port, timeout time.Duration) (string, error)
+// type Writer func(port serial.Port, input string) (int, error)
+// type Reader func(port serial.Port, timeout time.Duration) (string, error)
 
 // port is the object representing the serial device/connection
 // var port serial.Port
 
 type Port struct {
-	Port  serial.Port
-	Path  string
-	Write Writer
-	Read  Reader
+	Port    *serial.Port
+	Path    string
+	Baud    int
+	Retries int
 }
 
-// Setup opens a connection to the inverter.
+// Open opens a connection to the inverter.
 //
 // Returns the port or an error if the port fails to open.
-func Setup(portPath string, baud int, retries int) (Port, error) {
-	var port serial.Port
+func (sp *Port) Open() (comms.Port, error) {
+	fmt.Printf("Opening serial port: %s\n", sp.Path)
 	var err error
-	for i := 0; i < retries; i++ {
+	var port serial.Port
+	for i := 0; i < sp.Retries; i++ {
 		mode := &serial.Mode{
-			BaudRate: baud,
+			BaudRate: sp.Baud,
 		}
-		port, err = serial.Open(portPath, mode)
+		port, err = serial.Open(sp.Path, mode)
 		if err != nil {
 			log.Printf("Failed to set up serial %d times with err: %v", i+1, err)
 			time.Sleep(50 * time.Millisecond)
 		} else {
+			sp.Port = &port
 			log.Printf("Succeeded to set up serial after %d times", i+1)
 			break
 		}
 	}
-	return Port{
-		Port:  port,
-		Path:  portPath,
-		Write: Write,
-		Read:  Read,
-	}, err
+	return sp, err
 }
 
-// Write a string to the open serial port
-// The input should just be the "payload" string as
-// the CRC is calculated and added to that in Write
-var Write = func(port serial.Port, input string) (int, error) {
-	message := crc.Encode(input)
-	if port == nil {
-		return 0, errors.New("port is nil on write")
+// Close just closes the port
+//
+// Returns the error if there is one
+func (sp *Port) Close() error {
+	fmt.Printf("Closing serial port: %s\n", sp.Path)
+	if sp.Port == nil || sp == nil {
+		return errors.New("serial port is nil on close")
 	}
-	n, err := port.Write([]byte(message))
-	if err != nil {
-		return -1, err
+	err := (*sp.Port).Close()
+	if err == nil {
+		sp.Port = nil
 	}
-	return n, err
+	return err
 }
 
 // Read from the open serial port until reaching a carriage return, nil or nothing.
 // Takes a duration as an input and times out the read after that long.
 //
 // Returns the read string and the error
-var Read = func(port serial.Port, timeout time.Duration) (string, error) {
+func (sp *Port) Read(timeout time.Duration) (string, error) {
 	log.Printf("Starting read\n")
-	buff := make([]byte, 140)
-	if port == nil {
-		return "", errors.New("port is nil on read")
+	if sp.Port == nil || sp == nil {
+		log.Printf("Port nil on read\n")
+		return "", errors.New("serial port is nil on read")
 	}
-	port.SetReadTimeout(timeout)
-	var err error
+	buff := make([]byte, 140)
+	err := (*sp.Port).SetReadTimeout(timeout)
+	if err != nil {
+		return "", errors.New("failed to set timeout")
+	}
 	var response string
 	for {
-		n, readErr := port.Read(buff)
+		n, readErr := (*sp.Port).Read(buff)
 		if readErr != nil {
 			log.Printf("Err reading from port: %v", readErr)
 			err = readErr
 			break
 		} else if n == 0 {
-			log.Println("\nEOF")
-			err = errors.New("read returned nothing")
+			log.Println("EOF")
+			if response == "" {
+				err = errors.New("read returned nothing")
+			}
 			break
 		} else if string(buff[:n]) == "\r" {
+			log.Printf("Encountered carriage return\n")
 			response = fmt.Sprintf("%v%v", response, string(buff[:n]))
 			break
 		}
+		log.Printf("Current response: %v\n", string(buff[:n]))
 		response = fmt.Sprintf("%v%v", response, string(buff[:n]))
 	}
 	return response, err
+}
+
+// Write a string to the open serial port
+// The input should just be the "payload" string as
+// the CRC is calculated and added to that in Write
+func (sp *Port) Write(input string) (int, error) {
+	log.Printf("Starting write\n")
+	if sp.Port == nil || sp == nil {
+		return -1, errors.New("serial port is nil on write")
+	}
+	message := crc.Encode(input)
+	n, err := (*sp.Port).Write([]byte(message))
+	if err != nil {
+		return -1, err
+	}
+	return n, err
 }
