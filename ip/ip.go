@@ -3,7 +3,11 @@
 package phocus_ip
 
 import (
+	"bytes"  // byte manipulation
 	"errors" // creating custom err messages
+	"fmt"    // string formatting
+	"log"    // logging
+	"net"    // networking
 	"time"   // timeouts
 
 	comms "github.com/wolffshots/phocus/v2/comms" // common types for comms
@@ -15,6 +19,7 @@ type Port struct {
 	Host    string
 	Port    int
 	Retries int
+	Conn    net.Conn // active connection
 }
 
 // Open opens a connection to the inverter.
@@ -22,8 +27,18 @@ type Port struct {
 // Returns the port or an error if the port fails to open.
 func (ip *Port) Open() (comms.Port, error) {
 	var err error
+	address := fmt.Sprintf("%s:%d", ip.Host, ip.Port)
+	log.Printf("Connecting to %s over IP stream\n", address)
+	var conn net.Conn
 	for i := 0; i < ip.Retries; i++ {
-		// TODO
+		log.Printf("Attempt %d/%d\n", i+1, ip.Retries)
+		conn, err = net.DialTimeout("tcp", address, 5*time.Second)
+		if err == nil {
+			log.Printf("Connected to %s on attempt %d\n", address, i+1)
+			ip.Conn = conn
+			break
+		}
+		time.Sleep(50 * time.Millisecond)
 	}
 	return ip, err
 }
@@ -32,8 +47,10 @@ func (ip *Port) Open() (comms.Port, error) {
 //
 // Returns the error if there is one
 func (ip *Port) Close() error {
-
-	return nil // TODO
+	if ip.Conn != nil {
+		return ip.Conn.Close()
+	}
+	return nil
 }
 
 // Read from the open socket until reaching a carriage return, nil or nothing.
@@ -41,18 +58,33 @@ func (ip *Port) Close() error {
 //
 // Returns the read string and the error
 func (ip *Port) Read(timeout time.Duration) (string, error) {
-
-	return "", nil // TODO
+	if ip.Conn == nil {
+		return "", errors.New("ip port is not open")
+	}
+	ip.Conn.SetReadDeadline(time.Now().Add(timeout))
+	var data []byte
+	buf := make([]byte, 256)
+	for {
+		n, err := ip.Conn.Read(buf)
+		if err != nil {
+			return "", err
+		}
+		data = append(data, buf[:n]...)
+		// Check if there's a carriage return in the data
+		if i := bytes.IndexByte(data, '\r'); i != -1 {
+			return string(data[:i+1]), nil
+		}
+	}
 }
 
 // Write a string to the socket
 // The input should just be the "payload" string as
 // the CRC is calculated and added to that in Write
 func (ip *Port) Write(input string) (int, error) {
-	_ = crc.Encode(input) // TODO use message
-	// if ip == nil {
-	return 0, errors.New("ip port is nil on write")
-	// }
-	// TODO
-	// return 0, nil
+	encoded := crc.Encode(input)
+	if ip.Conn == nil {
+		return 0, errors.New("ip port is nil on write")
+	}
+	n, err := ip.Conn.Write([]byte(encoded))
+	return n, err
 }

@@ -52,7 +52,7 @@ func ReceiveGeneric(port comms.Port, command string, timeout time.Duration) (str
 	log.Printf("%s\n", response)
 	// verify
 	if err != nil || response == "" {
-		log.Printf("Failed to read from serial with: %v\n", err)
+		log.Printf("Failed to read with: %v\n", err)
 		return "", err
 	} else {
 		return VerifyGeneric(response, command)

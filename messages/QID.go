@@ -31,7 +31,7 @@ func ReceiveQID(port comms.Port, timeout time.Duration) (string, error) {
 	response, err := port.Read(timeout)
 	log.Printf("%s\n", response)
 	if err != nil || response == "" {
-		log.Printf("Failed to read from serial with: %v\n", err)
+		log.Printf("Failed to read with: %v\n", err)
 		return "", err
 	} else {
 		return VerifyQID(response)

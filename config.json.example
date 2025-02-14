@@ -1,4 +1,5 @@
 {
+  "$schema": "https://raw.githubusercontent.com/wolffshots/phocus/main/config.schema.json",
   "Connection": {
     "Type": "Serial",
     "Serial": {

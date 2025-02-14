@@ -10,8 +10,9 @@ type Serial struct {
 	Retries int
 }
 type IP struct {
-	Host string
-	Port int
+	Host    string
+	Port    int
+	Retries int
 }
 type ConnectionType string
 

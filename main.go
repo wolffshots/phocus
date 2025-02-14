@@ -123,25 +123,29 @@ func main() {
 			Baud:    configuration.Connection.Serial.Baud,
 			Retries: configuration.Connection.Serial.Retries,
 		}
+		log.Printf("Opening Serial port: %v\n", serialPort)
 		commonPort, err = serialPort.Open()
 		defer commonPort.Close()
 	case comms.ConnectionTypeIP:
 		ipPort := ip.Port{
-			Host: configuration.Connection.IP.Host,
-			Port: configuration.Connection.IP.Port,
+			Host:    configuration.Connection.IP.Host,
+			Port:    configuration.Connection.IP.Port,
+			Retries: configuration.Connection.IP.Retries,
 		}
+		log.Printf("Opening IP port: %v\n", ipPort)
 		commonPort, err = ipPort.Open()
 		defer commonPort.Close()
 	default:
-		log.Printf("unhandled connection type: %v", configuration.Connection.Type)
+		log.Printf("Unhandled connection type: %v", configuration.Connection.Type)
 		os.Exit(1)
 	}
+	log.Printf("Common port opened: %v\n", commonPort)
 	if err != nil {
+		log.Printf("Failed to open connection with err: %v", err)
 		pubErr := mqtt.Error(client, 0, true, err, 10)
 		if pubErr != nil {
 			log.Printf("Failed to post previous error (%v) to mqtt: %v\n", err, pubErr)
 		}
-		log.Printf("Failed to set up serial with err: %v", err)
 		os.Exit(1)
 	}
 

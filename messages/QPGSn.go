@@ -175,7 +175,7 @@ func ReceiveQPGSn(port comms.Port, timeout time.Duration, inverterNum int) (stri
 	log.Printf("%s\n", response)
 	// verify
 	if err != nil || response == "" {
-		log.Printf("Failed to read from serial with: %v\n", err)
+		log.Printf("Failed to read with: %v\n", err)
 		return "", err
 	} else {
 		return VerifyQPGSn(response, inverterNum)
