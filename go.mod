@@ -1,7 +1,6 @@
 module github.com/wolffshots/phocus/v2
 
-go 1.21
-toolchain go1.24.1
+go 1.24.2
 
 require (
 	github.com/eclipse/paho.mqtt.golang v1.4.2
