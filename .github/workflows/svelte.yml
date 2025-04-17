@@ -3,16 +3,18 @@ name: svelte
 on:
   workflow_dispatch:
   push:
-    paths-ignore:
-        - '**/*.go'
-        - '**/go.mod'
-        - '**/go.sum'
-        - '**/*.md'
-        - 'LICENSE'
-        - '**/*.sh'
-        - '**/*.service'
-        - '**/*.json*'
-        - '.github/*.yml'
+    paths:
+        - 'web'
+        - 'web/**/*.json*'
+        - '!**/*.go'
+        - '!**/go.mod'
+        - '!**/go.sum'
+        - '!**/*.md'
+        - '!LICENSE'
+        - '!**/*.sh'
+        - '!**/*.service'
+        - '!**/*.json*'
+        - '!.github/*.y*ml'
 
 defaults:
     run:
