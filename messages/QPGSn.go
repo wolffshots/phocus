@@ -8,9 +8,9 @@ import (
 	"strings"       // string manipulation
 	"time"          // sleeping
 
-	phocus_crc "github.com/wolffshots/phocus/v2/crc"   // checksum calculations
-	phocus_mqtt "github.com/wolffshots/phocus/v2/mqtt" // comms with mqtt broker
-	phocus_serial "github.com/wolffshots/phocus/v2/serial"
+	comms "github.com/wolffshots/phocus/v2/comms" // common types for comms
+	crc "github.com/wolffshots/phocus/v2/crc"     // checksum calculations
+	mqtt "github.com/wolffshots/phocus/v2/mqtt"   // comms with mqtt broker
 )
 
 type OperationMode string
@@ -144,11 +144,11 @@ type QPGSnResponse struct {
 	Checksum                            string
 }
 
-func SendQPGSn(port phocus_serial.Port, payload interface{}) (int, error) {
+func SendQPGSn(port comms.Port, payload interface{}) (int, error) {
 	switch payload.(type) {
 	case int:
 		query := fmt.Sprintf("QPGS%d", payload)
-		written, err := port.Write(port.Port, query)
+		written, err := port.Write(query)
 		if err != nil {
 			return -1, err
 		} else {
@@ -159,7 +159,7 @@ func SendQPGSn(port phocus_serial.Port, payload interface{}) (int, error) {
 		return -1, errors.New("qpgsn does not support string payloads")
 	default:
 		log.Println("Payload type for QPGSn was not handled, proceeding as QPGS0")
-		written, err := port.Write(port.Port, "QPGS0")
+		written, err := port.Write("QPGS0")
 		if err != nil {
 			return -1, err
 		} else {
@@ -169,13 +169,13 @@ func SendQPGSn(port phocus_serial.Port, payload interface{}) (int, error) {
 	}
 }
 
-func ReceiveQPGSn(port phocus_serial.Port, timeout time.Duration, inverterNum int) (string, error) {
+func ReceiveQPGSn(port comms.Port, timeout time.Duration, inverterNum int) (string, error) {
 	// read from port
-	response, err := port.Read(port.Port, timeout)
+	response, err := port.Read(timeout)
 	log.Printf("%s\n", response)
 	// verify
 	if err != nil || response == "" {
-		log.Printf("Failed to read from serial with: %v\n", err)
+		log.Printf("Failed to read with: %v\n", err)
 		return "", err
 	} else {
 		return VerifyQPGSn(response, inverterNum)
@@ -183,7 +183,7 @@ func ReceiveQPGSn(port phocus_serial.Port, timeout time.Duration, inverterNum in
 }
 
 func VerifyQPGSn(response string, inverterNum int) (string, error) {
-	if phocus_crc.Verify(response) {
+	if crc.Verify(response) {
 		return response, nil
 	} else {
 		if len(response) < 3 {
@@ -191,7 +191,7 @@ func VerifyQPGSn(response string, inverterNum int) (string, error) {
 		}
 		actual := response[len(response)-3 : len(response)-1]
 		remainder := response[:len(response)-3]
-		wanted := phocus_crc.Checksum(remainder)
+		wanted := crc.Checksum(remainder)
 		message := fmt.Sprintf("invalid response from QPGS%d: CRC should have been %x but was %x", inverterNum, wanted, actual)
 		log.Println(message)
 		return "", errors.New(message)
@@ -263,9 +263,9 @@ func EncodeQPGSn(response *QPGSnResponse) string {
 	return string(jsonQPGSnResponse)
 }
 
-func PublishQPGSn(client phocus_mqtt.Client, response *QPGSnResponse, inverterNum int) error {
+func PublishQPGSn(client mqtt.Client, response *QPGSnResponse, inverterNum int) error {
 	jsonResponse := EncodeQPGSn(response)
-	err := phocus_mqtt.Send(client, fmt.Sprintf("phocus/stats/qpgs%d", inverterNum), 0, false, string(jsonResponse), 10)
+	err := mqtt.Send(client, fmt.Sprintf("phocus/stats/qpgs%d", inverterNum), 0, false, string(jsonResponse), 10)
 	if err != nil {
 		log.Printf("MQTT send of QPGS%d failed with: %v\ntype of thing sent was: %T", inverterNum, err, jsonResponse)
 	} else {

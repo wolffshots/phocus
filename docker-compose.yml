@@ -1,0 +1,13 @@
+services:
+  mqtt:
+    container_name: mqtt
+    restart: unless-stopped
+    ports:
+      - 1883:1883
+      - 9001:9001
+    volumes:
+      - ./dev/mqtt/config:/mosquitto/config
+      - ./dev/mqtt/data:/mosquitto/data
+      - /etc/localtime:/etc/localtime:ro
+    image: eclipse-mosquitto:latest
+# phocus:

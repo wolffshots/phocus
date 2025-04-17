@@ -1,0 +1,116 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "Connection": {
+      "type": "object",
+      "properties": {
+        "Type": {
+          "type": "string",
+          "enum": ["Serial", "IP"]
+        },
+        "Serial": {
+          "type": "object",
+          "properties": {
+            "Port": {
+              "type": "string"
+            },
+            "Baud": {
+              "type": "integer"
+            },
+            "Retries": {
+              "type": "integer"
+            }
+          },
+          "required": ["Port", "Baud", "Retries"]
+        },
+        "IP": {
+          "type": "object",
+          "properties": {
+            "Host": {
+              "type": "string"
+            },
+            "Port": {
+              "type": "integer"
+            },
+            "Retries": {
+              "type": "integer"
+            }
+          },
+          "required": ["Host", "Port", "Retries"]
+        }
+      },
+      "required": ["Type"],
+      "oneOf": [
+        {
+          "properties": {
+            "Type": {
+              "const": "Serial"
+            }
+          },
+          "required": ["Serial"]
+        },
+        {
+          "properties": {
+            "Type": {
+              "const": "IP"
+            }
+          },
+          "required": ["IP"]
+        }
+      ]
+    },
+    "MQTT": {
+      "type": "object",
+      "properties": {
+        "Host": {
+          "type": "string"
+        },
+        "Port": {
+          "type": "integer"
+        },
+        "Client": {
+          "type": "object",
+          "properties": {
+            "Name": {
+              "type": "string"
+            }
+          },
+          "required": ["Name"]
+        },
+        "Retries": {
+          "type": "integer"
+        }
+      },
+      "required": ["Host", "Port", "Client", "Retries"]
+    },
+    "Messages": {
+      "type": "object",
+      "properties": {
+        "Read": {
+          "type": "object",
+          "properties": {
+            "TimeoutSeconds": {
+              "type": "integer"
+            }
+          },
+          "required": ["TimeoutSeconds"]
+        }
+      },
+      "required": ["Read"]
+    },
+    "DelaySeconds": {
+      "type": "integer"
+    },
+    "RandDelaySeconds": {
+      "type": "integer"
+    },
+    "MinDelaySeconds": {
+      "type": "integer"
+    },
+    "Profiling": {
+      "type": "boolean"
+    }
+  },
+  "required": ["Connection", "MQTT", "Messages", "DelaySeconds", "RandDelaySeconds", "MinDelaySeconds", "Profiling"]
+}
