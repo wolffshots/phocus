@@ -1,8 +1,12 @@
 {
-  "Serial": {
-    "Port": "/dev/ttyUSB0",
-    "Baud": 2400,
-    "Retries": 5
+  "$schema": "https://raw.githubusercontent.com/wolffshots/phocus/main/config.schema.json",
+  "Connection": {
+    "Type": "Serial",
+    "Serial": {
+      "Port": "/dev/ttyUSB0",
+      "Baud": 2400,
+      "Retries": 5
+    }
   },
   "MQTT": {
     "Host": "192.168.1.1",
