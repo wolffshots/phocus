@@ -22,17 +22,17 @@ func TestSetup(t *testing.T) {
 		log.SetOutput(os.Stderr)
 	}()
 	client, err := Setup(
-		"bad host",
+		"badhost",
 		1883,
 		5,
 		"test_client_name",
 	)
-	assert.Equal(t, errors.New("no servers defined to connect to"), err)
+	assert.Equal(t, errors.New("network Error : dial tcp: lookup badhost: no such host"), err)
 	assert.Equal(t, nil, client)
 
 	for i, message := range strings.Split(buf.String(), "\n") {
 		if len(message) > 20 {
-			assert.Equal(t, fmt.Sprintf("Failed to set up mqtt %d times with err: no servers defined to connect to", i+1), message[20:])
+			assert.Equal(t, fmt.Sprintf("Failed to set up mqtt %d times with err: network Error : dial tcp: lookup badhost: no such host", i+1), message[20:])
 		} else {
 			assert.Equal(t, "", message)
 		}
@@ -46,12 +46,12 @@ func TestSetup(t *testing.T) {
 		5,
 		"test_client_name",
 	)
-	assert.Equal(t, errors.New("network Error : dial tcp 127.0.0.1:1883: connect: connection refused"), err)
+	assert.Equal(t, errors.New("network Error : dial tcp 127.0.0.1:1883: connectex: No connection could be made because the target machine actively refused it."), err)
 	assert.Equal(t, nil, client)
 
 	for i, message := range strings.Split(buf.String(), "\n") {
 		if len(message) > 20 {
-			assert.Equal(t, fmt.Sprintf("Failed to set up mqtt %d times with err: network Error : dial tcp 127.0.0.1:1883: connect: connection refused", i+1), message[20:])
+			assert.Equal(t, fmt.Sprintf("Failed to set up mqtt %d times with err: network Error : dial tcp 127.0.0.1:1883: connectex: No connection could be made because the target machine actively refused it.", i+1), message[20:])
 		} else {
 			assert.Equal(t, "", message)
 		}
