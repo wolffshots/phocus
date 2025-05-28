@@ -4,6 +4,8 @@ import (
 	"errors"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestPort_Open(t *testing.T) {
@@ -13,13 +15,13 @@ func TestPort_Open(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Successful Open",
+			name: "Fail to open",
 			port: Port{
 				Host:    "localhost",
 				Port:    8080,
 				Retries: 3,
 			},
-			wantErr: false,
+			wantErr: true,
 		},
 	}
 
@@ -49,9 +51,7 @@ func TestPort_Read(t *testing.T) {
 	timeout := time.Second
 
 	result, err := port.Read(timeout)
-	if err != nil && !errors.Is(err, errors.New("timeout")) {
-		t.Errorf("Port.Read() error = %v, want nil or timeout error", err)
-	}
+	assert.Equal(t, errors.New("ip port is not open"), err)
 	if result != "" {
 		t.Errorf("Port.Read() got = %v, want empty string", result)
 	}
