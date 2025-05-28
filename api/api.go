@@ -16,6 +16,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	messages "github.com/wolffshots/phocus/v2/messages"
+	diagnostics "github.com/wolffshots/phocus/v2/diagnostics"
 )
 
 const MAX_QUEUE_LENGTH = 50
@@ -160,6 +161,12 @@ func GetHealth(c *gin.Context) {
 	c.String(http.StatusOK, "UP")
 }
 
+// GetDiagnostics returns current system diagnostics as JSON
+func GetDiagnostics(c *gin.Context) {
+	diagData := diagnostics.GetDiagnostics()
+	c.JSON(http.StatusOK, diagData)
+}
+
 // GetMessage attempts to select a specified message from the Queue and returns it or fails
 //
 // Attempts to get and return the Message with the supplied `id` from the Queue otherwise it returns a 404.
@@ -234,6 +241,7 @@ func SetupRouter(mode string, profiling bool) *gin.Engine {
 		MaxAge:       12 * time.Hour,
 	}))
 	router.GET("/health", GetHealth)
+	router.GET("/diagnostics", GetDiagnostics)
 	router.GET("/queue", GetQueue)
 	router.GET("/queue/:id", GetMessage)
 	router.GET("/last", GetLast)

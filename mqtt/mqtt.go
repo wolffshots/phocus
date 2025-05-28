@@ -12,6 +12,13 @@ import (
 	mqtt "github.com/eclipse/paho.mqtt.golang" // mqtt client
 )
 
+// DiagnosticsUpdater interface for updating diagnostics
+type DiagnosticsUpdater interface {
+	UpdateError(err error)
+}
+
+var diagUpdater DiagnosticsUpdater
+
 type Client mqtt.Client
 
 var CreateClient = func(hostname string, port int, retries int, clientId string) (mqtt.Client, error) {
@@ -48,6 +55,11 @@ var CreateClient = func(hostname string, port int, retries int, clientId string)
 	return client, err
 }
 
+// SetDiagnosticsUpdater sets the diagnostics updater for error tracking
+func SetDiagnosticsUpdater(updater DiagnosticsUpdater) {
+	diagUpdater = updater
+}
+
 // Setup sets the logging and opens a connection to the broker
 func Setup(hostname string, port int, retries int, clientId string) (mqtt.Client, error) {
 	client, err := CreateClient(hostname, port, retries, clientId)
@@ -81,8 +93,13 @@ func Send(client mqtt.Client, topic string, qos byte, retained bool, payload int
 	return err
 }
 
-// Error publishes a caught error to the error stat
+// Error publishes a caught error to the error stat and updates diagnostics
 func Error(client mqtt.Client, qos byte, retained bool, payload error, timeout time.Duration) error {
+	// Update diagnostics if updater is available
+	if diagUpdater != nil {
+		diagUpdater.UpdateError(payload)
+	}
+	
 	err := Send(client, "phocus/stats/error", qos, retained, fmt.Sprint(payload), timeout)
 	return err
 }

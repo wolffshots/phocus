@@ -13,8 +13,9 @@ import (
 	"encoding/json" // for config reading
 
 	"github.com/gin-gonic/gin"
-	api "github.com/wolffshots/phocus/v2/api"     // api setup
-	comms "github.com/wolffshots/phocus/v2/comms" // comms with inverter
+	api "github.com/wolffshots/phocus/v2/api"           // api setup
+	comms "github.com/wolffshots/phocus/v2/comms"       // comms with inverter
+	diagnostics "github.com/wolffshots/phocus/v2/diagnostics" // system diagnostics
 	ip "github.com/wolffshots/phocus/v2/ip"
 	messages "github.com/wolffshots/phocus/v2/messages" // message structures
 	mqtt "github.com/wolffshots/phocus/v2/mqtt"         // comms with mqtt broker
@@ -64,6 +65,7 @@ func ParseConfigFromFile(fileName string) (Configuration, error) {
 func Router(client mqtt.Client, profiling bool) error {
 	err := api.SetupRouter(gin.ReleaseMode, profiling).Run("0.0.0.0:8080")
 	if err != nil {
+		diagnostics.UpdateError(err)
 		pubErr := mqtt.Error(client, 0, true, err, 10)
 		if pubErr != nil {
 			log.Printf("Failed to post previous error (%v) to mqtt: %v\n", err, pubErr)
@@ -79,6 +81,9 @@ func main() {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds | log.Llongfile)
 	log.Println("Starting up phocus")
 	log.Printf("Phocus Version: %s\n\n", version)
+
+	// Initialize diagnostics system
+	diagnostics.Initialize(version)
 
 	configuration, err := ParseConfigFromFile("config.json")
 
@@ -101,20 +106,15 @@ func main() {
 	)
 
 	if err != nil {
+		diagnostics.UpdateError(err)
 		log.Printf("Failed to set up mqtt %d times with err: %v", configuration.MQTT.Retries, err)
 		os.Exit(1)
 	}
-	// reset error
-	pubErr := mqtt.Send(client, "phocus/stats/error", 0, true, "", 10)
-	if pubErr != nil {
-		log.Printf("Failed to clear previous error: %v\n", pubErr)
-	}
+	// reset error in diagnostics
+	diagnostics.UpdateError(nil)
 
-	// send new version
-	pubErr = mqtt.Send(client, "phocus/stats/version", 0, true, version, 10)
-	if pubErr != nil {
-		log.Printf("Failed to set phocus version: %v\n", pubErr)
-	}
+	// Start periodic diagnostics republisher
+	diagnostics.StartPeriodicRepublisher(client)
 	var commonPort comms.Port
 	switch configuration.Connection.Type {
 	case comms.ConnectionTypeSerial:
@@ -141,6 +141,7 @@ func main() {
 	}
 	log.Printf("Common port opened: %v\n", commonPort)
 	if err != nil {
+		diagnostics.UpdateError(err)
 		log.Printf("Failed to open connection with err: %v", err)
 		pubErr := mqtt.Error(client, 0, true, err, 10)
 		if pubErr != nil {
@@ -156,6 +157,7 @@ func main() {
 	// we only add them once we know the mqtt, serial and http aspects are up
 	err = sensors.Register(client, version)
 	if err != nil {
+		diagnostics.UpdateError(err)
 		pubErr := mqtt.Error(client, 0, true, err, 10)
 		if pubErr != nil {
 			log.Printf("Failed to post previous error (%v) to mqtt: %v\n", err, pubErr)
@@ -177,6 +179,7 @@ func main() {
 		if len(api.Queue) > 0 {
 			QPGSnResponse, err := messages.Interpret(client, commonPort, api.Queue[0], time.Duration(configuration.Messages.Read.TimeoutSeconds)*time.Second)
 			if err != nil {
+				diagnostics.UpdateError(err)
 				pubErr := mqtt.Error(client, 0, true, err, 10)
 				if pubErr != nil {
 					log.Printf("Failed to post previous error (%v) to mqtt: %v\n", err, pubErr)
@@ -203,6 +206,9 @@ func main() {
 			}
 			if QPGSnResponse != nil {
 				api.SetLast(QPGSnResponse)
+				// Clear error on successful response and increment health counter
+				diagnostics.UpdateError(nil)
+				diagnostics.IncrementHealthCounter()
 			}
 			api.Queue = api.Queue[1:]
 		} else {
