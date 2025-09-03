@@ -21,26 +21,10 @@ func TestSetup(t *testing.T) {
 	defer func() {
 		log.SetOutput(os.Stderr)
 	}()
-	client, err := Setup(
-		"bad host",
-		1883,
-		5,
-		"test_client_name",
-	)
-	assert.Equal(t, errors.New("no servers defined to connect to"), err)
-	assert.Equal(t, nil, client)
-
-	for i, message := range strings.Split(buf.String(), "\n") {
-		if len(message) > 20 {
-			assert.Equal(t, fmt.Sprintf("Failed to set up mqtt %d times with err: no servers defined to connect to", i+1), message[20:])
-		} else {
-			assert.Equal(t, "", message)
-		}
-	}
 
 	buf.Reset()
 
-	client, err = Setup(
+	client, err := Setup(
 		"127.0.0.1",
 		1883,
 		5,

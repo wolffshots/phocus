@@ -8,17 +8,17 @@ import (
 	"strings"
 	"time"
 
-	phocus_crc "github.com/wolffshots/phocus/v2/crc"
-	phocus_mqtt "github.com/wolffshots/phocus/v2/mqtt"
-	phocus_serial "github.com/wolffshots/phocus/v2/serial"
+	comms "github.com/wolffshots/phocus/v2/comms"
+	crc "github.com/wolffshots/phocus/v2/crc"
+	mqtt "github.com/wolffshots/phocus/v2/mqtt"
 )
 
 type QIDResponse struct {
 	SerialNumber string
 }
 
-func SendQID(port phocus_serial.Port, payload interface{}) (int, error) {
-	written, err := port.Write(port.Port, "QID")
+func SendQID(port comms.Port, payload interface{}) (int, error) {
+	written, err := port.Write("QID")
 	if err != nil {
 		return -1, err
 	} else {
@@ -27,11 +27,11 @@ func SendQID(port phocus_serial.Port, payload interface{}) (int, error) {
 	}
 }
 
-func ReceiveQID(port phocus_serial.Port, timeout time.Duration) (string, error) {
-	response, err := port.Read(port.Port, timeout)
+func ReceiveQID(port comms.Port, timeout time.Duration) (string, error) {
+	response, err := port.Read(timeout)
 	log.Printf("%s\n", response)
 	if err != nil || response == "" {
-		log.Printf("Failed to read from serial with: %v\n", err)
+		log.Printf("Failed to read with: %v\n", err)
 		return "", err
 	} else {
 		return VerifyQID(response)
@@ -39,7 +39,7 @@ func ReceiveQID(port phocus_serial.Port, timeout time.Duration) (string, error) 
 }
 
 func VerifyQID(response string) (string, error) {
-	if phocus_crc.Verify(response) {
+	if crc.Verify(response) {
 		// return
 		// TODO add check for length
 		log.Printf("Serial number queried: %s\n", response)
@@ -50,7 +50,7 @@ func VerifyQID(response string) (string, error) {
 		}
 		actual := response[len(response)-3 : len(response)-1] // 2 bytes of crc
 		remainder := response[:len(response)-3]               // actual response
-		wanted := phocus_crc.Checksum(remainder)              // response calculated on response data
+		wanted := crc.Checksum(remainder)                     // response calculated on response data
 		message := fmt.Sprintf("invalid response from QID: CRC should have been %x but was %x", wanted, actual)
 		log.Println(message)
 		return "", errors.New(message)
@@ -74,9 +74,9 @@ func EncodeQID(response *QIDResponse) string {
 	return string(jsonQIDResponse)
 }
 
-func PublishQID(client phocus_mqtt.Client, response *QIDResponse) error {
+func PublishQID(client mqtt.Client, response *QIDResponse) error {
 	jsonResponse := EncodeQID(response)
-	err := phocus_mqtt.Send(client, "phocus/stats/qid", 0, true, jsonResponse, 10)
+	err := mqtt.Send(client, "phocus/stats/qid", 0, true, jsonResponse, 10)
 	if err != nil {
 		log.Printf("MQTT send of %s failed with: %v\ntype of thing sent was: %T", "QID", err, jsonResponse)
 	} else {

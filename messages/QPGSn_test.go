@@ -11,91 +11,104 @@ import (
 	"github.com/stretchr/testify/assert"
 	phocus_crc "github.com/wolffshots/phocus/v2/crc"
 	phocus_serial "github.com/wolffshots/phocus/v2/serial"
-	"go.bug.st/serial"
 )
 
 func TestQPGSn(t *testing.T) {
-	cmd := StartCmd("socat", "PTY,link=./qpgsn1,raw,echo=1,crnl", "PTY,link=./qpgsn2,raw,echo=1,crnl")
+	cmd := StartCmd("socat", "-d", "-d", "PTY,link=./qpgsn1,raw,echo=0,crnl", "PTY,link=./qpgsn2,raw,echo=0,crnl")
 	defer TerminateCmd(cmd)
-	time.Sleep(10 * time.Millisecond)
+	time.Sleep(51 * time.Millisecond)
 
 	t.Run("TestSendQPGSn", func(t *testing.T) {
 		// setup virtual port
-		port1, err := phocus_serial.Setup("./qpgsn1", 2400, 1)
+		serialPort := phocus_serial.Port{
+			Path:    "./qpgsn1",
+			Baud:    9600,
+			Retries: 1,
+		}
+		commonPort1, err := serialPort.Open()
 		assert.NoError(t, err)
 
 		// valid write to virtual port
-		written, err := SendQPGSn(port1, nil)
+		written, err := SendQPGSn(commonPort1, nil)
 		assert.Equal(t, 8, written)
 		assert.NoError(t, err)
 
 		// valid write to virtual port
-		written, err = SendQPGSn(port1, 1)
+		written, err = SendQPGSn(commonPort1, 1)
 		assert.Equal(t, 8, written)
 		assert.NoError(t, err)
 
 		// invalid write to virtual port with string payload
-		written, err = SendQPGSn(port1, "1")
+		written, err = SendQPGSn(commonPort1, "1")
 		assert.Equal(t, -1, written)
 		assert.Equal(t, errors.New("qpgsn does not support string payloads"), err)
 
-		port1.Port.Close()
-		port1.Port = nil
+		err = commonPort1.Close()
+		assert.NoError(t, err)
 
 		// invalid write
-		written, err = SendQPGSn(port1, nil)
+		written, err = SendQPGSn(commonPort1, nil)
 		assert.Equal(t, -1, written)
-		assert.Equal(t, errors.New("port is nil on write"), err)
+		assert.Equal(t, errors.New("serial port is nil on write"), err)
 
 		// invalid write
-		written, err = SendQPGSn(port1, "1")
+		written, err = SendQPGSn(commonPort1, "1")
 		assert.Equal(t, -1, written)
 		assert.Equal(t, errors.New("qpgsn does not support string payloads"), err)
 
 		// invalid write
-		written, err = SendQPGSn(port1, 1)
+		written, err = SendQPGSn(commonPort1, 1)
 		assert.Equal(t, -1, written)
-		assert.Equal(t, errors.New("port is nil on write"), err)
+		assert.Equal(t, errors.New("serial port is nil on write"), err)
 	})
 
 	t.Run("TestReceiveQPGSn", func(t *testing.T) {
 		// setup virtual port
-		port1, err := phocus_serial.Setup("./qpgsn1", 2400, 1)
+		serialPort1 := phocus_serial.Port{
+			Path:    "./qpgsn1",
+			Baud:    9600,
+			Retries: 1,
+		}
+		commonPort1, err := serialPort1.Open()
 		assert.NoError(t, err)
+		defer commonPort1.Close()
+
+		serialPort2 := phocus_serial.Port{
+			Path:    "./qpgsn2",
+			Baud:    9600,
+			Retries: 1,
+		}
+		commonPort2, err := serialPort2.Open()
+		assert.NoError(t, err)
+
+		_, _ = commonPort2.Read(10 * time.Millisecond) // make sure it is empty when writing
 
 		// valid read from virtual port
 		// should time out
-		response, err := ReceiveQPGSn(port1, 0*time.Millisecond, 0)
+		response, err := ReceiveQPGSn(commonPort2, 0*time.Millisecond, 0)
 		assert.Equal(t, "", response)
 		assert.Equal(t, errors.New("read returned nothing"), err)
 
-		port1.Port.Close()
-		port1.Port = nil
+		err = commonPort2.Close()
+		assert.NoError(t, err)
 
 		// invalid read
-		response, err = ReceiveQPGSn(port1, 10*time.Millisecond, 1)
+		response, err = ReceiveQPGSn(commonPort2, 10*time.Millisecond, 1)
 		assert.Equal(t, "", response)
-		assert.Equal(t, errors.New("port is nil on read"), err)
+		assert.Equal(t, errors.New("serial port is nil on read"), err)
 
-		port1.Read = func(port serial.Port, timeout time.Duration) (string, error) {
-			return "some response\xea\xac\r", nil
-		}
+		commonPort2, err = serialPort2.Open()
+		assert.NoError(t, err)
+		defer commonPort2.Close()
 
 		// valid read from virtual port
 		// should respond
-		response, err = ReceiveQPGSn(port1, 10*time.Millisecond, 0)
-		assert.Equal(t, "some response\xea\xac\r", response)
+		written, err := SendQPGSn(commonPort1, 1) // 5
+		assert.Equal(t, 8, written)               // 5 + 2 (crc) + 1 (cr)
 		assert.NoError(t, err)
-
-		port1.Read = func(port serial.Port, timeout time.Duration) (string, error) {
-			return "", errors.New("some error")
-		}
-
-		// valid read from virtual port
-		// should respond with err
-		response, err = ReceiveQPGSn(port1, 0*time.Millisecond, 0)
-		assert.Equal(t, "", response)
-		assert.Equal(t, errors.New("some error"), err)
+		response, err = ReceiveQPGSn(commonPort2, 10*time.Millisecond, 0)
+		assert.Equal(t, phocus_crc.Encode("QPGS1"), response)
+		assert.NoError(t, err)
 	})
 
 	t.Run("TestVerifyQPGSn", func(t *testing.T) {

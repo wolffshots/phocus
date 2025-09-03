@@ -2,11 +2,9 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"math/rand"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	phocus_api "github.com/wolffshots/phocus/v2/api"
 	phocus_messages "github.com/wolffshots/phocus/v2/messages"
 )
@@ -20,13 +18,5 @@ func randomLast() {
 		}
 
 		time.Sleep(1 * time.Second)
-	}
-}
-
-func main() {
-	go randomLast()
-	err := phocus_api.SetupRouter(gin.DebugMode, false).Run("0.0.0.0:8080")
-	if err != nil {
-		log.Fatalf("fatal err in router: %v", err)
 	}
 }
