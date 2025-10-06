@@ -5,6 +5,9 @@
 [![codecov](https://codecov.io/github/wolffshots/phocus/branch/main/graph/badge.svg?token=641UGV72AY)](https://codecov.io/github/wolffshots/phocus)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/ae8e8489462c460ab79c61fc2f8d10e9)](https://app.codacy.com/gh/wolffshots/phocus/dashboard)
 
+> [!WARNING]  
+> This project is not going to be actively maintained since I got a new system installed at home. Some parts may get reused in other projects but if you specifically need this project to work for you then please reach out and I can see if I can help.
+
 A generic set of packages and app to speak to a device via serial and
 relay the responses to an MQTT broker in a way that Home Assistant expects
 
